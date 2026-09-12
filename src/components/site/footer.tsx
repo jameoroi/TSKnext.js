@@ -21,12 +21,13 @@ export function Footer() {
   }, []);
   const siteQuery = useQuery({
     queryKey: ['site.settings', 'compact'],
-    queryFn: () => legacyRequest<any>('site.settings', { compact: 1 }),
+    queryFn: () => legacyRequest<{ settings?: Record<string, unknown> }>('site.settings', { compact: 1 }),
     staleTime: 5 * 60_000,
     retry: 1,
   });
   const site = siteQuery.data?.settings || {};
-  const business = site.business || {};
+  const business =
+    site.business && typeof site.business === 'object' ? (site.business as Record<string, unknown>) : {};
   const company = text(site.company_name, 'THAISERKIT SUPPLY');
   const subtitle = text(site.company_subtitle, 'เครื่องมือ อุปกรณ์ และโซลูชันสำหรับงานช่าง เกษตร และอุตสาหกรรม');
   const legalName = text(business.legal_name, company);
@@ -59,16 +60,14 @@ export function Footer() {
         <div className="grid gap-9 md:grid-cols-2 xl:grid-cols-[1.3fr_.75fr_.75fr_1.1fr]">
           <section>
             <Link href="/" className="inline-flex items-center gap-3">
-              <span className="grid size-12 place-items-center rounded-xl bg-white p-1.5">
-                <Image
-                  src={String(site.logo_url || '/legacy-assets/logo.png')}
-                  alt=""
-                  width={42}
-                  height={42}
-                  className="max-h-10 w-auto object-contain"
-                  unoptimized={String(site.logo_url || '').startsWith('/api')}
-                />
-              </span>
+              <Image
+                src={String(site.logo_url || '/legacy-assets/logo.png')}
+                alt=""
+                width={48}
+                height={48}
+                className="size-12 object-contain"
+                unoptimized={String(site.logo_url || '').startsWith('/api')}
+              />
               <span>
                 <strong className="block text-lg">{company}</strong>
                 <small className="text-emerald-100/65">{subtitle}</small>

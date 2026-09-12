@@ -15,7 +15,7 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
     .toLowerCase();
   const all = await getBrands();
   const brands = (Array.isArray(all) ? all : []).filter(
-    (b: any) =>
+    (b: Record<string, unknown>) =>
       !q ||
       String(b.name || '')
         .toLowerCase()
@@ -58,7 +58,7 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
 
         {brands.length > 0 ? (
           <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-            {brands.map((b: any) => {
+            {brands.map((b: Record<string, unknown>) => {
               const name = String(b.name || '');
               const src = String(b.logo_url || b.logo_data_url || b.img || '');
               const key = String(b.id || name);
@@ -66,18 +66,19 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
                 <Link
                   key={key}
                   href={`/products?brand=${encodeURIComponent(String(b.id || name))}`}
-                  className="grid min-h-32 place-items-center rounded-2xl border bg-white p-4 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+                  className="grid min-h-24 place-items-center p-2 text-center transition hover:opacity-80"
+                  aria-label={name}
                 >
                   {src ? (
                     <span className="relative block h-14 w-full">
-                      <strong className="absolute inset-0 grid place-items-center px-2 text-sm leading-5">
+                      <strong className="absolute inset-0 grid place-items-center px-2 text-center text-sm leading-5">
                         {name}
                       </strong>
                       <Image
                         src={src}
                         alt=""
                         fill
-                        className="bg-white object-contain"
+                        className="object-contain"
                         unoptimized={src.startsWith('data:')}
                         onError={(e) => {
                           (e.target as HTMLImageElement).style.display = 'none';

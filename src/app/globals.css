@@ -14,6 +14,15 @@
 * {
   box-sizing: border-box;
 }
+/* ขอบ default ทุกจุดเป็น slate-200 — Tailwind v4 ไม่มีสีขอบตั้งต้น (จะเป็น currentColor/ดำ)
+   กฎนี้กันขอบดำทั้งเว็บ จุดไหนต้องการสีอื่นก็ระบุ border-{color} ทับได้ตามปกติ */
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--color-slate-200);
+  }
+}
 html {
   scroll-behavior: smooth;
 }

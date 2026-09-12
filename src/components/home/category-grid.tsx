@@ -1,9 +1,18 @@
 import Link from 'next/link';
-import { CategoryIcon } from '@/components/site/category-icon';
 
-export type GridCategory = { key: string; name: string; en?: string; icon?: string | null; sub?: string };
+export type GridCategory = {
+  key: string;
+  name: string;
+  en?: string;
+  icon?: string | null;
+  image?: string;
+  sub?: string;
+};
 
-/** ตารางหมวด 8 ช่องพร้อมไอคอนเส้นแบบ mockup — responsive 2→4→8 คอลัมน์ */
+/**
+ * ตารางหมวด 8 ช่อง — รูปจริงจาก CMS เท่านั้น (ไม่ใช้ไอคอน), พื้นหลังใส ไม่มีกรอบ
+ * future: Supabase categories { category_image, category_name, category_slug }
+ */
 export function CategoryGrid({ categories }: { categories: GridCategory[] }) {
   if (!categories.length) return null;
   return (
@@ -12,14 +21,26 @@ export function CategoryGrid({ categories }: { categories: GridCategory[] }) {
         <Link
           key={c.key}
           href={`/products?category=${encodeURIComponent(c.key)}`}
-          className="group rounded-2xl border border-slate-200 bg-white p-4 text-center shadow-sm transition hover:-translate-y-1 hover:border-emerald-200 hover:shadow-md"
+          className="group min-w-0 text-center"
         >
-          <span className="mx-auto grid size-14 place-items-center rounded-full bg-emerald-50 text-emerald-800 transition group-hover:scale-110 group-hover:bg-emerald-800 group-hover:text-white">
-            <CategoryIcon icon={c.icon} categoryKey={c.key} className="size-7" />
-          </span>
-          <strong className="mt-3 block text-sm leading-6">{c.name}</strong>
+          {c.image ? (
+            // รูปหมวดจาก CMS — แสดงรูปเปลือย ไม่มีกล่อง/พื้นหลัง/กรอบใด ๆ
+            // biome-ignore lint/performance/noImgElement: CMS stores arbitrary CDN/data URLs
+            <img
+              src={c.image}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              className="aspect-square w-full object-cover transition duration-300 group-hover:opacity-90"
+            />
+          ) : (
+            <span className="grid aspect-square w-full place-items-center bg-slate-100 p-2 text-center text-[11px] font-bold text-slate-400">
+              CATEGORY_IMAGE
+            </span>
+          )}
+          <strong className="mt-2 block truncate text-sm leading-6">{c.name}</strong>
           {c.sub ? (
-            <small className="mt-0.5 block text-[11px] leading-5 text-slate-400">({c.sub})</small>
+            <small className="mt-0.5 block truncate text-[11px] leading-5 text-slate-400">({c.sub})</small>
           ) : null}
         </Link>
       ))}

@@ -16,7 +16,10 @@ export async function requestOrigin() {
     const proto = incoming.get('x-forwarded-proto') || (host.includes('localhost') ? 'http' : 'https');
     return normalizeOrigin(proto, host);
   } catch {
-    const configured = String(process.env.NEXT_PUBLIC_APP_ORIGIN || process.env.APP_ORIGIN || '').replace(/\/$/, '');
+    const configured = String(process.env.NEXT_PUBLIC_APP_ORIGIN || process.env.APP_ORIGIN || '').replace(
+      /\/$/,
+      '',
+    );
     if (/^https?:\/\//.test(configured)) return configured;
     return 'http://localhost:3000';
   }
@@ -27,17 +30,30 @@ export async function requestOrigin() {
  *
  * NOTE (Cloudflare Workers): the previous `'use cache'` + cacheLife/cacheTag
  * implementation hangs the Workers runtime (Next warns that Cache Components
- * cannot rely on this runtime's `setTimeout()`), so this is a direct
- * in-process call with no server cache. Tenant isolation still holds because
- * the origin (hence host) is passed per request, and client react-query
- * caches (`staleTime`) still apply in the browser.
+ * cannot rely on this runtime's `setTimeout()`), so this is a short-TTL
+ * in-process Map instead (no timers — entries expire lazily on read).
+ * Warm isolates reuse it, which cuts repeat Supabase/legacy round trips
+ * dramatically. Tenant isolation holds because the origin (host) is part
+ * of the cache key. Mutations never go through here (POST /api only),
+ * so worst case a public read is stale for TTL_MS.
  */
+const TTL_MS = 60_000;
+// งานอ่านแค็ตตาล็อกหนัก (สแกน/นับทั้งร้าน) ให้อยู่นานขึ้น — แอดมินแก้แล้วเห็นผลช้าสุด ~3 นาที
+// แลกกับไม่ให้ทุก request จุด full scan จน worker ล้ม (1102)
+const HEAVY_TTL_MS = 180_000;
+const MAX_ENTRIES = 500;
+const mem = new Map<string, { at: number; data: unknown }>();
+
+function cacheKey(origin: string, action: string, params: Record<string, unknown>) {
+  return `${origin}|${action}|${JSON.stringify(params)}`;
+}
 async function cachedPublicRequest<T>(origin: string, action: string, params: Record<string, unknown>) {
   const query = new URLSearchParams({ action });
   for (const [key, value] of Object.entries(params)) {
     if (value == null || value === '') continue;
-    if (Array.isArray(value)) value.forEach((item) => query.append(key, String(item)));
-    else query.set(key, String(value));
+    if (Array.isArray(value)) {
+      for (const item of value) query.append(key, String(item));
+    } else query.set(key, String(value));
   }
 
   const request = new Request(`${origin}/api?${query.toString()}`, {
@@ -61,7 +77,16 @@ export async function safePublicLegacy<T>(
 ): Promise<T> {
   try {
     const origin = await requestOrigin();
+    const key = cacheKey(origin, action, params);
+    const ttl = action.startsWith('products.') ? HEAVY_TTL_MS : TTL_MS;
+    const hit = mem.get(key);
+    if (hit && Date.now() - hit.at < ttl) return hit.data as T;
     const out = await cachedPublicRequest<T>(origin, action, params);
+    mem.set(key, { at: Date.now(), data: out });
+    if (mem.size > MAX_ENTRIES) {
+      const oldest = mem.keys().next();
+      if (!oldest.done) mem.delete(oldest.value);
+    }
     return out;
   } catch (error) {
     console.warn(`[next-cache] ${action} failed`, error instanceof Error ? error.message : error);

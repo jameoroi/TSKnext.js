@@ -1,7 +1,8 @@
 import type { ComponentProps } from 'react';
 import { ProductCard } from '@/components/commerce/product-card';
 import { ArticleCard } from '@/components/home/article-card';
-import { BrandMarquee } from '@/components/home/brand-marquee';
+import { AutoRail } from '@/components/home/auto-rail';
+import { BrandItem } from '@/components/home/brand-item';
 import { CategoryGrid } from '@/components/home/category-grid';
 import { DealerRegisterSection } from '@/components/home/dealer-register-section';
 import { EntryPopup } from '@/components/home/entry-popup';
@@ -72,7 +73,13 @@ export default async function HomePage() {
         <p className="-mt-3 mb-5 text-sm text-slate-500">ค้นหาสินค้าให้ใช่ ตอบโจทย์ทุกงานช่างและอุตสาหกรรม</p>
         {home.categories.length > 0 && (
           <CategoryGrid
-            categories={home.categories.map((c) => ({ key: c.key, name: c.name, en: c.en, icon: c.icon }))}
+            categories={home.categories.map((c) => ({
+              key: c.key,
+              name: c.name,
+              en: c.en,
+              icon: c.icon,
+              image: c.image,
+            }))}
           />
         )}
         {missingCategories > 0 && (
@@ -114,14 +121,17 @@ export default async function HomePage() {
               <SaleCountdown endsAt={home.flash.endsAt} />
             </div>
           </div>
-          <div className="grid min-w-0 grid-cols-2 gap-3 lg:grid-cols-4">
+          <AutoRail
+            label="สินค้า Flash Sale"
+            itemClassName="min-w-[47%] snap-start sm:min-w-[31%] lg:min-w-[23%]"
+          >
             {home.flash.items.map((item) => (
               <FlashSaleCard key={item.product.id} item={item} />
             ))}
             {placeholderIds(missingFlash, 'flash-ph').map((id) => (
               <FlashSaleCardPlaceholder key={id} />
             ))}
-          </div>
+          </AutoRail>
         </div>
       </section>
 
@@ -138,13 +148,18 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* 8. BRAND_SECTION — DYNAMIC_DATA (Supabase: brands): แถวเดียว เลื่อนออโต้แบบสมูท */}
+      {/* 8. BRAND_SECTION — DYNAMIC_DATA (Supabase: brands): โลโก้ล้วนไร้กรอบ เลื่อนออโต้สมูท + ลากได้ */}
       <section className="mx-auto max-w-7xl px-4 pb-12 lg:px-6" aria-label="แบรนด์">
         <SectionTitle eyebrow="TOP BRANDS" title="แบรนด์" href="/brands" />
         {home.brands.length > 0 ? (
-          <BrandMarquee
-            brands={home.brands.map((brand) => ({ id: brand.id, name: brand.name, logo: brand.logo }))}
-          />
+          <AutoRail
+            label="แบรนด์ชั้นนำ"
+            itemClassName="grid h-16 w-36 shrink-0 snap-start place-items-center sm:w-44"
+          >
+            {home.brands.map((brand) => (
+              <BrandItem key={brand.id} brand={brand} />
+            ))}
+          </AutoRail>
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {placeholderIds(brandSlots, 'brand-ph').map((id) => (

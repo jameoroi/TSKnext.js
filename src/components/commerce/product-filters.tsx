@@ -43,10 +43,9 @@ export function ProductFilters(props: Props) {
   const [category, setCategory] = useState(props.category);
   const [brand, setBrand] = useState(props.brand);
   const [status, setStatus] = useState(props.status);
-  const [sort, setSort] = useState(props.sort || 'default');
+  const [sort] = useState(props.sort || 'default');
   const [minPrice, setMinPrice] = useState(props.minPrice);
   const [maxPrice, setMaxPrice] = useState(props.maxPrice);
-  const [open, setOpen] = useState(true);
   const [groups, setGroups] = useState({ category: true, brand: true, price: true, status: true });
   const toggle = (k: keyof typeof groups) => setGroups((g) => ({ ...g, [k]: !g[k] }));
 

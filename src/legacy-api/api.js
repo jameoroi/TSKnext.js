@@ -5011,7 +5011,13 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
     const total=list.length; const start=(page-1)*perPage;
     const paged=list.slice(start,start+perPage).map(productCardView);
     let productFacets;
-    if(includeFacets){const all=(await listJSONByPrefix(ds,'product:','product-index')).filter(p=>p&&p.state!=='hidden'&&p.state!=='discontinued');productFacets={categories:{},brands:{}};for(const p of all){productFacets.categories[p.category||'']=(productFacets.categories[p.category||'']||0)+1;productFacets.brands[p.brand||'']=(productFacets.brands[p.brand||'']||0)+1;}}
+    if(includeFacets){
+      // ไม่กรองอะไรเลย = list ชุดนี้คือทั้งร้านอยู่แล้ว นับจากของที่มีได้เลย
+      // ไม่ต้องสแกนแค็ตตาล็อกซ้ำอีกรอบ (ประหยัด subrequests ครึ่งหนึ่งของ worst case)
+      const unfiltered=!category&&!brand&&!q&&!status&&!Number.isFinite(minPrice)&&!Number.isFinite(maxPrice);
+      const all=unfiltered?list:(await listJSONByPrefix(ds,'product:','product-index')).filter(p=>p&&p.state!=='hidden'&&p.state!=='discontinued');
+      productFacets={categories:{},brands:{}};for(const p of all){productFacets.categories[p.category||'']=(productFacets.categories[p.category||'']||0)+1;productFacets.brands[p.brand||'']=(productFacets.brands[p.brand||'']||0)+1;}
+    }
     return json({ok:true, products:paged, total, page, per_page:perPage,facets:productFacets,source:'blobs'},200,{'cache-control':'public, max-age=15, stale-while-revalidate=60'});
   }
   if(action==='products.get'){

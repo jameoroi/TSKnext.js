@@ -21,7 +21,7 @@ function Shell({
       role="img"
       data-testid={testId}
       aria-label={`${label} (รอข้อมูลจากระบบหลังบ้าน)`}
-      className={`flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-center ${className}`}
+      className={`flex flex-col items-center justify-center gap-2 rounded-2xl bg-slate-100 p-4 text-center ${className}`}
     >
       <span className="animate-pulse grid size-12 place-items-center rounded-full bg-slate-200 text-lg font-black text-slate-400">
         …
@@ -38,7 +38,7 @@ export function PromoBannerPlaceholder({ slot }: { slot: number }) {
       role="img"
       data-testid={`promo-banner-placeholder-${slot}`}
       aria-label={`ช่องแบนเนอร์โปรโมชั่นที่ ${slot} (รอข้อมูลจาก Supabase: banners)`}
-      className="grid min-h-36 place-items-center rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center"
+      className="grid min-h-36 place-items-center rounded-3xl bg-slate-100 p-6 text-center"
     >
       <div>
         <p className="text-sm font-black text-slate-500">PROMO_BANNER_{slot}</p>
@@ -65,7 +65,7 @@ export function ProductCardPlaceholder() {
       role="img"
       data-testid="product-card-placeholder"
       aria-label="การ์ดสินค้า (รอข้อมูลจาก Supabase: products)"
-      className="overflow-hidden rounded-2xl border border-dashed border-slate-300 bg-white"
+      className="overflow-hidden rounded-2xl bg-white shadow-sm"
     >
       <div className="animate-pulse aspect-square bg-slate-100" />
       <div className="space-y-2 p-4">
@@ -86,7 +86,7 @@ export function FlashSaleCardPlaceholder() {
       role="img"
       data-testid="flash-sale-card-placeholder"
       aria-label="การ์ดสินค้า Flash Sale (รอข้อมูลจาก Supabase: products / promotions)"
-      className="overflow-hidden rounded-2xl border border-dashed border-slate-300 bg-white"
+      className="overflow-hidden rounded-2xl bg-white shadow-sm"
     >
       <div className="animate-pulse aspect-square bg-slate-100" />
       <div className="space-y-2 p-4">
@@ -107,7 +107,7 @@ export function ArticleCardPlaceholder() {
       role="img"
       data-testid="article-card-placeholder"
       aria-label="การ์ดบทความ (รอข้อมูลจาก Supabase: articles)"
-      className="overflow-hidden rounded-2xl border border-dashed border-slate-300 bg-white"
+      className="overflow-hidden rounded-2xl bg-white shadow-sm"
     >
       <div className="animate-pulse aspect-[4/3] bg-slate-100" />
       <div className="space-y-2 p-4">
