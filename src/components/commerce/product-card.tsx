@@ -106,7 +106,7 @@ export function ProductCard({
             TEST
           </span>
         )}
-        <div className="absolute right-3 top-3 flex flex-col gap-2 opacity-0 transition group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100">
+        <div className="absolute right-3 top-3 flex flex-col gap-2 transition">
           <button
             type="button"
             onClick={() => quickView.open(product)}
@@ -175,9 +175,7 @@ export function ProductCard({
         </div>
         <div className="flex items-end justify-between gap-2">
           <div className="min-w-0">
-            <strong className={`text-lg ${discount > 0 ? 'text-rose-700' : 'text-emerald-950'}`}>
-              {money(Number(product.price))}
-            </strong>
+            <strong className="text-lg text-rose-700">{money(Number(product.price))}</strong>
             {old > product.price && (
               <del className="ml-2 whitespace-nowrap text-xs text-slate-400">{money(old)}</del>
             )}

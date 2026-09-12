@@ -4,6 +4,7 @@ import { RotateCcw, Search, SlidersHorizontal } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { CategoryIcon } from '@/components/site/category-icon';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Field, Select } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
@@ -12,6 +13,8 @@ import { subcategoriesForKey } from '@/shared/categories';
 
 export type FilterCategory = { key: string; name: string; icon?: string; product_count?: number | null };
 export type FilterBrand = { id: string; name: string };
+
+const VISIBLE_BRANDS = 5;
 
 const PRICE_CEILING = 50000;
 
@@ -26,6 +29,7 @@ type Props = {
   categories: FilterCategory[];
   brands: FilterBrand[];
   facetCounts: Record<string, number>;
+  brandCounts: Record<string, number>;
 };
 
 function toQuery(next: Record<string, string>) {
@@ -134,10 +138,17 @@ export function ProductFilters(props: Props) {
                     }}
                     aria-current={active}
                     aria-expanded={subs.length > 0 ? active : undefined}
-                    className={`flex w-full items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left hover:bg-slate-50 ${active ? 'bg-emerald-50 font-bold text-emerald-800' : ''}`}
+                    className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left hover:bg-slate-50 ${active ? 'bg-emerald-50 font-bold text-emerald-800' : ''}`}
                   >
-                    <span className="min-w-0 truncate">{c.name}</span>
-                    <span className="shrink-0 text-xs text-slate-400">{count ?? '›'}</span>
+                    <CategoryIcon
+                      icon={c.icon}
+                      categoryKey={c.key}
+                      className="size-5 shrink-0 text-emerald-700"
+                    />
+                    <span className="min-w-0 flex-1 truncate">{c.name}</span>
+                    <span className="shrink-0 text-xs text-slate-400">
+                      {count != null ? count.toLocaleString('th-TH') : '›'}
+                    </span>
                   </button>
                   {/* มือถือ/ทัช: กางหมวดย่อยด้านล่างเมื่อแตะเลือก — เดสก์ท็อปใช้ flyout ด้านขวาแทน */}
                   {active && subs.length > 0 && (
@@ -196,26 +207,15 @@ export function ProductFilters(props: Props) {
           </span>
         </button>
         {groups.brand && (
-          <div className="mt-2">
-            <label className="sr-only" htmlFor="catalog-brand">
-              แบรนด์
-            </label>
-            <Select
-              id="catalog-brand"
-              value={brand}
-              onChange={(e) => {
-                setBrand(e.target.value);
-                apply({ brand: e.target.value });
-              }}
-            >
-              <option value="">ทุกแบรนด์</option>
-              {props.brands.map((b) => (
-                <option key={b.id} value={b.name}>
-                  {b.name}
-                </option>
-              ))}
-            </Select>
-          </div>
+          <BrandCheckboxes
+            brands={props.brands}
+            counts={props.brandCounts}
+            value={brand}
+            onPick={(next) => {
+              setBrand(next);
+              apply({ brand: next });
+            }}
+          />
         )}
       </section>
 
@@ -345,6 +345,84 @@ export function ProductFilters(props: Props) {
         {body}
       </aside>
     </>
+  );
+}
+
+function BrandCheckboxes({
+  brands,
+  counts,
+  value,
+  onPick,
+}: {
+  brands: FilterBrand[];
+  counts: Record<string, number>;
+  value: string;
+  onPick: (next: string) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const shown = expanded ? brands : brands.slice(0, VISIBLE_BRANDS);
+  return (
+    <fieldset className="mt-2 grid gap-0.5">
+      <legend className="sr-only">กรองตามแบรนด์</legend>
+      {shown.map((b) => {
+        const checked = value === b.name;
+        const count = counts[b.name];
+        return (
+          <label
+            key={b.id}
+            className={`flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm transition hover:bg-slate-50 ${checked ? 'bg-emerald-50 font-bold text-emerald-800' : 'text-slate-700'}`}
+          >
+            <input
+              type="checkbox"
+              checked={checked}
+              onChange={() => onPick(checked ? '' : b.name)}
+              className="size-4 shrink-0 accent-emerald-800"
+            />
+            <span className="min-w-0 flex-1 truncate">{b.name}</span>
+            {count != null && (
+              <span className="shrink-0 text-xs text-slate-400">{count.toLocaleString('th-TH')}</span>
+            )}
+          </label>
+        );
+      })}
+      {!brands.length && <p className="px-2 py-1 text-sm text-slate-400">ยังไม่มีแบรนด์</p>}
+      {brands.length > VISIBLE_BRANDS && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="mt-1 px-2 py-1 text-left text-sm font-bold text-emerald-800 hover:underline"
+        >
+          {expanded ? 'แสดงน้อยลง ↑' : `แสดงเพิ่มเติม ↓ (${brands.length - VISIBLE_BRANDS})`}
+        </button>
+      )}
+    </fieldset>
+  );
+}
+
+export function PerPageSelect({ value }: { value: number }) {
+  const router = useRouter();
+  function onChange(next: string) {
+    const params = new URLSearchParams(window.location.search);
+    params.set('per_page', next);
+    params.delete('page');
+    router.push(`/products?${params.toString()}`);
+  }
+  return (
+    <label className="inline-flex items-center gap-2 text-sm text-slate-500">
+      แสดง
+      <select
+        value={String(value)}
+        onChange={(e) => onChange(e.target.value)}
+        aria-label="จำนวนรายการต่อหน้า"
+        className="h-10 rounded-xl border border-slate-300 bg-white px-2 text-sm font-bold text-slate-800 outline-none focus:border-emerald-700"
+      >
+        {[12, 24, 48].map((n) => (
+          <option key={n} value={n}>
+            {n} รายการ/หน้า
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 

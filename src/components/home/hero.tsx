@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowRight, BadgeCheck, ChevronLeft, ChevronRight, RotateCcw, Truck } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -18,10 +18,15 @@ function pick(row: Record<string, unknown>): Banner | null {
   };
 }
 
+const TRUST = [
+  { Icon: BadgeCheck, label: 'สินค้าแท้ 100% มั่นใจได้' },
+  { Icon: Truck, label: 'จัดส่งทั่วไทย 1–3 วัน' },
+  { Icon: RotateCcw, label: 'คืนสินค้าใน 7 วัน' },
+] as const;
+
 /**
- * HERO — carousel ล้วนเต็มแถบ (ไม่มีคอลัมน์ข้อความ ข้อความอยู่ในรูปแบนเนอร์เอง)
- * slides มาจาก CMS (site.banners → อนาคต Supabase: banners) รองรับ 4 สไลด์ขึ้นไป
- * ใหญ่สุดของหน้าแรก: เล่นอัตโนมัติ 6 วิ + ลูกศรซ้ายขวา + dots, หยุดเมื่อ hover/focus
+ * HERO — แถบมืดเต็มจอ: ข้อความซ้าย + carousel ขวา (เลื่อนออโต้ + ลูกศร + dots)
+ * สไลด์มาจาก CMS (site.banners → อนาคต Supabase: banners)
  */
 export function Hero({ banners }: { banners: Array<Record<string, unknown>> }) {
   const slides = banners.map(pick).filter((b): b is Banner => b !== null);
@@ -44,66 +49,95 @@ export function Hero({ banners }: { banners: Array<Record<string, unknown>> }) {
 
   return (
     <section
-      className="mx-auto max-w-7xl px-4 pt-4 lg:px-6 lg:pt-6"
+      className="relative overflow-hidden bg-emerald-950"
       aria-label="แบนเนอร์โปรโมชั่น"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
       onBlur={() => setPaused(false)}
     >
-      <div className="relative">
-        <div className="relative block aspect-[16/10] overflow-hidden rounded-3xl shadow-2xl sm:aspect-[16/8] lg:aspect-[16/6]">
-          {items.map((item, i) => (
+      <div className="mx-auto grid max-w-7xl items-center gap-8 px-4 py-10 lg:grid-cols-[.85fr_1.15fr] lg:px-6 lg:py-14">
+        <div className="relative z-10 text-white">
+          <h1 className="text-3xl font-black leading-tight sm:text-5xl lg:text-[3.2rem] lg:leading-[1.15]">
+            เครื่องมือช่าง
+            <br />
+            และอุปกรณ์อุตสาหกรรม
+            <br />
+            <span className="text-amber-300">ครบ จบที่เดียว</span>
+          </h1>
+          <p className="mt-4 max-w-xl text-sm leading-6 text-emerald-50/80 sm:text-base sm:leading-7">
+            สินค้าคุณภาพ จากแบรนด์ชั้นนำ ตอบโจทย์ทุกงานช่าง งานอุตสาหกรรม และงานก่อสร้าง
+          </p>
+          <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-xs font-bold text-emerald-50 sm:text-sm">
+            {TRUST.map(({ Icon, label }) => (
+              <li key={label} className="inline-flex items-center gap-1.5">
+                <Icon size={17} className="text-amber-300" /> {label}
+              </li>
+            ))}
+          </ul>
+          <div className="mt-7">
             <Link
-              key={`${item.src}|${item.link}`}
-              href={item.link}
-              aria-hidden={i !== index}
-              tabIndex={i !== index ? -1 : undefined}
-              className={`hero-slide absolute inset-0 transition-opacity duration-500 ${i === index ? 'z-10 opacity-100' : 'pointer-events-none z-0 opacity-0'}`}
+              href="/products"
+              className="inline-flex items-center gap-2 rounded-xl bg-amber-400 px-8 py-3.5 text-base font-black text-emerald-950 shadow-lg transition hover:bg-amber-300"
             >
-              <Image
-                src={item.src}
-                alt={item.alt}
-                fill
-                priority={i === 0}
-                className="object-cover"
-                unoptimized={item.src.startsWith('data:')}
-              />
+              ช้อปเลย <ArrowRight size={19} />
             </Link>
-          ))}
+          </div>
         </div>
-        {count > 1 && (
-          <>
-            <button
-              type="button"
-              onClick={() => go(index - 1)}
-              aria-label="แบนเนอร์ก่อนหน้า"
-              className="absolute left-3 top-1/2 z-20 grid size-10 -translate-y-1/2 place-items-center rounded-full bg-black/40 text-white backdrop-blur transition hover:bg-black/60 sm:size-12"
-            >
-              <ChevronLeft size={22} />
-            </button>
-            <button
-              type="button"
-              onClick={() => go(index + 1)}
-              aria-label="แบนเนอร์ถัดไป"
-              className="absolute right-3 top-1/2 z-20 grid size-10 -translate-y-1/2 place-items-center rounded-full bg-black/40 text-white backdrop-blur transition hover:bg-black/60 sm:size-12"
-            >
-              <ChevronRight size={22} />
-            </button>
-            <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 gap-2">
-              {items.map((item, i) => (
-                <button
-                  key={`${item.src}|${item.link}|dot`}
-                  type="button"
-                  onClick={() => go(i)}
-                  aria-label={`ไปสไลด์ที่ ${i + 1}`}
-                  aria-current={i === index}
-                  className={`h-2 rounded-full transition-all ${i === index ? 'w-7 bg-white' : 'w-2 bg-white/50 hover:bg-white/80'}`}
+        <div className="relative">
+          <div className="relative block aspect-[16/9] overflow-hidden rounded-3xl shadow-2xl">
+            {items.map((item, i) => (
+              <Link
+                key={`${item.src}|${item.link}`}
+                href={item.link}
+                aria-hidden={i !== index}
+                tabIndex={i !== index ? -1 : undefined}
+                className={`hero-slide absolute inset-0 transition-opacity duration-500 ${i === index ? 'z-10 opacity-100' : 'pointer-events-none z-0 opacity-0'}`}
+              >
+                <Image
+                  src={item.src}
+                  alt={item.alt}
+                  fill
+                  priority={i === 0}
+                  className="object-cover"
+                  unoptimized={item.src.startsWith('data:')}
                 />
-              ))}
-            </div>
-          </>
-        )}
+              </Link>
+            ))}
+          </div>
+          {count > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={() => go(index - 1)}
+                aria-label="แบนเนอร์ก่อนหน้า"
+                className="absolute left-3 top-1/2 z-20 grid size-10 -translate-y-1/2 place-items-center rounded-full bg-black/40 text-white backdrop-blur transition hover:bg-black/60"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <button
+                type="button"
+                onClick={() => go(index + 1)}
+                aria-label="แบนเนอร์ถัดไป"
+                className="absolute right-3 top-1/2 z-20 grid size-10 -translate-y-1/2 place-items-center rounded-full bg-black/40 text-white backdrop-blur transition hover:bg-black/60"
+              >
+                <ChevronRight size={20} />
+              </button>
+              <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 gap-2">
+                {items.map((item, i) => (
+                  <button
+                    key={`${item.src}|${item.link}|dot`}
+                    type="button"
+                    onClick={() => go(i)}
+                    aria-label={`ไปสไลด์ที่ ${i + 1}`}
+                    aria-current={i === index}
+                    className={`h-2 rounded-full transition-all ${i === index ? 'w-7 bg-white' : 'w-2 bg-white/50 hover:bg-white/80'}`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </section>
   );

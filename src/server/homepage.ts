@@ -43,7 +43,7 @@ export const DYNAMIC_SECTIONS = {
   CATEGORY_SECTION: { source_future: 'Supabase: categories', slots: 8 },
   FEATURED_PRODUCTS: { source_future: 'Supabase: products', slots: 5 },
   FLASH_SALE: { source_future: 'Supabase: products / promotions', slots: 4 },
-  ARTICLE_SECTION: { source_future: 'Supabase: articles', slots: 4 },
+  ARTICLE_SECTION: { source_future: 'Supabase: articles', slots: 5 },
   BRAND_SECTION: { source_future: 'Supabase: brands', slots: 8 },
 } as const;
 

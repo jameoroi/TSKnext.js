@@ -1,8 +1,14 @@
 import { X } from 'lucide-react';
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import { ProductCard } from '@/components/commerce/product-card';
-import { ClearFilters, ProductFilters, SortSelect } from '@/components/commerce/product-filters';
+import {
+  ClearFilters,
+  PerPageSelect,
+  ProductFilters,
+  SortSelect,
+} from '@/components/commerce/product-filters';
 import { getBrands, getCatalogCategories, getProducts } from '@/server/catalog';
 
 export const metadata: Metadata = {
@@ -12,7 +18,8 @@ export const metadata: Metadata = {
 
 type Search = Promise<Record<string, string | string[] | undefined>>;
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] || '' : v || '');
-const PER_PAGE = 24;
+const PER_PAGE_OPTIONS = [12, 24, 48];
+const DEFAULT_PER_PAGE = 24;
 
 function chipHref(current: Record<string, string>, remove: string[]) {
   const params = new URLSearchParams();
@@ -34,8 +41,10 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
   const minPrice = one(s.min_price);
   const maxPrice = one(s.max_price);
   const page = Math.max(1, Number(one(s.page)) || 1);
+  const perPageRaw = Number(one(s.per_page)) || 0;
+  const perPage = PER_PAGE_OPTIONS.includes(perPageRaw) ? perPageRaw : DEFAULT_PER_PAGE;
 
-  const params: Record<string, unknown> = { page, per_page: PER_PAGE, facets: 1 };
+  const params: Record<string, unknown> = { page, per_page: perPage, facets: 1 };
   if (q) params.q = q;
   if (category) params.category = category;
   if (brand) params.brand = brand;
@@ -52,7 +61,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
   ]);
 
   const total = result.total || result.products.length;
-  const pages = Math.max(1, Math.ceil(total / PER_PAGE));
+  const pages = Math.max(1, Math.ceil(total / perPage));
   const safePage = Math.min(page, pages);
   const keep: Record<string, string> = {
     q,
@@ -67,9 +76,12 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
     for (const [k, v] of Object.entries({ ...keep, sort: sort === 'default' ? '' : sort })) {
       if (v) ps.set(k, v);
     }
+    if (perPage !== DEFAULT_PER_PAGE) ps.set('per_page', String(perPage));
     ps.set('page', String(p));
     return `/products?${ps}`;
   };
+  const rangeStart = total === 0 ? 0 : (safePage - 1) * perPage + 1;
+  const rangeEnd = Math.min(total, safePage * perPage);
 
   const catRows = (Array.isArray(categories) ? categories : []).map((c: Record<string, unknown>) => ({
     key: String(c.key || c.id || c.name || ''),
@@ -118,6 +130,36 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6 lg:py-10">
+      <section className="relative mb-6 overflow-hidden rounded-3xl bg-emerald-950" aria-label="สินค้าคุณภาพ">
+        <Image
+          src="/legacy-assets/banners/1.png"
+          alt=""
+          fill
+          priority={false}
+          className="object-cover opacity-60"
+          unoptimized
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/90 via-emerald-950/50 to-transparent" />
+        <div className="relative p-6 sm:p-8">
+          <h2 className="max-w-xl text-2xl font-black leading-snug text-white sm:text-3xl">
+            เครื่องมือคุณภาพ เพื่อทุกงานมืออาชีพ
+          </h2>
+          <p className="mt-1 max-w-xl text-sm text-emerald-50/80">ครบ ครบครัน หลากหลายแบรนด์ชั้นนำ</p>
+          <ul className="mt-4 flex flex-wrap gap-2 text-xs font-bold text-white">
+            {['ของแท้ 100%', 'จัดส่งทั่วไทย', 'รับประกันสินค้า', 'ออกใบกำกับภาษีได้'].map((t) => (
+              <li
+                key={t}
+                className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 backdrop-blur"
+              >
+                <span aria-hidden="true" className="text-amber-300">
+                  ✓
+                </span>
+                {t}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
       <nav className="mb-4 flex items-center gap-1.5 text-sm text-slate-500" aria-label="เส้นทางหน้า">
         <Link href="/" className="hover:text-emerald-800">
           หน้าแรก
@@ -147,6 +189,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
           categories={catRows}
           brands={brandRows}
           facetCounts={result.facets?.categories || {}}
+          brandCounts={result.facets?.brands || {}}
         />
 
         <div className="min-w-0">
@@ -196,8 +239,15 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
             </div>
           )}
 
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-3 text-sm text-slate-500">
+            <p>
+              แสดง {rangeStart.toLocaleString('th-TH')} – {rangeEnd.toLocaleString('th-TH')} จาก{' '}
+              {total.toLocaleString('th-TH')} รายการ
+            </p>
+            <PerPageSelect value={perPage} />
+          </div>
           {pages > 1 && (
-            <nav className="mt-8 flex flex-wrap items-center justify-center gap-2" aria-label="หน้ารายการสินค้า">
+            <nav className="mt-4 flex flex-wrap items-center justify-center gap-2" aria-label="หน้ารายการสินค้า">
               <Link
                 aria-disabled={safePage <= 1}
                 href={pageHref(Math.max(1, safePage - 1))}

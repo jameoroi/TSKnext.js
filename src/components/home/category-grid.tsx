@@ -24,18 +24,18 @@ export function CategoryGrid({ categories }: { categories: GridCategory[] }) {
           className="group min-w-0 text-center"
         >
           {c.image ? (
-            // รูปหมวดจาก CMS — แสดงรูปเปลือย ไม่มีกล่อง/พื้นหลัง/กรอบใด ๆ
+            // รูปหมวดจาก CMS — วงกลมรูปจริง ไม่มีกล่อง/พื้นหลัง/กรอบใด ๆ
             // biome-ignore lint/performance/noImgElement: CMS stores arbitrary CDN/data URLs
             <img
               src={c.image}
               alt=""
               loading="lazy"
               decoding="async"
-              className="aspect-square w-full object-cover transition duration-300 group-hover:opacity-90"
+              className="mx-auto aspect-square w-full max-w-36 rounded-full object-cover transition duration-300 group-hover:opacity-90"
             />
           ) : (
-            <span className="grid aspect-square w-full place-items-center bg-slate-100 p-2 text-center text-[11px] font-bold text-slate-400">
-              CATEGORY_IMAGE
+            <span className="mx-auto grid aspect-square w-full max-w-36 place-items-center rounded-full bg-emerald-800 p-2 text-center text-xl font-black text-white">
+              {c.name.trim().charAt(0) || '•'}
             </span>
           )}
           <strong className="mt-2 block truncate text-sm leading-6">{c.name}</strong>

@@ -1,9 +1,9 @@
-import { Diamond, Headset, ShieldCheck, Truck, Wallet } from 'lucide-react';
+import { Headset, ShieldCheck, Truck, Undo2, Wallet } from 'lucide-react';
 
 const ITEMS = [
-  { icon: Diamond, title: 'สินค้าของแท้ 100%', desc: 'มั่นใจได้ทุกชิ้น' },
   { icon: Truck, title: 'จัดส่งทั่วไทย 1–3 วัน', desc: 'หลายช่องทาง' },
-  { icon: ShieldCheck, title: 'เสียหายภายใน 7 วัน', desc: 'ยินดีเปลี่ยนใหม่' },
+  { icon: ShieldCheck, title: 'สินค้าแท้ 100%', desc: 'มั่นใจได้ทุกชิ้น' },
+  { icon: Undo2, title: 'คืนสินค้าใน 7 วัน', desc: 'ยินดีเปลี่ยนใหม่' },
   { icon: Headset, title: 'ทีมงานผู้เชี่ยวชาญ', desc: 'พร้อมให้คำปรึกษา' },
   { icon: Wallet, title: 'ชำระเงินปลอดภัย', desc: 'หลากหลายช่องทาง' },
 ];
