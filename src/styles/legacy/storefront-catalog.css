@@ -1,0 +1,211 @@
+/* =========================================================================
+   Catalog listing: filter rail, toolbar, grid and pagination.
+   Built on the tokens in tsk-design-system.css.
+   ========================================================================= */
+
+.tsk-catalog { display: grid; grid-template-columns: 268px minmax(0, 1fr); gap: 20px; align-items: start; }
+.tsk-catalog-main { min-width: 0; }
+
+/* ------------------------------------------------------------ filter rail */
+/*
+ * `overflow: hidden` was clipping the subcategory flyout out of existence.
+ *
+ * It was there to keep the card’s rounded corners tidy, and it did — along
+ * with anything that tried to open beyond the column’s edge, which is exactly
+ * what a flyout does. The corners are clipped on the parts that need it
+ * instead, so the panel can reach past the filter without the filter losing
+ * its shape.
+ */
+/*
+ * The column has to win the stacking order, not just the flyout inside it.
+ *
+ * A sticky element makes a stacking context of its own, so the flyout’s
+ * z-index only ever competed with its siblings inside this column — it could
+ * be a thousand and still open behind a product card, because the card is
+ * outside the context entirely. The number belongs here, on the element that
+ * owns the context.
+ */
+.tsk-filter { position: sticky; top: 16px; overflow: visible; z-index: 40; }
+.tsk-filter > .tsk-filter-head { border-radius: inherit; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.tsk-filter-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 16px;
+  /* White on the bright brand green is 2.82:1, the same finding as the primary
+     and category buttons. The darker brand green is 5.40:1. */
+  background: var(--tsk-green-700);
+  color: #fff;
+  font-size: 14.5px;
+  font-weight: 700;
+}
+.tsk-filter-head svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.tsk-filter-body { padding: 16px; }
+
+.tsk-filter-group + .tsk-filter-group { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--tsk-line-2); }
+.tsk-filter-group > h4 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 10px;
+  color: var(--tsk-ink);
+  font-size: 13.5px;
+  font-weight: 700;
+}
+.tsk-filter-group > h4 svg { width: 15px; height: 15px; fill: none; stroke: var(--tsk-dim); stroke-width: 2; stroke-linecap: round; }
+
+.tsk-field {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 13px;
+  border: 1px solid var(--tsk-line);
+  border-radius: var(--tsk-r-sm);
+  background: #fff;
+  color: var(--tsk-ink);
+  font: inherit;
+  font-size: 13.5px;
+  transition: border-color .16s ease, box-shadow .16s ease;
+}
+.tsk-field:focus { outline: none; border-color: var(--tsk-green); box-shadow: 0 0 0 3px rgba(76, 175, 0, .13); }
+select.tsk-field {
+  padding-right: 32px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237c8a82' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 15px;
+  appearance: none;
+  cursor: pointer;
+}
+
+.tsk-filter-search { position: relative; }
+.tsk-filter-search .tsk-field { padding-right: 40px; }
+.tsk-filter-search button {
+  position: absolute;
+  top: 50%;
+  right: 5px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--tsk-dim);
+  cursor: pointer;
+}
+.tsk-filter-search button:hover { background: var(--tsk-green-050); color: var(--tsk-green-700); }
+.tsk-filter-search svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+
+.tsk-cat-list { display: grid; gap: 1px; }
+.tsk-cat-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: var(--tsk-r-sm);
+  background: transparent;
+  color: var(--tsk-ink-2);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease;
+}
+.tsk-cat-item:hover { background: var(--tsk-green-050); color: var(--tsk-green-700); }
+.tsk-cat-item.active { background: var(--tsk-green); color: #fff; font-weight: 600; }
+.tsk-cat-item .tsk-cat-meta { flex: 0 0 auto; font-size: 11.5px; opacity: .7; }
+
+.tsk-price-row { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; }
+.tsk-price-row span { color: var(--tsk-dim); font-size: 12px; }
+.tsk-price-row .tsk-field { min-height: 40px; padding: 9px 10px; text-align: center; }
+
+/* Native range input restyled to the mockup's slim green track. */
+.tsk-range { margin-top: 14px; }
+.tsk-range input[type="range"] {
+  width: 100%;
+  height: 4px;
+  margin: 0;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--tsk-green) 0 var(--tsk-range-fill, 100%), var(--tsk-line) var(--tsk-range-fill, 100%) 100%);
+  appearance: none;
+  cursor: pointer;
+}
+.tsk-range input[type="range"]::-webkit-slider-thumb {
+  width: 16px;
+  height: 16px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: var(--tsk-green);
+  box-shadow: 0 1px 4px rgba(23, 60, 33, .3);
+  appearance: none;
+}
+.tsk-range input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: var(--tsk-green);
+  box-shadow: 0 1px 4px rgba(23, 60, 33, .3);
+}
+.tsk-range-labels { display: flex; justify-content: space-between; margin-top: 6px; color: var(--tsk-dim); font-size: 11px; }
+
+.tsk-filter-actions { display: grid; gap: 8px; margin-top: 18px; }
+
+/* ---------------------------------------------------------------- toolbar */
+.tsk-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.tsk-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 13px;
+  border: 1px solid var(--tsk-line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--tsk-ink-2);
+  font-size: 12.5px;
+}
+.tsk-chip:hover { border-color: var(--tsk-green); color: var(--tsk-green-700); }
+
+.tsk-sort { min-width: 190px; }
+
+/* ------------------------------------------------------------- pagination */
+.tsk-pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 7px; margin-top: 30px; }
+.tsk-page-btn {
+  min-width: 40px;
+  height: 40px;
+  padding: 0 13px;
+  border: 1px solid var(--tsk-line);
+  border-radius: var(--tsk-r-sm);
+  background: #fff;
+  color: var(--tsk-ink-2);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color .16s ease, background .16s ease, color .16s ease;
+}
+.tsk-page-btn:hover:not(:disabled) { border-color: var(--tsk-green); color: var(--tsk-green-700); }
+.tsk-page-btn.active { border-color: var(--tsk-green); background: var(--tsk-green); color: #fff; }
+.tsk-page-btn:disabled { opacity: .45; cursor: not-allowed; }
+.tsk-pagination .gap { color: var(--tsk-dim); }
+
+.tsk-empty {
+  padding: 52px 24px;
+  border: 1px dashed #cdd9d1;
+  border-radius: var(--tsk-r);
+  background: #fff;
+  color: var(--tsk-dim);
+  text-align: center;
+}
+.tsk-empty .tsk-btn { margin-top: 14px; }
+
+@media (max-width: 1080px) { .tsk-catalog { grid-template-columns: 232px minmax(0, 1fr); } }
+
+@media (max-width: 860px) {
+  .tsk-catalog { grid-template-columns: minmax(0, 1fr); }
+  .tsk-filter { position: static; }
+}

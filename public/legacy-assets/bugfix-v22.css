@@ -1,0 +1,163 @@
+/* =========================================================================
+   THAISERKIT SUPPLY — Release 22 — Layout fix + Modern flair pass
+   Loads after bugfix-v21.css. Additive + targeted overrides only.
+   ========================================================================= */
+
+/* -------------------------------------------------------------------------
+   1) HOME HERO — stop cropping the banner artwork
+   Banner images are authored at a 2:1 ratio. Earlier CSS forced the hero
+   into a much wider box (up to 3.58:1) and used object-fit:cover, which
+   sliced off the headline text near the top and the badge row near the
+   bottom of every banner. Bringing the ratio close to the source art's
+   native 2:1 keeps the whole banner visible.
+   ------------------------------------------------------------------------- */
+@media (min-width:761px){
+  body[data-page="home"] .home-main-column .hero-slide{
+    aspect-ratio:2.1/1!important;
+    min-height:0!important;
+  }
+}
+@media (max-width:760px){
+  body[data-page="home"] .home-main-column .hero-slide{
+    aspect-ratio:2.05/1!important;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   2) HOME LAYOUT — make the left category rail and the right column
+   (hero + trust strip) end at exactly the same height, on every screen,
+   regardless of banner height. Previously the sidebar had a fixed
+   min-height (420px) that had no relation to the hero's real height, so
+   the pink "ดูสินค้าทั้งหมด" button almost never lined up with the bottom
+   of the trust-badge row next to it.
+   ------------------------------------------------------------------------- */
+@media (min-width:761px){
+  body[data-page="home"] .home-commerce{
+    align-items:stretch!important;
+  }
+  body[data-page="home"] .home-cat-sidebar{
+    display:flex!important;
+    flex-direction:column!important;
+    height:100%!important;
+    min-height:0!important;
+  }
+  body[data-page="home"] .home-cat-list{
+    flex:1 1 auto!important;
+    min-height:0!important;
+    display:flex!important;
+    flex-direction:column!important;
+    justify-content:flex-start!important;
+  }
+  body[data-page="home"] .home-cat-all{
+    margin-top:auto!important;
+    flex:0 0 auto!important;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   3) FACEBOOK CHAT BUTTON — give the single floating bubble some life:
+   soft entrance, gentle hover lift. (Duplicate legacy bubble removed in JS —
+   see site-refresh-v22.js.)
+   ------------------------------------------------------------------------- */
+.fb-chat-bubble{
+  animation:tskFabIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+.fb-chat-bubble:hover{
+  transform:translateY(-3px) scale(1.1)!important;
+  box-shadow:0 16px 34px rgba(0,0,0,.38)!important;
+}
+.back-to-top{ animation:tskFabIn .5s cubic-bezier(.34,1.56,.64,1) both .08s; }
+@keyframes tskFabIn{
+  from{opacity:0;transform:translateY(16px) scale(.85)}
+  to{opacity:1;transform:none}
+}
+@media (prefers-reduced-motion: reduce){
+  .fb-chat-bubble,.back-to-top{animation:none!important}
+}
+
+/* -------------------------------------------------------------------------
+   4) HERO ARROWS — appear on hover/focus instead of sitting on the art
+   permanently; a small modern touch that keeps the banner clean.
+   ------------------------------------------------------------------------- */
+@media (min-width:761px){
+  .hero-arrow{opacity:0;transition:opacity .25s ease,transform .18s ease,background .18s ease;}
+  .hero-slide:hover .hero-arrow,.hero-arrow:focus-visible{opacity:1;}
+}
+
+/* -------------------------------------------------------------------------
+   5) PRODUCT CARDS — subtle image zoom + wishlist heart pop, so browsing
+   feels a bit more alive without changing the layout.
+   ------------------------------------------------------------------------- */
+.prod-img{overflow:hidden;}
+.prod-img img{transition:transform .4s cubic-bezier(.2,.7,.3,1);}
+.prod-card:hover .prod-img img{transform:scale(1.07);}
+
+@keyframes tskHeartPop{
+  0%{transform:scale(1)}
+  35%{transform:scale(1.35)}
+  60%{transform:scale(.9)}
+  100%{transform:scale(1)}
+}
+.tsk-round-action.pop{animation:tskHeartPop .38s ease;}
+
+/* -------------------------------------------------------------------------
+   6) MISC micro-interactions
+   ------------------------------------------------------------------------- */
+.btn-solid,.btn-outline{transition:transform .18s ease,box-shadow .18s ease,background .18s ease,color .18s ease;}
+.btn-solid:hover,.btn-outline:hover{transform:translateY(-1px);}
+.btn-solid:active,.btn-outline:active{transform:translateY(0) scale(.98);}
+
+.home-cat-link .chev{transition:transform .18s ease;}
+.home-cat-link:hover .chev{transform:translateX(3px);}
+
+@media (prefers-reduced-motion: reduce){
+  .prod-img img,.btn-solid,.btn-outline,.home-cat-link .chev{transition:none!important;}
+}
+
+/* -------------------------------------------------------------------------
+   7) HERO PROGRESS BAR — the little "story" dashes under the banner already
+   fill up smoothly over each slide's duration; this just makes the fill
+   itself look more premium (soft glow + gradient) instead of a flat pink bar.
+   ------------------------------------------------------------------------- */
+.hero-progress .seg{
+  height:5px!important;
+  border-radius:999px!important;
+  background:rgba(255,255,255,.28)!important;
+  backdrop-filter:blur(1px);
+}
+.hero-progress .seg i{
+  border-radius:999px!important;
+  background:linear-gradient(90deg,#ffd7e8,var(--pink-light,#f2a9c6) 55%,#fff)!important;
+  box-shadow:0 0 10px rgba(255,255,255,.65),0 0 3px rgba(255,255,255,.9)!important;
+}
+.hero-progress .seg.active i{
+  animation-timing-function:linear!important; /* fill matches real elapsed time */
+}
+.hero-progress .seg:hover{background:rgba(255,255,255,.42)!important;}
+
+/* -------------------------------------------------------------------------
+   8) FACEBOOK CHAT BUTTON — turn the single pulse ring into a soft
+   multi-ring "radar" wave that keeps expanding outward, continuously.
+   ------------------------------------------------------------------------- */
+.fb-chat-ping{ animation:none!important; border:none!important; background:transparent!important; }
+.fb-chat-ping::before,
+.fb-chat-ping::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:50%;
+  border:2px solid #33aaff;
+  opacity:0;
+  animation:tskRadarWave 2.6s cubic-bezier(.2,.65,.35,1) infinite;
+}
+.fb-chat-ping::after{
+  animation-delay:1.3s;
+  border-color:#c86bff;
+}
+@keyframes tskRadarWave{
+  0%{transform:scale(1);opacity:.55;}
+  100%{transform:scale(2.05);opacity:0;}
+}
+@media (prefers-reduced-motion: reduce){
+  .fb-chat-ping::before,.fb-chat-ping::after{animation:none!important;opacity:0!important;}
+}

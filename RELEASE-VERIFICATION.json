@@ -1,0 +1,29 @@
+{
+  "application": "THAISERKIT SUPPLY",
+  "version": "6.0.0",
+  "next": "16.3.4",
+  "sourceFeatureCompletionPercent": 100,
+  "sourceAudit": { "passed": 201, "total": 201 },
+  "releaseAudit": { "passed": 159, "total": 159 },
+  "applicationRoutes": 55,
+  "apiRoutes": 15,
+  "commerceActions": 187,
+  "typescriptTsxSyntax": { "files": 241, "errors": 0 },
+  "javascriptMjsSyntax": { "files": 64, "errors": 0 },
+  "currentPackageDocsOnly": true,
+  "runtimeDependencyVerification": {
+    "completedInPackagingEnvironment": false,
+    "reason": "registry.npmjs.org DNS returned EAI_AGAIN while Corepack attempted to download pnpm 11.16.0",
+    "commandsProvided": [
+      "pnpm install",
+      "pnpm db:migrate",
+      "pnpm audit:source",
+      "pnpm audit:release",
+      "pnpm typecheck",
+      "pnpm lint",
+      "pnpm test",
+      "pnpm test:e2e",
+      "pnpm build"
+    ]
+  }
+}

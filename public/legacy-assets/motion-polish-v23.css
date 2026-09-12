@@ -1,0 +1,263 @@
+/* =========================================================================
+   THAISERKIT SUPPLY — Release 23 — Motion & Micro-interaction Polish
+   Loads after bugfix-v22.css. Additive only — no layout rules are touched,
+   only transform / opacity / filter / box-shadow / pseudo-elements, so it is
+   safe next to every earlier release file.
+   ========================================================================= */
+
+/* -------------------------------------------------------------------------
+   0) Shared easing + reduced motion switch
+   ------------------------------------------------------------------------- */
+:root{
+  --mv-ease:cubic-bezier(.22,.75,.28,1);
+  --mv-pink:var(--pink,#E56B9F);
+  --mv-gold:var(--gold-soft,#E8C98D);
+}
+
+/* =========================================================================
+   1) HEADER — glass on scroll + pink-gold underline on nav hover
+   ========================================================================= */
+#site-header{transition:box-shadow .35s ease;}
+#site-header.scrolled{
+  box-shadow:0 10px 28px rgba(0,0,0,.22);
+}
+#site-header.scrolled .topbar,
+#site-header.scrolled .navbar{
+  backdrop-filter:blur(10px) saturate(160%);
+  -webkit-backdrop-filter:blur(10px) saturate(160%);
+}
+#site-header.scrolled .brand-logo{transform:scale(.94);transition:transform .3s var(--mv-ease);}
+#site-header.scrolled .brand-name-th{letter-spacing:0;transition:.3s;}
+#site-header .brand-logo{transition:transform .3s var(--mv-ease);}
+
+.nav-links a{position:relative;}
+.nav-links a::after{
+  content:"";position:absolute;left:16px;right:16px;bottom:6px;height:2px;
+  border-radius:2px;background:linear-gradient(90deg,var(--mv-gold),var(--mv-pink));
+  transform:scaleX(0);transform-origin:left;opacity:0;
+  transition:transform .32s var(--mv-ease),opacity .32s var(--mv-ease);
+}
+.nav-links a:hover::after,.nav-links a:focus-visible::after{transform:scaleX(1);opacity:1;}
+.nav-links li.active a::after{display:none;}
+
+/* =========================================================================
+   2) SEARCH — gentle expand + glow on focus, icon micro-spin
+   ========================================================================= */
+.header-search,.nav-search{
+  transition:transform .28s var(--mv-ease),box-shadow .28s var(--mv-ease);
+  border-radius:999px;
+}
+.header-search:focus-within,.nav-search:focus-within{
+  transform:scale(1.045);
+  box-shadow:0 0 0 4px rgba(229,107,159,.16),0 10px 24px rgba(229,107,159,.28);
+  position:relative;z-index:6;
+}
+.header-search button svg,.nav-search button svg{transition:transform .2s ease;}
+.header-search:focus-within button svg,.nav-search:focus-within button svg{
+  animation:mvSearchSpin .5s var(--mv-ease);
+}
+@keyframes mvSearchSpin{
+  0%{transform:rotate(0) scale(1);}
+  55%{transform:rotate(110deg) scale(1.18);}
+  100%{transform:rotate(0) scale(1);}
+}
+
+/* =========================================================================
+   3) CATEGORY GRID — icon lift + mouse-follow radial glow, softer rotate
+   ========================================================================= */
+.cat-card{--mx:50%;--my:40%;}
+.cat-card::after{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:radial-gradient(160px circle at var(--mx) var(--my),rgba(255,255,255,.30),transparent 62%);
+  opacity:0;transition:opacity .35s ease;z-index:1;
+}
+.cat-card:hover::after{opacity:1;}
+.cat-card:hover .cat-icon-badge{
+  transform:scale(1.07) translateY(-4px) rotate(-2deg)!important;
+}
+.cat-card .cat-icon-badge{transition:transform .32s var(--mv-ease),background .28s,border-color .28s;}
+
+/* =========================================================================
+   4) HERO FEATURE STRIP (under the banner) — staggered reveal + icon life
+   ========================================================================= */
+.hero-features .hf-item{
+  opacity:0;transform:translateY(14px);
+  transition:opacity .55s var(--mv-ease),transform .55s var(--mv-ease);
+}
+.hero-features.mv-in .hf-item{opacity:1;transform:translateY(0);}
+.hero-features.mv-in .hf-item:nth-child(1){transition-delay:.02s;}
+.hero-features.mv-in .hf-item:nth-child(2){transition-delay:.16s;}
+.hero-features.mv-in .hf-item:nth-child(3){transition-delay:.30s;}
+.hero-features.mv-in .hf-item:nth-child(4){transition-delay:.44s;}
+
+.hero-features.mv-in .hf-item:nth-child(2) svg{animation:mvTruckMove 2.4s ease-in-out .9s infinite;}
+@keyframes mvTruckMove{0%,100%{transform:translateX(0);}50%{transform:translateX(4px);}}
+
+.hero-features.mv-in .hf-item:nth-child(1) svg,
+.hero-features.mv-in .hf-item:nth-child(3) svg{animation:mvShieldShine 3.6s ease-in-out 1.1s infinite;}
+@keyframes mvShieldShine{
+  0%,100%{filter:drop-shadow(0 0 0 rgba(255,255,255,0));}
+  50%{filter:drop-shadow(0 0 7px rgba(255,255,255,.85));}
+}
+
+/* =========================================================================
+   5) SECTION TITLES — fade + translate(12px) with a pink-gold line that
+   draws itself left → right (replaces the static gold underline)
+   ========================================================================= */
+.sec-head h2{
+  opacity:0;transform:translateY(12px);
+  transition:opacity .6s var(--mv-ease),transform .6s var(--mv-ease);
+}
+.sec-head h2::after{width:0!important;transition:width .7s var(--mv-ease) .22s!important;}
+.sec-head.mv-in h2{opacity:1;transform:translateY(0);}
+.sec-head.mv-in h2::after{width:46px!important;}
+
+/* =========================================================================
+   6) BRAND CAROUSEL — slow (not full-stop) on hover + sharpen hovered logo
+   (fade mask already exists from release 21 — untouched)
+   ========================================================================= */
+body[data-page="home"] .brand-track:hover .brand-list{
+  animation-play-state:running!important;
+  animation-duration:95s!important;
+}
+body[data-page="home"] .brand-box{transition:opacity .3s ease,filter .3s ease,transform .3s var(--mv-ease)!important;}
+body[data-page="home"] .brand-track:hover .brand-box{opacity:.5;filter:grayscale(.5);}
+body[data-page="home"] .brand-track:hover .brand-box:hover{
+  opacity:1;filter:none;transform:translateY(-3px) scale(1.1)!important;
+}
+
+/* =========================================================================
+   7) PRODUCT CARDS — the showcase: lift, zoom, soft shadow, sweeping
+   pink-gold border highlight once on hover, buy button rises in
+   ========================================================================= */
+.prod-card{transition:transform .38s var(--mv-ease),box-shadow .38s var(--mv-ease)!important;}
+.prod-card:hover{
+  transform:translateY(-6px)!important;
+  box-shadow:0 22px 42px rgba(11,46,34,.16),0 6px 16px rgba(199,154,85,.20)!important;
+}
+.prod-img img{transition:transform .55s var(--mv-ease)!important;}
+.prod-card:hover .prod-img img{transform:scale(1.045)!important;}
+
+.prod-card{position:relative;isolation:isolate;}
+.prod-card::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;
+  background:linear-gradient(115deg,transparent 28%,var(--mv-pink) 46%,var(--mv-gold) 56%,transparent 74%);
+  background-size:260% 260%;background-position:-120% -120%;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;
+  opacity:0;pointer-events:none;z-index:3;
+  transition:opacity .2s ease;
+}
+.prod-card:hover::before{
+  opacity:1;background-position:120% 120%;
+  transition:opacity .2s ease,background-position 1s var(--mv-ease);
+}
+
+.p-cart{transition:transform .32s var(--mv-ease),opacity .32s ease,box-shadow .2s ease!important;}
+@media (min-width:761px){
+  .p-cart{transform:translateY(7px);opacity:.82;}
+  .prod-card:hover .p-cart{transform:translateY(0);opacity:1;}
+}
+
+/* =========================================================================
+   8) "สมัครสมาชิกวันนี้" member card — floating gift, ribbon shine,
+   ambient particles
+   ========================================================================= */
+.home-member-card{position:relative;overflow:hidden!important;isolation:isolate;}
+.home-member-card > *{position:relative;z-index:2;}
+
+.gift-visual{animation:mvGiftFloat 3.8s ease-in-out infinite;}
+@keyframes mvGiftFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+
+.home-member-card::before{
+  content:"";position:absolute;top:0;left:-60%;width:38%;height:100%;
+  background:linear-gradient(115deg,transparent,rgba(255,255,255,.6),transparent);
+  transform:skewX(-18deg);pointer-events:none;z-index:1;
+  animation:mvRibbonShine 7s ease-in-out infinite;
+}
+@keyframes mvRibbonShine{
+  0%{left:-60%;}
+  16%{left:130%;}
+  100%{left:130%;}
+}
+
+.mv-particle-field{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:1;border-radius:inherit;}
+.mv-particle-field span{
+  position:absolute;bottom:-12px;border-radius:50%;opacity:0;
+  background:radial-gradient(circle,rgba(229,107,159,.85),rgba(229,107,159,0) 72%);
+  animation-name:mvParticleFloat;animation-timing-function:ease-in;animation-iteration-count:infinite;
+}
+@keyframes mvParticleFloat{
+  0%{transform:translateY(0) scale(.6);opacity:0;}
+  12%{opacity:.75;}
+  80%{opacity:.35;}
+  100%{transform:translateY(-170px) scale(1);opacity:0;}
+}
+
+/* =========================================================================
+   9) NEWS / PROMOTION CARDS — slow image zoom + rising gradient overlay
+   ========================================================================= */
+.news-img{position:relative;}
+.news-img img{transition:transform 1.15s var(--mv-ease)!important;}
+.news-card:hover .news-img img{transform:scale(1.08);}
+.news-img::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(0deg,rgba(11,46,34,.55) 0%,rgba(11,46,34,.08) 55%,transparent 100%);
+  opacity:0;transform:translateY(12%);
+  transition:opacity .4s ease,transform .5s var(--mv-ease);
+  pointer-events:none;
+}
+.news-card:hover .news-img::after{opacity:1;transform:translateY(0);}
+.news-card{transition:transform .3s var(--mv-ease),box-shadow .3s var(--mv-ease)!important;}
+
+/* =========================================================================
+   10) FOOTER — ambient glow, underline links, back-to-top progress ring
+   ========================================================================= */
+footer{position:relative;overflow:hidden;}
+footer::before{
+  content:"";position:absolute;top:-90px;left:50%;transform:translateX(-50%);
+  width:min(700px,60%);height:190px;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse at center,rgba(229,107,159,.16),transparent 70%);
+  filter:blur(6px);
+}
+footer .wrap{position:relative;z-index:1;}
+
+footer .foot-links a,footer .foot-bottom .policy a,footer .foot-contact a{position:relative;transition:color .2s ease;}
+footer .foot-links a::after,footer .foot-bottom .policy a::after{
+  content:"";position:absolute;left:0;right:100%;bottom:-3px;height:1px;
+  background:linear-gradient(90deg,var(--mv-gold),var(--mv-pink));
+  transition:right .32s var(--mv-ease);
+}
+footer .foot-links a:hover::after,footer .foot-bottom .policy a:hover::after{right:0;}
+
+.back-to-top{overflow:visible!important;}
+.btt-ring{position:absolute;inset:-3px;width:calc(100% + 6px);height:calc(100% + 6px);transform:rotate(-90deg);pointer-events:none;z-index:0;}
+.btt-ring-bg{fill:none;stroke:rgba(229,107,159,.20);stroke-width:2.4;}
+.btt-ring-fg{fill:none;stroke:var(--mv-pink);stroke-width:2.4;stroke-linecap:round;transition:stroke-dashoffset .15s linear;}
+.back-to-top svg:not(.btt-ring){position:relative;z-index:1;}
+
+/* fb chat bubble — a touch more life alongside the existing radar ping */
+.fb-chat-bubble{animation:tskFabIn .5s cubic-bezier(.34,1.56,.64,1) both,mvFabFloat 3.6s ease-in-out .7s infinite;}
+@keyframes mvFabFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
+
+/* =========================================================================
+   11) Reduced motion — switch every new animation off
+   ========================================================================= */
+@media (prefers-reduced-motion: reduce){
+  .nav-links a::after,.header-search,.nav-search,.header-search button svg,.nav-search button svg,
+  .cat-card::after,.cat-card .cat-icon-badge,
+  .hero-features .hf-item,.hero-features.mv-in .hf-item:nth-child(2) svg,
+  .hero-features.mv-in .hf-item:nth-child(1) svg,.hero-features.mv-in .hf-item:nth-child(3) svg,
+  .sec-head h2,.sec-head h2::after,
+  body[data-page="home"] .brand-box,
+  .prod-card,.prod-img img,.prod-card::before,.p-cart,
+  .gift-visual,.home-member-card::before,.mv-particle-field span,
+  .news-img img,.news-img::after,.news-card,
+  footer .foot-links a::after,footer .foot-bottom .policy a::after,
+  .fb-chat-bubble{
+    animation:none!important;transition:none!important;
+  }
+  .sec-head h2{opacity:1!important;transform:none!important;}
+  .sec-head h2::after{width:46px!important;}
+  .hero-features .hf-item{opacity:1!important;transform:none!important;}
+}

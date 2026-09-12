@@ -1,0 +1,1 @@
+import { redirect } from 'next/navigation';export default async function Page({searchParams}:{searchParams:Promise<Record<string,string|string[]|undefined>>}){const sp=await searchParams;const id=typeof sp.id==='string'?sp.id:'';redirect(id?`/products/${encodeURIComponent(id)}`:'/products')}

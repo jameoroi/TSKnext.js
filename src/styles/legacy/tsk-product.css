@@ -1,0 +1,336 @@
+/* =========================================================================
+   Product detail page. Built on the tokens in tsk-design-system.css.
+   ========================================================================= */
+
+.tsk-pdp { padding-bottom: 8px; background: var(--tsk-page); }
+
+.tsk-pdp-top {
+  display: grid;
+  grid-template-columns: minmax(0, 460px) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.tsk-pdp-top > * { min-width: 0; }
+
+/* ================================================================ gallery */
+.tsk-gallery { position: sticky; top: 16px; padding: 14px; }
+.tsk-gallery-main {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1 / 1;
+  /*
+   * Visible, not hidden, so the zoom panel can open beside the gallery.
+   *
+   * The square still clips its own photograph — TskImageZoom's frame carries
+   * `overflow: hidden` and the rounded corner — but the panel is a sibling of
+   * that frame positioned outside it, and a clip here would cut it off at the
+   * edge of the card. The one thing this box was clipping is now clipped one
+   * level in.
+   */
+  overflow: visible;
+  border-radius: var(--tsk-r);
+  background: #fff;
+}
+.tsk-gallery-main img { width: 100%; height: 100%; object-fit: contain; }
+/* The zoom brings its own frame, and the lens is positioned against it, so the
+   two have to be the same box or the lens tracks a rectangle the photograph is
+   not drawn in. */
+.tsk-gallery-main .tsk-zoom,
+.tsk-gallery-main .tsk-zoom-frame { width: 100%; height: 100%; }
+.tsk-gallery-main .tsk-zoom-frame { display: grid; place-items: center; border-radius: var(--tsk-r); }
+.tsk-gallery-main .tsk-zoom-frame img { width: 100%; height: 100%; object-fit: contain; }
+/* Sticky creates a containing block for the fixed-ish panel and, more to the
+   point, a stacking context: without a z-index the panel opens underneath the
+   info card next to it. */
+.tsk-gallery { z-index: 5; }
+
+.tsk-thumbs { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+.tsk-thumbs-track {
+  display: flex;
+  flex: 1 1 auto;
+  gap: 8px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.tsk-thumbs-track::-webkit-scrollbar { display: none; }
+.tsk-thumbs-track img {
+  flex: 0 0 auto;
+  width: 62px;
+  height: 62px;
+  padding: 5px;
+  object-fit: contain;
+  border: 1px solid var(--tsk-line);
+  border-radius: var(--tsk-r-sm);
+  background: #fff;
+  cursor: pointer;
+  scroll-snap-align: start;
+  transition: border-color .16s ease;
+}
+.tsk-thumbs-track img:hover { border-color: var(--tsk-green-100); }
+.tsk-thumbs-track img.active { border-color: var(--tsk-green); }
+.tsk-thumb-nav {
+  display: grid;
+  place-items: center;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--tsk-line);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--tsk-ink-2);
+  font-size: 15px;
+  cursor: pointer;
+}
+.tsk-thumb-nav:hover { border-color: var(--tsk-green); color: var(--tsk-green-700); }
+
+/* =================================================================== info */
+.tsk-pdp-info { padding: 22px; }
+.tsk-pdp-brand { display: inline-block; margin-bottom: 8px; padding: 3px 10px; border-radius: 999px; background: var(--tsk-green-050); color: var(--tsk-green-700); font-size: 11.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.tsk-pdp-title { margin: 0 0 8px; color: var(--tsk-ink); font-size: clamp(19px, 2.3vw, 25px); font-weight: 800; line-height: 1.35; overflow-wrap: anywhere; }
+.tsk-pdp-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; color: var(--tsk-dim); font-size: 12.5px; }
+
+.tsk-pdp-pricebox { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; margin: 16px 0; padding: 16px 18px; border-radius: var(--tsk-r); background: var(--tsk-green-050); }
+.tsk-pdp-price { color: var(--tsk-price); font-size: clamp(24px, 3vw, 32px); font-weight: 800; line-height: 1; }
+/* 2.16:1 on white. Same correction as the card. */
+.tsk-pdp-oldprice { color: #6b7a72; font-size: 15px; }
+.tsk-pdp-save { padding: 3px 10px; border-radius: 999px; background: var(--tsk-sale); color: #fff; font-size: 12px; font-weight: 700; }
+
+.tsk-stock { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600; }
+.tsk-stock::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--tsk-green); }
+.tsk-stock.low { color: #b8620d; }
+.tsk-stock.low::before { background: var(--tsk-hot); }
+.tsk-stock.out { color: #a3271c; }
+.tsk-stock.out::before { background: #a3271c; }
+
+.tsk-pdp-desc { margin: 14px 0 0; color: var(--tsk-ink-2); font-size: 13.5px; line-height: 1.8; white-space: pre-line; overflow-wrap: anywhere; }
+.tsk-pdp-desc.clamped { display: -webkit-box; -webkit-line-clamp: 5; line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+.tsk-pdp-more { margin-top: 8px; padding: 0; border: 0; background: none; color: var(--tsk-green-700); font: inherit; font-size: 13px; font-weight: 700; text-decoration: underline; cursor: pointer; }
+
+.tsk-pdp-field { display: grid; gap: 6px; margin-top: 16px; max-width: 380px; color: var(--tsk-ink-2); font-size: 13px; font-weight: 600; }
+
+/* Quantity stepper + primary actions. Explicit tracks so the row cannot
+   collapse into overlapping controls at intermediate widths. */
+.tsk-buy { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 18px; }
+.tsk-qty { display: inline-flex; align-items: center; overflow: hidden; border: 1px solid var(--tsk-line); border-radius: var(--tsk-r-sm); background: #fff; }
+.tsk-qty button { width: 38px; height: 44px; border: 0; background: transparent; color: var(--tsk-ink-2); font-size: 17px; cursor: pointer; transition: background .15s ease; }
+.tsk-qty button:hover { background: var(--tsk-green-050); color: var(--tsk-green-700); }
+.tsk-qty input { width: 48px; height: 44px; border: 0; border-inline: 1px solid var(--tsk-line); font: inherit; font-size: 14px; text-align: center; appearance: textfield; }
+.tsk-qty input::-webkit-outer-spin-button,
+.tsk-qty input::-webkit-inner-spin-button { margin: 0; appearance: none; }
+.tsk-buy .tsk-btn-primary { flex: 1 1 200px; }
+.tsk-buy .tsk-btn-ghost { flex: 0 1 150px; }
+.tsk-buy .tsk-round { width: 44px; height: 44px; font-size: 17px; }
+
+.tsk-service { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin-top: 20px; }
+.tsk-service-item { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border: 1px solid var(--tsk-line); border-radius: var(--tsk-r-sm); font-size: 12.5px; line-height: 1.6; }
+.tsk-service-item b { display: block; color: var(--tsk-ink); font-size: 13px; }
+.tsk-service-item span:first-child { color: var(--tsk-green-600); }
+
+/* =================================================================== tabs */
+.tsk-tabs { margin-top: 18px; padding: 0 22px 22px; }
+.tsk-tablist { display: flex; flex-wrap: wrap; gap: 6px; border-bottom: 1px solid var(--tsk-line); }
+.tsk-tablist button {
+  padding: 14px 20px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: var(--tsk-dim);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color .18s ease, border-color .18s ease;
+}
+.tsk-tablist button:hover { color: var(--tsk-ink); }
+.tsk-tablist button.active { border-bottom-color: var(--tsk-green); color: var(--tsk-green-700); }
+.tsk-tabpanel { padding-top: 20px; color: var(--tsk-ink-2); font-size: 13.5px; line-height: 1.85; overflow-wrap: anywhere; }
+.tsk-tabpanel p { white-space: pre-line; }
+.tsk-tab-images { display: grid; gap: 14px; margin-top: 18px; }
+.tsk-tab-images img { width: 100%; height: auto; border-radius: var(--tsk-r-sm); }
+
+/* The review clip. 16/9 with the frame stretched to fill it, so the panel does
+   not change height when the embed finishes loading. */
+.tsk-video-embed {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  max-width: 880px;
+  overflow: hidden;
+  border-radius: var(--tsk-r);
+  background: #0d1512;
+}
+.tsk-video-embed iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+/* One column, always.
+ *
+ * This was `repeat(auto-fit, minmax(300px, 1fr))`, which on a desktop laid the
+ * specification out as four short columns across the page: หน่วย, แบรนด์,
+ * หมวดหมู่, รหัสสินค้า all on one line, each label a long way from its value and
+ * the reading order ambiguous. A specification is a list of answers to compare,
+ * and comparing means running one finger down a single column — so the rows
+ * stack, the label holds a fixed width, and the value is the thing that stands
+ * out. Zebra striping carries the eye across the gap on the wide rows.
+ */
+.tsk-specs { display: grid; grid-template-columns: 1fr; border: 1px solid var(--tsk-line); border-radius: var(--tsk-r-sm); overflow: hidden; }
+.tsk-spec {
+  display: grid;
+  grid-template-columns: minmax(120px, 30%) 1fr;
+  gap: 16px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--tsk-line-2);
+  font-size: 13.5px;
+  line-height: 1.7;
+}
+.tsk-spec:nth-child(odd) { background: rgba(127, 143, 133, .06); }
+.tsk-spec:last-child { border-bottom: 0; }
+.tsk-spec b { color: var(--tsk-dim); font-weight: 500; }
+.tsk-spec span { color: var(--tsk-ink); font-weight: 600; }
+
+/* ------------------------------------------------- the description, sorted */
+.tsk-detail-body { display: grid; gap: 12px; }
+/* The parser hands back trimmed lines, so the panel's `pre-line` — which exists
+   for the unparsed case — must not reintroduce the blank lines it stripped. */
+.tsk-detail-body p { white-space: normal; margin: 0; }
+.tsk-detail-text { color: var(--tsk-ink-2); }
+.tsk-detail-pair { display: grid; grid-template-columns: minmax(120px, 26%) 1fr; gap: 14px; align-items: baseline; }
+.tsk-detail-pair b { color: var(--tsk-dim); font-weight: 500; }
+.tsk-detail-pair span { color: var(--tsk-ink); font-weight: 600; }
+.tsk-detail-list { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
+.tsk-detail-list li { position: relative; padding-left: 20px; color: var(--tsk-ink-2); }
+.tsk-detail-list li::before {
+  content: "";
+  position: absolute;
+  top: .68em;
+  left: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--tsk-green);
+}
+
+/* -------------------------------------------- empty tabs, notes and reviews */
+.tsk-tab-count {
+  display: inline-block;
+  min-width: 20px;
+  margin-left: 7px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  /* Translucent rather than a named green, so the chip stays legible against
+     both the light card and the dark one — `--tsk-green-700` is a single fixed
+     value and would sit on a near-black panel in night mode. */
+  background: rgba(76, 175, 0, .16);
+  color: var(--tsk-green);
+  font-size: 11.5px;
+  font-weight: 700;
+  text-align: center;
+}
+.tsk-tablist button.active .tsk-tab-count { background: var(--tsk-green); color: #fff; }
+.tsk-tab-note { color: var(--tsk-dim); }
+.tsk-tab-empty {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 38px 20px;
+  border: 1px dashed var(--tsk-line);
+  border-radius: var(--tsk-r-sm);
+  text-align: center;
+}
+.tsk-tab-empty > span { font-size: 26px; color: var(--tsk-green-600); line-height: 1; }
+.tsk-tab-empty b { color: var(--tsk-ink); font-size: 14px; }
+.tsk-tab-empty p { max-width: 460px; margin: 0; color: var(--tsk-dim); font-size: 13px; }
+
+.tsk-reviews { display: grid; gap: 14px; }
+.tsk-review-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--tsk-line);
+  border-radius: var(--tsk-r-sm);
+  background: var(--tsk-green-050, #eef7ea);
+}
+.tsk-review-summary strong { color: var(--tsk-ink); font-size: 26px; line-height: 1; }
+.tsk-review-summary small { color: var(--tsk-dim); font-size: 12.5px; }
+.tsk-review-stars { display: inline-flex; gap: 1px; font-style: normal; }
+.tsk-review-stars i { color: var(--tsk-line); font-size: 14px; font-style: normal; }
+.tsk-review-stars i.on { color: #f5a623; }
+.tsk-review { padding: 14px 16px; border: 1px solid var(--tsk-line); border-radius: var(--tsk-r-sm); }
+.tsk-review header { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.tsk-review header b { color: var(--tsk-ink); font-size: 13.5px; }
+.tsk-review header time { margin-left: auto; color: var(--tsk-dim); font-size: 12px; }
+.tsk-review p { margin: 7px 0 0; color: var(--tsk-ink-2); }
+
+@media (max-width: 560px) {
+  .tsk-spec, .tsk-detail-pair { grid-template-columns: 1fr; gap: 2px; }
+  .tsk-review header time { margin-left: 0; }
+}
+
+/* ============================================================== sticky bar */
+.tsk-buybar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 900;
+  display: none;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--tsk-line);
+  background: rgba(255, 255, 255, .97);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 -6px 20px rgba(12, 40, 20, .1);
+}
+/* Takes the leftover width and shrinks first, so the action button keeps its
+   full size no matter how long the product name is. */
+.tsk-buybar-copy { display: grid; flex: 1 1 auto; min-width: 0; }
+.tsk-buybar-copy small { overflow: hidden; color: var(--tsk-dim); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.tsk-buybar-copy strong { color: var(--tsk-price); font-size: 16px; }
+.tsk-buybar .tsk-btn { flex: 0 0 auto; }
+
+@media (max-width: 1000px) {
+  .tsk-pdp-top { grid-template-columns: minmax(0, 1fr); }
+  .tsk-gallery { position: static; width: 100%; max-width: min(520px, 100%); margin-inline: auto; }
+}
+
+@media (max-width: 760px) {
+  .tsk-pdp-info,
+  .tsk-tabs { padding-inline: 16px; }
+  /* The sticky bar carries the primary action, so the inline one would be a
+     duplicate; the mobile dock sits below it. */
+  .tsk-buybar { display: flex; bottom: 68px; }
+  .tsk-buy .tsk-btn-primary { display: none; }
+  .tsk-buy .tsk-btn-ghost { flex: 1 1 auto; }
+  /* mobile-rebuild.css sets `body { padding-bottom: 76px !important }` for the
+     dock alone, which won and left the footer trapped behind the dock and the
+     buy bar together. Matching !important is the only way past it without
+     editing the legacy sheet. */
+  body.tsk-has-buybar { padding-bottom: 148px !important; }
+
+  /* Three fixed elements stack against the bottom of a phone screen, and they
+     were laid out without reference to each other:
+
+       dock              bottom 0    z 9800   68px tall
+       buy bar           bottom 68   z 900    67px tall
+       chat launcher     bottom 74   z 990   112px tall (button + label)
+       compare bar       bottom 72   z 9900
+
+     So the chat launcher landed on top of the buy bar and covered the "add to
+     cart" button — the one control the product page exists for. The buy bar now
+     outranks the launcher, and anything else that docks to the bottom is lifted
+     clear of it while it is on screen. */
+  .tsk-buybar { z-index: 9850; }
+  body.tsk-has-buybar .tsk-contact-launcher { bottom: 140px; }
+  body.tsk-has-buybar .tsk-compare-bar { bottom: 140px; }
+}
+
+/* Price shown before the shopper has picked an option. It is the cheapest
+   option, so it must be labelled as a starting price rather than presented as
+   the price they will pay. */
+.tsk-pdp-from { align-self: center; margin-right: 2px; color: var(--tsk-dim); font-size: 13px; }
+
+/* A product with options cannot be added to the basket until one is chosen. */
+.tsk-field.is-invalid { border-color: #d13b3b; box-shadow: 0 0 0 3px rgba(209, 59, 59, .12); }
+.tsk-field-error { display: block; margin-top: 6px; color: #d13b3b; font-size: 12.5px; font-weight: 600; }

@@ -1,0 +1,1469 @@
+/* =========================================================================
+   Home page sections. Built on the tokens in tsk-design-system.css.
+   ========================================================================= */
+
+.tsk-home { padding-bottom: 8px; background: var(--tsk-page); }
+.tsk-home > .tsk-shell > section { margin-top: 18px; }
+
+/* =============================================================== hero row */
+/* The hero is the width of the page. The 268px column of category links that
+   used to sit beside it is a menu, and it is in the navigation now — available
+   on every page instead of only this one. */
+.tsk-hero-row { padding-top: 18px; }
+
+.tsk-cat-rail { overflow: hidden; }
+.tsk-cat-rail-list { display: grid; padding: 6px; }
+.tsk-cat-rail-list a {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  border-radius: var(--tsk-r-sm);
+  color: var(--tsk-ink-2);
+  font-size: 13.5px;
+  transition: background .15s ease, color .15s ease;
+}
+.tsk-cat-rail-list a:hover { background: var(--tsk-green-050); color: var(--tsk-green-700); }
+.tsk-cat-rail-list a .tsk-cat-ic { display: grid; place-items: center; flex: 0 0 22px; width: 22px; height: 22px; color: var(--tsk-green-600); }
+.tsk-cat-rail-list a .tsk-cat-ic svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.tsk-cat-rail-list a .tsk-cat-text { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tsk-cat-rail-list a .tsk-cat-chev { flex: 0 0 auto; color: #b9c4bd; font-size: 15px; }
+.tsk-cat-rail-foot { padding: 6px 10px 12px; }
+
+.tsk-hero { position: relative; overflow: hidden; border-radius: var(--tsk-r-lg); background: var(--tsk-green-050); }
+/* NuxtLink renders an <a>, which is inline — without display:block the
+   aspect-ratio box collapses to zero height. */
+.tsk-hero-slide { position: relative; display: block; width: 100%; aspect-ratio: 1000 / 420; }
+.tsk-hero-slide img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /*
+   * The banner is a link, and until now it said so only through the cursor.
+   * The slide already carried `transition: all` with nothing to transition to:
+   * no :hover rule existed for it anywhere in the stylesheets. A shopper
+   * hovering a full-bleed advertisement got no sign it could be clicked.
+   *
+   * A slow push in, on the picture rather than the box, so the frame stays put
+   * and the layout never moves. The easing matches the carousel's own track.
+   */
+  transition: transform .5s cubic-bezier(.22, .61, .36, 1), filter .3s ease;
+}
+.tsk-hero-slide:hover img,
+.tsk-hero-slide:focus-visible img { transform: scale(1.035); filter: brightness(1.04); }
+/* Keyboard users get the same signal, plus a ring the picture cannot hide. */
+.tsk-hero-slide:focus-visible { outline: 3px solid var(--tsk-green-600); outline-offset: -3px; }
+/*
+ * Not while the track is being dragged. The pointer sits over a slide the whole
+ * way across, and a picture growing under a finger that is trying to move it
+ * reads as the drag having gone wrong.
+ */
+.tsk-hero-track.is-dragging .tsk-hero-slide img,
+.tsk-hero-track.is-snapping .tsk-hero-slide img { transform: none; filter: none; transition: none; }
+.tsk-hero-empty { display: grid; place-items: center; background: linear-gradient(120deg, #123a1c, #2f8b13); color: #fff; }
+
+.tsk-hero-nav {
+  position: absolute;
+  top: 50%;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .9);
+  color: var(--tsk-ink);
+  cursor: pointer;
+  box-shadow: 0 3px 12px rgba(12, 40, 20, .18);
+  transition: background .16s ease, transform .16s ease;
+}
+.tsk-hero-nav:hover { background: #fff; transform: translateY(-50%) scale(1.07); }
+.tsk-hero-nav.prev { left: 14px; }
+.tsk-hero-nav.next { right: 14px; }
+.tsk-hero-nav svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+.tsk-hero-dots { position: absolute; left: 50%; bottom: 14px; z-index: 3; display: flex; gap: 6px; transform: translateX(-50%); }
+.tsk-hero-dots button { width: 22px; height: 4px; padding: 0; border: 0; border-radius: 999px; background: rgba(255, 255, 255, .55); cursor: pointer; transition: width .25s ease, background .25s ease; }
+.tsk-hero-dots button.active { width: 30px; background: #fff; }
+
+/* ======================================================= section headings */
+.tsk-section-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; margin-bottom: 18px; text-align: center; }
+.tsk-section-head h2 { margin: 0; color: var(--tsk-ink); font-size: clamp(20px, 2.4vw, 27px); font-weight: 800; }
+.tsk-section-head h2 em { position: relative; font-style: normal; color: var(--tsk-green-700); }
+.tsk-section-head h2 em::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -5px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--tsk-green);
+  opacity: .55;
+}
+.tsk-pill {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--tsk-hot);
+  /* White on this orange measured 2.36:1 — the badge was decoration a lot of
+     people could not read. Dark ink on the same orange is 6.32:1, so the badge
+     keeps the colour it was designed in. */
+  color: var(--tsk-hot-ink, #1d2a22);
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: .03em;
+}
+
+/* ======================================================= split promo rows */
+.tsk-split { display: grid; grid-template-columns: 268px minmax(0, 1fr); gap: 20px; align-items: stretch; }
+/* A narrow column, so everything is centred; left-aligned text left a
+   ragged edge against a lot of empty card. */
+.tsk-split-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 30px 22px;
+  background: linear-gradient(180deg, var(--tsk-green-050), #fff 62%);
+  text-align: center;
+}
+/*
+ * The picture on an introduction card, set by the merchant.
+ *
+ * What was here was a 56px circle holding a line-art icon. It is a photograph
+ * now and it is worth more room: a shopper reads the picture before the words,
+ * and a stamp-sized one is decoration. No border and no plate behind it — the
+ * card already is one, and a frame inside a frame is the thing this page was
+ * asked to stop doing.
+ */
+.tsk-split-photo {
+  display: block;
+  width: min(100%, 168px);
+  margin-bottom: 10px;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--tsk-r-md, 14px);
+  overflow: hidden;
+}
+/*
+ * The whole picture, inside a square that does not move.
+ *
+ * It was cropped to fill the square, so a wide banner uploaded to it showed its
+ * middle third and nothing else — the shop uploaded one and got the centre of
+ * its own artwork. The frame stays square because the two cards sit side by
+ * side and have to end level; the picture is fitted inside it instead, so
+ * anything that is not square keeps its ends and gains a margin rather than
+ * losing them. A 500x500 upload fills it exactly, which is what the form asks
+ * for.
+ */
+.tsk-split-photo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.tsk-split-kicker { color: var(--tsk-green-600); font-size: 12.5px; font-weight: 600; }
+.tsk-split-intro h3 { margin: 0; color: var(--tsk-ink); font-size: 22px; font-weight: 800; line-height: 1.25; }
+.tsk-split-intro p { margin: 0; color: var(--tsk-dim); font-size: 12.5px; line-height: 1.75; }
+.tsk-split-intro .tsk-btn { align-self: stretch; margin-top: 14px; }
+.tsk-split-intro ul { display: grid; gap: 9px; margin-top: 6px; }
+.tsk-split-intro li { display: flex; align-items: center; justify-content: flex-start; gap: 9px; color: var(--tsk-ink-2); font-size: 13px; text-align: left; }
+.tsk-split-intro li::before {
+  content: '✓';
+  display: grid;
+  place-items: center;
+  flex: 0 0 19px;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  background: var(--tsk-green);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ====================================================== category grid */
+/*
+ * Every category on the page at once.
+ *
+ * This replaced a rail that showed two of ten on a phone and moved by itself.
+ * A grid needs no reading of the shopper's patience: the whole shelf is there,
+ * the cards are square so a mixed bag of product photographs lines up, and the
+ * only motion is a lift on hover.
+ */
+.tsk-catgrid-head { margin-bottom: 20px; text-align: center; }
+.tsk-catgrid-head h2 { margin: 0; color: var(--tsk-ink); font-size: clamp(20px, 2.4vw, 27px); font-weight: 800; }
+.tsk-catgrid-head p {
+  margin: 6px 0 0;
+  color: var(--tsk-dim);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: .16em;
+}
+.tsk-catgrid-list {
+  /*
+   * Flex rather than grid, for one reason: the last row.
+   *
+   * A grid of auto-fill columns packs every row from the left, so eleven
+   * categories in a nine-wide row left two cards stranded against the left edge
+   * under nine centred ones. Flex wrapping with a computed basis gives the same
+   * even columns and centres whatever is left over, which is what the block
+   * reads as: a shelf, not a table with a ragged corner.
+   */
+  --tsk-cat-cols: 8;
+  --tsk-cat-gap: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--tsk-cat-gap);
+}
+.tsk-catcard {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  flex: 0 0 calc((100% - (var(--tsk-cat-cols) - 1) * var(--tsk-cat-gap)) / var(--tsk-cat-cols));
+  padding: 0 0 14px;
+  /*
+   * No card at all: no panel, no border, no corner.
+   *
+   * The tiles were boxes on a page already made of boxes, and once the artwork
+   * became genuinely transparent the box was the only thing left drawing a
+   * rectangle round a picture that does not have edges. What marks the tile as
+   * one pressable thing now is the lift on hover and the shadow the products
+   * themselves cast — see the `drop-shadow` on the image below, which follows
+   * the alpha channel rather than the frame.
+   *
+   * `overflow` stays visible so that shadow is not clipped at the tile's edge.
+   */
+  overflow: visible;
+  border: 0;
+  background: none;
+  text-align: center;
+  transition: transform .18s cubic-bezier(.2, .8, .2, 1), filter .18s ease;
+}
+.tsk-catcard:hover { transform: translateY(-4px); }
+/* The picture fills the card's width and its own square, edge to edge: the
+   card is the frame, and a second margin of white inside it was read as the
+   image having a border of its own. */
+/* Room around the artwork, and nothing drawn in it. There is no card behind the
+   picture any more, so the inset is breathing space rather than a mount, and
+   the rounded corner and the clip both went with the frame they belonged to —
+   a clip here would cut the shadow off square, which is the shape being
+   avoided. */
+.tsk-catcard-media {
+  display: block;
+  width: calc(100% - 18px);
+  margin: 9px auto 10px;
+  aspect-ratio: 1 / 1;
+  overflow: visible;
+}
+/* TskPicture renders a <picture> when the image has variants, and a <picture>
+   is a plain inline box: without a height of its own the `height: 100%` below
+   resolves against `auto` and the picture sits at the top of the square with a
+   band of white under it. */
+.tsk-catcard-media picture { display: block; width: 100%; height: 100%; }
+/*
+ * `contain`, and a shadow that follows the products rather than a box.
+ *
+ * `cover` was right while the picture sat in a frame — it filled the square and
+ * the frame took the blame for the crop. With the frame gone there is nothing
+ * to fill, and cropping cut the edges off artwork that is a composed group of
+ * machines, so the whole thing is shown and simply sits in its slot.
+ *
+ * `filter: drop-shadow` rather than `box-shadow`, and this is the whole point
+ * of the change: box-shadow traces the element's rectangle, which would draw
+ * back exactly the frame that was just removed. drop-shadow traces the alpha
+ * channel, so on artwork with a genuinely transparent background it falls
+ * behind the pumps and the drills themselves.
+ *
+ * One layer, tight and faint. It was two — a close one and a wide soft one —
+ * and on a row of eight tiles the wide layer pooled under every product at
+ * once and read as smoke across the whole strip rather than as eight things
+ * standing on a surface. A category group is twenty machines with gaps between
+ * them, so a wide blur is drawn twenty times per tile and it adds up; a picture
+ * of one object could carry it and this cannot. 4px of blur is enough to say
+ * the artwork sits on the page and little enough to disappear at a glance,
+ * which is what it is for.
+ *
+ * Only visible on artwork that is actually transparent. A picture still
+ * carrying a baked-in background gets a shadow round its rectangle, which is a
+ * reason to clean it (scripts/clean-transparency-checker.mjs) rather than a
+ * reason not to do this.
+ */
+.tsk-catcard-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 4px rgba(10, 22, 15, .16));
+  transition: filter .18s ease;
+}
+/* A touch deeper under the cursor, so the lift has something to lift away from.
+   Still one layer — the hover is a nudge, not a different treatment. */
+.tsk-catcard:hover .tsk-catcard-media img {
+  filter: drop-shadow(0 2px 6px rgba(10, 22, 15, .22));
+}
+/* On the dark theme a near-black shadow is nearly invisible, so it carries a
+   little more weight to do the same small job. */
+html[data-theme="dark"] .tsk-catcard-media img {
+  filter: drop-shadow(0 1px 4px rgba(0, 0, 0, .38));
+}
+html[data-theme="dark"] .tsk-catcard:hover .tsk-catcard-media img {
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, .48));
+}
+.tsk-catcard b { color: var(--tsk-ink); font-size: 13.5px; font-weight: 700; line-height: 1.35; }
+.tsk-catcard small { color: var(--tsk-dim); font-size: 10.5px; font-weight: 600; letter-spacing: .06em; line-height: 1.4; }
+.tsk-catgrid-foot { display: flex; justify-content: center; margin-top: 20px; }
+/* The column count is a variable rather than a new layout per width: the basis
+   is computed from it, so a breakpoint only has to say how many fit. */
+@media (max-width: 1180px) { .tsk-catgrid-list { --tsk-cat-cols: 6; } }
+@media (max-width: 900px)  { .tsk-catgrid-list { --tsk-cat-cols: 4; } }
+/*
+ * On a phone it stops wrapping and becomes one row that drifts.
+ *
+ * Eleven categories two-across is five rows to scroll past before anything else
+ * on the page. One moving row shows the same shelf in a screenful — the same
+ * thing the brand wall does directly below it.
+ *
+ * This is also what starts the motion: useAutoScrollRail refuses to run on an
+ * element that does not overflow, so the desktop grid above never moves and
+ * never renders a second pass. The stylesheet decides; the script only obeys.
+ */
+@media (max-width: 760px) {
+  .tsk-catgrid-list {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    /* Driven a frame at a time, so the inherited smooth scrolling has to go —
+       the browser animating each of those writes is what made the shelves flick
+       rather than move. */
+    scroll-behavior: auto;
+  }
+  .tsk-catgrid-list::-webkit-scrollbar { display: none; }
+  .tsk-catcard { flex: 0 0 132px; }
+}
+
+/* ======================================================== category tiles */
+/* The tile row scrolls so every category is reachable, not just the first
+   four; the arrows step it by one visible page. */
+.tsk-tiles-wrap { position: relative; min-width: 0; }
+.tsk-tiles {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(206px, 1fr);
+  gap: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  /* Same reason as .tsk-rail: this scroller is driven a frame at a time, and
+     inherited smooth scrolling animates every one of those writes. */
+  scroll-behavior: auto;
+}
+.tsk-tiles::-webkit-scrollbar { display: none; }
+.tsk-tiles > * { scroll-snap-align: start; }
+
+.tsk-tile-nav {
+  position: absolute;
+  top: 50%;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  transform: translateY(-50%);
+  border: 1px solid var(--tsk-line);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--tsk-ink-2);
+  font-size: 17px;
+  cursor: pointer;
+  box-shadow: var(--tsk-elev);
+  transition: border-color .16s ease, color .16s ease;
+}
+.tsk-tile-nav:hover { border-color: var(--tsk-green); color: var(--tsk-green-700); }
+.tsk-tile-nav.prev { left: -14px; }
+.tsk-tile-nav.next { right: -14px; }
+.tsk-tile { display: block; overflow: hidden; border: 1px solid var(--tsk-line); border-radius: var(--tsk-r); background: #fff; transition: box-shadow .2s ease, transform .2s ease; }
+.tsk-tile:hover { box-shadow: var(--tsk-elev-2); transform: translateY(-3px); }
+.tsk-tile img { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; }
+.tsk-tile-body { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 13px 14px; }
+.tsk-tile-body > span:first-child { min-width: 0; }
+.tsk-tile-body b { display: block; color: var(--tsk-ink); font-size: 14px; font-weight: 700; }
+.tsk-tile-body small { color: var(--tsk-dim); font-size: 11.5px; }
+.tsk-tile-go {
+  display: grid;
+  place-items: center;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--tsk-green);
+  color: #fff;
+  font-size: 15px;
+}
+
+/* =========================================================== brand wall */
+/* Logos sit directly on the page — no cards, no borders. The row is a fixed
+   number of equal columns, so every logo gets the same box and a short final
+   row centres under the block instead of hanging off the left edge. */
+.tsk-brandwall { padding: 26px 0 8px; }
+.tsk-brand-grid {
+  --tsk-brand-cols: 14;
+  --tsk-brand-gap: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 18px var(--tsk-brand-gap);
+  max-width: 1240px;
+  margin-inline: auto;
+}
+.tsk-brand-box {
+  display: grid;
+  place-items: center;
+  flex: 0 0 calc((100% - (var(--tsk-brand-cols) - 1) * var(--tsk-brand-gap)) / var(--tsk-brand-cols));
+  height: 42px;
+  transition: transform .2s cubic-bezier(.2, .8, .2, 1);
+}
+.tsk-brand-box:hover { transform: translateY(-3px) scale(1.08); }
+.tsk-brand-box img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+  /*
+   * No blend mode, and nothing painted behind the row.
+   *
+   * This used to be `mix-blend-mode: multiply`, which erases the white
+   * rectangle baked into a flattened logo file by multiplying it against
+   * whatever is behind — and that only works over a light surface, so the dark
+   * theme had to lay a white panel under the whole wall to keep it working. The
+   * shop is supplying transparent logo files instead, which is the actual fix:
+   * nothing to erase, so nothing to erase it against, and the marks sit
+   * directly on the page in either theme.
+   *
+   * A logo still carrying a white box will now show it. That is the signal to
+   * replace that one file rather than a reason to put the panel back.
+   */
+}
+/*
+ * Multiplying over a dark page would blot the logos out, so under the dark
+ * theme the wall gets a light surface to sit on and blend against. It reads as
+ * a deliberate white band, which is what most dark sites do with a logo row,
+ * and it keeps every logo borderless in both themes.
+ */
+/* The white panel that used to sit under this row at night is gone with the
+   blend mode it existed to serve. See .tsk-brand-box img above. */
+.tsk-brand-box span {
+  overflow: hidden;
+  color: var(--tsk-ink-2);
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+}
+.tsk-brandwall-foot { margin-top: 24px; text-align: center; }
+
+/* Below the rail breakpoint the wall becomes one drifting row. */
+.tsk-brand-grid.is-rail {
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  gap: 22px;
+  max-width: none;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  cursor: grab;
+  touch-action: pan-y;
+}
+.tsk-brand-grid.is-rail::-webkit-scrollbar { display: none; }
+.tsk-brand-grid.is-rail:active { cursor: grabbing; }
+.tsk-brand-grid.is-rail .tsk-brand-box { flex: 0 0 auto; width: 92px; height: 44px; }
+
+/* Fewer columns as the shell narrows, so the logos never shrink to unreadable. */
+@media (max-width: 1180px) { .tsk-brand-grid { --tsk-brand-cols: 10; } }
+@media (max-width: 980px)  { .tsk-brand-grid { --tsk-brand-cols: 8; } }
+@media (max-width: 860px)  { .tsk-brand-grid { --tsk-brand-cols: 6; } }
+
+/* ============================================================ featured rail */
+.tsk-rail-wrap { position: relative; }
+.tsk-rail {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(198px, 1fr);
+  gap: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  /*
+   * `html { scroll-behavior: smooth }` is inherited, and it applied here.
+   *
+   * The rails move themselves by writing `scrollLeft` every frame. With smooth
+   * scrolling inherited, the browser answered each of those writes with an
+   * animation of its own — sixty overlapping animations a second, each one
+   * chasing a target the next frame had already moved. That is what the shelf
+   * flicking about was: not the script's easing, the browser's easing fighting
+   * it. The page's own anchor scrolling is unaffected; this turns it off only
+   * for the two scrollers that are driven frame by frame.
+   */
+  scroll-behavior: auto;
+}
+.tsk-rail::-webkit-scrollbar { display: none; }
+
+/*
+ * Room above and below for a card that grows under the pointer.
+ *
+ * `overflow-x: auto` makes the vertical axis a scroll box too, so without this
+ * the shelf clips the top of a hovered card — it would appear to grow into a
+ * ceiling. Horizontal padding is deliberately left alone: the rail is stepped
+ * by measured card widths, and the first card must still sit against the edge.
+ */
+.tsk-rail { padding-block: 10px 12px; }
+.tsk-rail > * { scroll-snap-align: start; }
+.tsk-rail-nav { display: flex; gap: 8px; }
+.tsk-rail-nav button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--tsk-line);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--tsk-ink-2);
+  cursor: pointer;
+  transition: border-color .16s ease, color .16s ease;
+}
+.tsk-rail-nav button:hover { border-color: var(--tsk-green); color: var(--tsk-green-700); }
+.tsk-rail-nav svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+.tsk-rail-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+.tsk-rail-head .tsk-rail-title { display: flex; align-items: center; gap: 10px; }
+.tsk-rail-head h2 { margin: 0; color: var(--tsk-ink); font-size: clamp(19px, 2.2vw, 25px); font-weight: 800; }
+
+/* ============================================================== articles */
+.tsk-articles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
+.tsk-article { display: block; overflow: hidden; border: 1px solid var(--tsk-line); border-radius: var(--tsk-r); background: #fff; transition: box-shadow .2s ease, transform .2s ease; }
+.tsk-article:hover { box-shadow: var(--tsk-elev-2); transform: translateY(-3px); }
+/* Square, edge to edge, whole.
+ *
+ * `height: auto` is the line that matters, and leaving it out is what cropped
+ * these. TskPicture renders `width="360" height="360"` on the <img>, and those
+ * attributes are presentational hints: with `width: 100%` from here and the
+ * height still coming from the attribute, the box was (card width) × 360px, and
+ * `aspect-ratio` is ignored the moment both dimensions are definite. On a card
+ * narrower than 360px that is a portrait box, so `cover` cropped the sides off
+ * artwork whose whole point is the headline across it.
+ *
+ * With the height released, the aspect ratio governs and the box is square. The
+ * covers the shop publishes are square too — 1254×1254, measured — so `cover`
+ * has nothing to crop: the picture is shown entire and still fills the frame
+ * corner to corner, which is both of the things asked for rather than a trade
+ * between them. Artwork that is off square loses its edges rather than gaining
+ * bars, which is the right way round for a card in a row of cards.
+ *
+ * The <picture> is blocked for the same family of reason: it is inline by
+ * default, so it sits on the text baseline and leaves a strip of descender
+ * space under the frame. */
+.tsk-article picture { display: block; }
+.tsk-article img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  /* The ground only shows through while the picture is loading or missing, so
+     it follows the card rather than staying white in the dark theme. */
+  background: var(--tsk-surface-2, #f2f5f3);
+}
+.tsk-article-body { padding: 13px 14px; }
+.tsk-article-body h3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0 0 7px;
+  color: var(--tsk-ink);
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.tsk-article-body time { color: var(--tsk-dim); font-size: 11.5px; }
+
+/* Green-tinted band used at the bottom of the home page. */
+.tsk-trust-band.is-tinted { background: linear-gradient(180deg, var(--tsk-green-050), #fff); }
+.tsk-trust-band.is-tinted .tsk-card { border-color: var(--tsk-green-100); }
+
+@media (max-width: 1080px) {
+  .tsk-split { grid-template-columns: 232px minmax(0, 1fr); }
+}
+
+@media (max-width: 860px) {
+  .tsk-split { grid-template-columns: minmax(0, 1fr); }
+  /* The banner keeps 1000:420 here too. Cropping it to 16:9 below this width
+     gave the slide more height on a phone by cutting its ends off, so artwork
+     checked on a desktop lost its edges on a handset — and it meant the size
+     the admin form asks for was only ever right on one of the two. One shape,
+     one number, whatever the screen. */
+  .tsk-split-intro { padding: 20px 18px; }
+}
+
+/* ========================================================= partner call-out */
+.tsk-partner-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  /*
+   * A band, not a card.
+   *
+   * It was 28px of padding on a mid-green gradient, which read as another panel
+   * in a page already made of panels. Shallower and much darker sets it apart
+   * from the shelves above and below without needing more height, and white
+   * type on this end of the green is comfortably past AA.
+   */
+  padding: 18px 26px;
+  overflow: hidden;
+  position: relative;
+  border-radius: var(--tsk-r-lg);
+  /*
+   * The solid colour under the gradient is not decoration, it is what makes
+   * the white type on this band measurable.
+   *
+   * A gradient leaves `background-color` transparent, so anything asking what
+   * is behind the text — axe, and every other contrast checker — walks past
+   * this band to the page beneath it and finds #f6f8f6. White on that is
+   * 1.07:1, and the accessibility suite failed the two partner pages on it.
+   * The band itself is dark and white on it is comfortably past AA; the
+   * checker simply could not see the band. This states the darkest stop of the
+   * gradient as a real colour, the gradient paints over it, and nothing
+   * changes on screen.
+   */
+  background-color: #0d3a19;
+  background-image: linear-gradient(100deg, #04140a 0%, #0d3a19 42%, #1f6b12 100%);
+  color: #fff;
+}
+.tsk-partner-cta::after {
+  content: '';
+  position: absolute;
+  top: -60px;
+  right: -40px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .09);
+  pointer-events: none;
+}
+.tsk-partner-cta > div { position: relative; z-index: 1; }
+.tsk-partner-cta span { color: rgba(255, 255, 255, .82); font-size: 11.5px; font-weight: 800; letter-spacing: .12em; }
+/*
+ * White, said out loud.
+ *
+ * The band inherits white from its own rule, and a sweeping selector in the
+ * legacy chain — one that repaints every heading inside a long list of
+ * containers — was landing on this one and setting it to #111315. Near-black
+ * type on a near-black gradient: the headline was invisible on the darkest end
+ * of the band and only readable where the green lightened. A component with a
+ * dark background states its own text colour rather than inheriting one.
+ */
+/*
+ * The class is repeated three times to win a specificity fight, not by accident.
+ *
+ * The sweep that repaints every heading in the light theme reads
+ * `html:not([data-theme="dark"]) body :is(h1,…,.sec-head h2)`. Both the
+ * `:not([attr])` and the `.sec-head` inside `:is()` count as classes, so it
+ * scores (0,2,3) — while `html body .tsk-partner-cta h2`, the previous attempt
+ * here, scores (0,1,3). Two `!important` declarations are settled by
+ * specificity, so the sweep won and the headline stayed #111315 on the
+ * near-black end of the band: measured on the live site, computed colour
+ * rgb(17,19,21). Doubling the class only ties at (0,2,3); a third takes it to
+ * (0,3,3) and wins outright, whatever order the sheets land in.
+ *
+ * Unqualified by theme on purpose: the band is dark in both themes, so its type
+ * is white in both. The dark-theme sweep sets a light grey without !important
+ * and loses to this regardless.
+ */
+html body .tsk-partner-cta.tsk-partner-cta.tsk-partner-cta h2,
+html body .tsk-partner-cta.tsk-partner-cta.tsk-partner-cta h2 * { color: #fff !important; }
+html body .tsk-partner-cta.tsk-partner-cta.tsk-partner-cta p { color: rgba(255, 255, 255, .82) !important; }
+html body .tsk-partner-cta.tsk-partner-cta.tsk-partner-cta > div > span { color: rgba(255, 255, 255, .86) !important; }
+/* The separators stay punctuation — dimmer than the words — and need the same
+   weight as the rule above to keep it. */
+html body .tsk-partner-cta.tsk-partner-cta.tsk-partner-cta h2 i { color: rgba(255, 255, 255, .38) !important; }
+.tsk-partner-cta h2 { margin: 4px 0 5px; font-size: clamp(18px, 2.1vw, 25px); font-weight: 800; line-height: 1.25; }
+/* The separators are punctuation, not headings: quieter than the words. */
+.tsk-partner-cta h2 i { font-style: normal; font-weight: 400; color: rgba(255, 255, 255, .38); padding: 0 4px; }
+.tsk-partner-cta p { margin: 0; max-width: 680px; color: rgba(255, 255, 255, .78); font-size: 13px; line-height: 1.6; }
+.tsk-partner-cta-actions { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 10px; }
+.tsk-partner-cta-actions .tsk-btn-primary { background: #fff !important; border-color: #fff !important; color: var(--tsk-green-700) !important; }
+.tsk-partner-cta-actions .tsk-btn-primary:hover { background: var(--tsk-green-050) !important; border-color: var(--tsk-green-050) !important; }
+.tsk-partner-cta-actions .tsk-btn-ghost { background: transparent !important; border-color: rgba(255, 255, 255, .6) !important; color: #fff !important; }
+.tsk-partner-cta-actions .tsk-btn-ghost:hover { background: rgba(255, 255, 255, .12) !important; }
+
+/* =========================================================================
+   The banner keeps its shape.
+
+   There was a rule here that dropped the slide's aspect-ratio above 861px and
+   pinned it to a 420px minimum instead. It existed to make the banner as tall
+   as the 268px column of category links beside it, so the two ended level —
+   and that column was moved into the navigation menu some releases ago. What
+   was left was a banner whose height was fixed and whose width was not, so its
+   shape changed with the window: 2.95:1 on a 1280px screen, 3.33:1 at 1440,
+   1.85:1 on a tablet. No upload could be the right size, because the right
+   size was different on every screen — a merchant sizing artwork to the stated
+   2000x840 saw it cropped differently everywhere.
+
+   With the rule gone the slide is 1000:420 at every width, which is what it
+   always said it was, and 2000x840 is now simply correct.
+   ========================================================================= */
+
+/* =========================================================================
+   Phone layout for the horizontal sections.
+
+   Each of these showed roughly one item per screen, which reads as a dead end
+   rather than a row you can push. They now show two at a time with the next
+   one peeking, so the swipe affordance is obvious.
+   ========================================================================= */
+@media (max-width: 760px) {
+  .tsk-tiles { grid-auto-columns: calc((100% - 12px) / 2); gap: 12px; }
+  .tsk-tile-nav { display: none; }
+
+  /* Two product cards per view on the featured rail. */
+  .tsk-rail { grid-auto-columns: calc((100% - 12px) / 2); gap: 12px; }
+
+  /* Article cards get the same treatment. */
+  .tsk-articles {
+    display: grid;
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: calc((100% - 22px) / 2);
+    gap: 12px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .tsk-articles::-webkit-scrollbar { display: none; }
+  .tsk-articles > * { scroll-snap-align: start; }
+
+  /* More logos in view while the brand rail drifts. */
+  .tsk-brand-grid.is-rail { gap: 18px; }
+  .tsk-brand-grid.is-rail .tsk-brand-box { width: 78px; height: 38px; }
+}
+
+/* ==================================================== promo banner strip */
+/*
+ * The row of flat panels under the hero.
+ *
+ * One line on a desktop, however many the merchant set — three is what the
+ * layout is drawn for, four still fits, one spans the row rather than sitting
+ * lonely on the left. Below the hero breakpoint it becomes a single column,
+ * because a 1200x500 panel shrunk to a third of a phone screen is unreadable.
+ */
+/*
+ * Three across, and a rail once there is a fourth.
+ *
+ * It was a grid of auto-fit columns, which meant a fourth panel wrapped to a
+ * second line under three — and because a merchant only ever has so much room,
+ * the ceiling was set at four to stop that happening. Fixed thirds that do not
+ * wrap turn the overflow into something a shelf can carry instead: past three
+ * the row scrolls, and useAutoScrollRail travels it on its own. The composable
+ * refuses to run on an element that does not overflow, so three or fewer is
+ * still exactly the still row it was.
+ */
+.tsk-promo-strip {
+  --tsk-promo-cols: 3;
+  --tsk-promo-gap: 14px;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--tsk-promo-gap);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  /* Driven a frame at a time; the inherited smooth scrolling would animate each
+     of those writes and the row would flick rather than travel. */
+  scroll-behavior: auto;
+}
+.tsk-promo-strip::-webkit-scrollbar { display: none; }
+.tsk-promo-panel {
+  display: block;
+  /*
+   * Grow, never shrink.
+   *
+   * The basis is one column of three, so four panels or more keep their width
+   * and the row overflows — which is what makes it a rail. Growth is what keeps
+   * the old behaviour intact underneath that: one panel still fills the row and
+   * two still take half each, rather than a lone promotion sitting in the left
+   * third of the page with two thirds of nothing beside it.
+   */
+  flex: 1 0 calc((100% - (var(--tsk-promo-cols) - 1) * var(--tsk-promo-gap)) / var(--tsk-promo-cols));
+  min-width: 0;
+  overflow: hidden;
+  border-radius: var(--tsk-r-md, 14px);
+  background: #fff;
+  transition: transform .18s cubic-bezier(.2, .8, .2, 1), box-shadow .18s ease;
+}
+a.tsk-promo-panel:hover { transform: translateY(-3px); box-shadow: var(--tsk-elev); }
+/* Corner to corner: these are finished artwork, and a margin inside the panel
+   would be a second frame around a picture that already has one. */
+/* contain, not cover: three panels across have to stay the same shape as
+   each other, but a picture that is not 12:5 loses nothing — it sits inside the
+   tile with a little white above and below instead of having its edges cut. */
+.tsk-promo-panel img { display: block; width: 100%; height: 100%; aspect-ratio: 12 / 5; object-fit: contain; background: #fff; }
+@media (max-width: 1000px) { .tsk-promo-strip { --tsk-promo-cols: 2; } }
+/* A 1200x500 panel at a third of a phone screen is unreadable, so one at a
+   time down here — which also means two panels are already enough to travel. */
+@media (max-width: 760px) { .tsk-promo-strip { --tsk-promo-cols: 1; } }
+
+/* ============================================ campaign band above articles */
+/*
+ * One wide picture across the page, holding on each rather than gliding.
+ *
+ * The panels above are separate things and a half-visible one still reads as a
+ * panel. This is a single piece of artwork the width of the shell, and half of
+ * two campaigns at once is neither of them — so the items are exactly one
+ * viewport wide with no gap between them, and the rail steps a whole panel at a
+ * time. Snapping catches a drag that stops between two.
+ */
+/*
+ * Full width, and with arrows.
+ *
+ * The band is 6:1 artwork, which inside the page column is about ninety pixels
+ * tall on a laptop — a strip. It keeps that ratio, because the shop draws its
+ * banners to it and the note further down records what changing it cost twice
+ * before; what it gains is the width of the window instead of the width of the
+ * column, which is most of the difference the owner was asking for.
+ */
+.tsk-article-banner-row { position: relative; margin: 22px 0 0; }
+.tsk-article-nav {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 50%;
+  background: rgba(12, 34, 22, .48);
+  color: #fff;
+  font-size: 25px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background .15s ease;
+}
+.tsk-article-nav:hover { background: rgba(12, 34, 22, .72); }
+.tsk-article-nav.prev { left: 14px; }
+.tsk-article-nav.next { right: 14px; }
+@media (max-width: 760px) {
+  .tsk-article-nav { width: 32px; height: 32px; font-size: 20px; }
+  .tsk-article-nav.prev { left: 8px; }
+  .tsk-article-nav.next { right: 8px; }
+}
+.tsk-article-banners {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-behavior: auto;
+  border-radius: var(--tsk-r-md, 14px);
+}
+.tsk-article-banners::-webkit-scrollbar { display: none; }
+.tsk-article-banner {
+  display: block;
+  flex: 0 0 100%;
+  min-width: 0;
+  scroll-snap-align: start;
+  overflow: hidden;
+  background: #fff;
+}
+/*
+ * One shape, 6:1, at every width.
+ *
+ * The merchant draws the artwork to fit the band rather than the band bending
+ * to the artwork — 1920x320, stated in the admin form, and that is the whole
+ * rule. Two earlier attempts were worse than this: cropping to 6:1 while the
+ * form asked for no particular size threw half of a 3:1 upload away, and
+ * letting the height follow the picture meant the band was a different height
+ * for every campaign and the page moved under the reader when it changed.
+ *
+ * No narrower ratio on a phone either. It cropped the sides there, so a banner
+ * that had been checked on a desktop lost its ends on a handset — the same
+ * surprise in the other direction. The band simply gets shorter as the screen
+ * narrows, which is why the note in the admin form says to keep the type large.
+ */
+.tsk-article-banner img { display: block; width: 100%; height: 100%; aspect-ratio: 6 / 1; object-fit: cover; }
+
+/* ================================================= category menu (header) */
+/*
+ * The panel behind the navigation's category button.
+ *
+ * The list itself is the one that used to sit beside the hero, so the rules for
+ * a row are reused from .tsk-cat-rail-list above; what is new is the box it
+ * drops into and the fact that it is anchored to the button rather than to the
+ * page.
+ */
+.tsk-cat-menu { position: relative; display: flex; align-items: stretch; }
+/*
+ * One panel, not two boxes.
+ *
+ * The list was 288px with its own border and shadow, and the subcategories
+ * opened in a second box floating eight pixels to its right with a border and
+ * shadow of their own. Two cards with a gap down the middle, which is what a
+ * menu looks like when the submenu was added later.
+ *
+ * The panel is the whole width now and the subcategories fill the space beside
+ * the list, inside the same border, separated by a line rather than by air.
+ * The grid has one 288px column: the rows take it, the rest of the width is
+ * the stage the subpanel covers. That is why .tsk-cat-row is static — the
+ * subpanel positions against the panel, not against its own row.
+ */
+.tsk-cat-panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 60;
+  display: grid;
+  grid-template-columns: 288px;
+  justify-content: start;
+  width: min(980px, calc(100vw - 32px));
+  min-height: 340px;
+  max-height: min(70vh, 560px);
+  overflow: hidden;
+  padding: 6px;
+  border: 1px solid var(--tsk-line);
+  border-radius: var(--tsk-r-md, 14px);
+  background: #fff;
+  box-shadow: 0 18px 40px rgba(12, 40, 20, .16);
+}
+.tsk-cat-row { position: static; }
+.tsk-cat-parent {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  border-radius: var(--tsk-r-sm);
+  color: var(--tsk-ink-2);
+  font-size: 13.5px;
+  transition: background .15s ease, color .15s ease;
+}
+.tsk-cat-parent:hover,
+.tsk-cat-row.is-active > .tsk-cat-parent { background: var(--tsk-green-050); color: var(--tsk-green-700); }
+.tsk-cat-panel > a {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  border-radius: var(--tsk-r-sm);
+  color: var(--tsk-ink-2);
+  font-size: 13.5px;
+  transition: background .15s ease, color .15s ease;
+}
+.tsk-cat-panel > a:hover { background: var(--tsk-green-050); color: var(--tsk-green-700); }
+.tsk-cat-subpanel {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  bottom: 6px;
+  left: 300px;
+  z-index: 2;
+  display: none;
+  align-content: start;
+  /* Columns, like the reference: a category with fourteen children should not
+     become a fourteen-line list down one side of a panel that is mostly empty. */
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 2px 18px;
+  padding: 14px 16px;
+  border: 0;
+  border-left: 1px solid var(--tsk-line);
+  border-radius: 0;
+  background: #fff;
+  box-shadow: none;
+  overflow-y: auto;
+}
+.tsk-cat-row.is-active .tsk-cat-subpanel { display: grid; }
+.tsk-cat-subpanel a {
+  display: block;
+  padding: 8px 10px;
+  border-radius: var(--tsk-r-sm);
+  color: var(--tsk-ink-2);
+  font-size: 13px;
+  white-space: nowrap;
+  transition: background .15s ease, color .15s ease, transform .15s ease;
+}
+.tsk-cat-subpanel a:hover { background: var(--tsk-green-050); color: var(--tsk-green-700); transform: translateX(3px); }
+.tsk-cat-subtitle { grid-column: 1 / -1; padding: 2px 10px 9px; color: var(--tsk-green-700); font-size: 13.5px; font-weight: 800; }
+.tsk-cat-subpanel a { white-space: normal; }
+.tsk-cat-subpanel .tsk-cat-sub-all { grid-column: 1 / -1; margin-top: 8px; padding-top: 10px; border-top: 1px solid var(--tsk-line); color: var(--tsk-green-700); font-weight: 700; }
+.tsk-cat-panel .tsk-cat-ic { display: grid; place-items: center; flex: 0 0 22px; width: 22px; height: 22px; color: var(--tsk-green-600); }
+.tsk-cat-panel .tsk-cat-ic svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.tsk-cat-panel .tsk-cat-text { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tsk-cat-panel .tsk-cat-chev { flex: 0 0 auto; color: #b9c4bd; font-size: 15px; }
+.tsk-cat-panel-all {
+  margin-top: 4px;
+  justify-content: center;
+  border-top: 1px solid var(--tsk-line);
+  color: var(--tsk-green-700) !important;
+  font-weight: 700;
+}
+/* The caret turns over, so the button says which way it is going. */
+.tsk-cat-button .tsk-caret { transition: transform .18s ease; }
+.tsk-cat-button .tsk-caret.is-open { transform: rotate(180deg); }
+/* On a phone the panel is the width of the screen rather than a floating card
+   pinned to a button that is itself full width. */
+@media (max-width: 760px) {
+  .tsk-cat-panel { width: min(92vw, 320px); max-height: 70vh; overflow-y: auto; }
+  .tsk-cat-subpanel { position: static; min-width: 0; margin: -2px 0 4px 34px; box-shadow: none; border-color: var(--tsk-line-2); }
+}
+
+/*
+ * The countdown inside the active dot.
+ *
+ * The dots said which banner was showing and nothing about when it would
+ * change. This fills the active one over the same interval the timer uses, so a
+ * reader can see the change coming instead of being overtaken by it. The width
+ * is animated rather than a transform because the dot is 30px wide and a
+ * sub-pixel scale on something that small reads as a blur.
+ */
+.tsk-hero-dots button { position: relative; overflow: hidden; }
+.tsk-hero-dot-fill {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 0;
+  border-radius: inherit;
+  background: var(--tsk-green, #2f8b13);
+  animation-name: tskHeroDotFill;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+@keyframes tskHeroDotFill { from { width: 0; } to { width: 100%; } }
+/* The bar is a four-second sweep repeating forever, which is the thing this
+   setting exists to stop. The dot still says which banner is showing. */
+@media (prefers-reduced-motion: reduce) {
+  .tsk-hero-dot-fill { display: none; }
+  /* The focus ring stays; the movement does not. */
+  .tsk-hero-slide img { transition: none; }
+  .tsk-hero-slide:hover img,
+  .tsk-hero-slide:focus-visible img { transform: none; filter: brightness(1.04); }
+}
+
+/* ================================================== install-the-app sheet */
+/*
+ * Bottom of the screen, above the phone dock, out of the way of the thumb that
+ * is already there. It is a sheet rather than a banner at the top because the
+ * top of a shop is where the search field is.
+ */
+.tsk-pwa-sheet {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  /*
+   * Above the dock, and above the chat launcher.
+   *
+   * The launcher is a 60px cut-out pinned bottom-right at z-index 990, and the
+   * first version of this sheet sat under it: the artwork covered the "ไว้ก่อน"
+   * button, so the one thing a shopper needs in order to make the sheet go away
+   * could not be tapped. It sits above the launcher now, and starts above the
+   * dock (68px) plus whatever the phone reserves under that.
+   */
+  bottom: calc(150px + env(safe-area-inset-bottom, 0px));
+  z-index: 9900;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--tsk-line);
+  border-radius: var(--tsk-r-md, 14px);
+  background: #fff;
+  box-shadow: 0 18px 40px rgba(12, 40, 20, .22);
+}
+.tsk-pwa-icon { flex: 0 0 44px; width: 44px; height: 44px; border-radius: 10px; object-fit: contain; }
+.tsk-pwa-copy { display: grid; gap: 2px; min-width: 0; flex: 1 1 auto; }
+.tsk-pwa-copy b { color: var(--tsk-ink); font-size: 14px; font-weight: 700; }
+.tsk-pwa-copy small { color: var(--tsk-dim); font-size: 11.5px; line-height: 1.45; }
+.tsk-pwa-actions { display: grid; gap: 4px; flex: 0 0 auto; }
+.tsk-pwa-actions .tsk-btn { padding: 8px 16px; font-size: 13px; }
+.tsk-pwa-close {
+  border: 0;
+  background: none;
+  color: var(--tsk-dim);
+  font-size: 11.5px;
+  cursor: pointer;
+}
+.tsk-pwa-enter-active, .tsk-pwa-leave-active { transition: transform .28s cubic-bezier(.2, .8, .2, 1), opacity .28s ease; }
+.tsk-pwa-enter-from, .tsk-pwa-leave-to { transform: translateY(16px); opacity: 0; }
+/* It is a sheet sliding in, which is motion; anyone who asked for less gets it
+   in place rather than not at all. */
+@media (prefers-reduced-motion: reduce) {
+  .tsk-pwa-enter-active, .tsk-pwa-leave-active { transition: none; }
+}
+/* Desktop never shows it — the component checks too, this is the belt to that
+   pair of braces. */
+@media (min-width: 761px) {
+  .tsk-pwa-sheet { display: none; }
+}
+
+/*
+ * The discount shelves: a flash sale and the promotions row under it.
+ *
+ * Both borrow the rail the featured shelf already uses, so a product card here
+ * is the same card as everywhere else on the site — the shelf is new, the way a
+ * product looks is not. Only the heading band is new, and the flash one is dark
+ * on purpose: it is the one row on the page that is time-bound, and the change
+ * of ground is what separates "reduced" from "for sale".
+ */
+.tsk-flash { margin-top: 26px; padding: 18px; border-radius: 18px; background: linear-gradient(135deg, #10241a, #16351f); }
+.tsk-promotions { margin-top: 22px; }
+.tsk-flash-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  margin-bottom: 16px;
+}
+.tsk-flash-title { flex: 1 1 240px; min-width: 0; }
+.tsk-flash-title h2 { margin: 0; color: var(--tsk-ink); font-size: clamp(19px, 2.2vw, 25px); font-weight: 800; }
+.tsk-flash-title p { margin: 4px 0 0; color: var(--tsk-dim); font-size: 13px; font-weight: 600; }
+.tsk-flash .tsk-flash-title h2 { color: #fff; }
+.tsk-flash .tsk-flash-title p { color: #b9d6c2; }
+.tsk-flash-bolt { margin-right: 4px; }
+/* The clock only renders when the shop has set an end — see index.vue. */
+.tsk-flash-clock { display: flex; gap: 8px; }
+.tsk-flash-clock span {
+  display: grid;
+  gap: 2px;
+  min-width: 52px;
+  padding: 7px 9px;
+  border-radius: 11px;
+  background: rgba(255,255,255,.1);
+  text-align: center;
+}
+.tsk-flash-clock b { color: #fff; font-size: 19px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.tsk-flash-clock small { color: #b9d6c2; font-size: 11px; font-weight: 600; }
+.tsk-flash .tsk-btn-ghost { border-color: rgba(255,255,255,.32); color: #fff; }
+.tsk-flash .tsk-btn-ghost:hover { background: rgba(255,255,255,.12); }
+
+@media (max-width: 760px) {
+  .tsk-flash { padding: 14px; border-radius: 14px; }
+  .tsk-flash-clock span { min-width: 44px; padding: 6px; }
+  .tsk-flash-clock b { font-size: 16px; }
+}
+
+/*
+ * The flash sale shelf, drawn from the owner's reference.
+ *
+ * Red is doing a job here rather than decorating: it is the only red on the
+ * page, so the row reads as the exception it is. Everything else on the home
+ * page is the shop's green, and a second shelf in green would have been one
+ * more shelf.
+ */
+.tsk-fs { margin-top: 26px; border: 2px solid #e02424; border-radius: 14px; overflow: hidden; background: #fff; }
+.tsk-fs-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  padding: 11px 16px;
+  background: linear-gradient(135deg, #e02424, #b91414);
+  color: #fff;
+}
+.tsk-fs-bar strong { font-size: clamp(15px, 1.9vw, 19px); font-weight: 800; }
+.tsk-fs-clock { display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600; }
+.tsk-fs-clock b {
+  padding: 4px 9px;
+  border-radius: 7px;
+  background: rgba(0,0,0,.28);
+  font-size: 14px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* A rail rather than a grid: six reductions should not become three rows on a
+   laptop and eighteen screens on a phone. */
+.tsk-fs-rail {
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+}
+.tsk-fs-card {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 auto;
+  width: 176px;
+  border: 1px solid #f2c9c9;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  scroll-snap-align: start;
+}
+.tsk-fs-media { position: relative; display: block; background: #f6f7f6; }
+.tsk-fs-media img { display: block; width: 100%; height: 158px; object-fit: contain; }
+.tsk-fs-ribbon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 9px;
+  background: linear-gradient(135deg, #ffc53d, #f5a300);
+  color: #4a2c00;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .02em;
+}
+.tsk-fs-body { display: flex; flex-direction: column; gap: 5px; padding: 10px; }
+.tsk-fs-name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  min-height: 34px;
+  color: var(--tsk-ink);
+  font-size: 12.5px;
+  line-height: 1.35;
+  text-decoration: none;
+}
+.tsk-fs-name:hover { color: #b91414; }
+.tsk-fs-price { margin: 0; color: #e02424; font-size: 19px; font-weight: 800; line-height: 1.1; }
+.tsk-fs-was { display: flex; align-items: center; gap: 6px; margin: 0; }
+.tsk-fs-was s { color: #98a39b; font-size: 12px; }
+.tsk-fs-was b { padding: 1px 6px; border-radius: 5px; background: #ffe5e5; color: #c81e1e; font-size: 11.5px; font-weight: 800; }
+/* Stock, not sales — the catalogue has no sold counter and this bar does not
+   pretend otherwise. */
+.tsk-fs-level { height: 7px; border-radius: 99px; background: #f1e3e3; overflow: hidden; }
+.tsk-fs-level i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #ffb020, #e02424); }
+.tsk-fs-left { margin: 0; color: #6b756e; font-size: 11.5px; }
+.tsk-fs-left b { color: #1d2a22; }
+.tsk-fs-left.low, .tsk-fs-left.low b { color: #c81e1e; font-weight: 700; }
+.tsk-fs-buy {
+  margin-top: 3px;
+  padding: 8px 10px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #ffc53d, #f5a300);
+  color: #4a2c00;
+  font-size: 13px;
+  font-weight: 800;
+  text-align: center;
+  text-decoration: none;
+}
+.tsk-fs-buy:hover { background: linear-gradient(135deg, #ffbe1f, #e59700); }
+
+@media (max-width: 760px) {
+  .tsk-fs-rail { padding: 11px; gap: 10px; }
+  .tsk-fs-card { width: 152px; }
+  .tsk-fs-media img { height: 136px; }
+}
+
+/*
+ * The catalogue filter's category list, matched to the header menu.
+ *
+ * Both read the same endpoint and used to render as two different things — the
+ * menu with icons and subcategories, this list as bare text. A shopper who
+ * found "ปั๊มหอยโข่ง" in the menu could not reach it from the filter that was
+ * supposedly the same list.
+ *
+ * The flyout opens beside the row rather than pushing the list open, because
+ * this column is already the height of the page and an accordion here moves
+ * every filter under it.
+ */
+.tsk-cat-entry { position: relative; }
+.tsk-cat-entry .tsk-cat-item { display: flex; align-items: center; gap: 9px; width: 100%; }
+.tsk-cat-entry .tsk-cat-ic { display: grid; place-items: center; flex: 0 0 20px; width: 20px; height: 20px; color: var(--tsk-green-600); }
+.tsk-cat-entry .tsk-cat-ic svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.tsk-cat-entry .tsk-cat-item > span:nth-child(2) { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
+.tsk-cat-flyout {
+  position: absolute;
+  top: -10px;
+  left: calc(100% + 10px);
+  /* Above the catalogue grid and anything docked at the foot of the page.
+     Below the modals, which start at 9800. The column itself carries a
+     z-index too — it is a sticky element, so it owns the stacking context
+     this number lives in. */
+  z-index: 1200;
+  display: none;
+  align-content: start;
+  /* The same panel the navigation opens, because it is the same list. It was
+     a narrow single-column box with a different border, a different radius
+     and a different shadow — two menus of one thing, disagreeing about what
+     that thing looks like. Columns, a heading, and a way through to the whole
+     category, exactly as the header has it. */
+  grid-template-columns: repeat(auto-fill, minmax(184px, 1fr));
+  width: max-content;
+  min-width: 260px;
+  max-width: 560px;
+  gap: 2px 18px;
+  padding: 14px 16px;
+  border: 1px solid var(--tsk-line);
+  border-radius: var(--tsk-r-md, 14px);
+  background: #fff;
+  box-shadow: 0 18px 40px rgba(12, 40, 20, .16);
+}
+.tsk-cat-entry.has-subcategories:hover .tsk-cat-flyout,
+.tsk-cat-entry.has-subcategories:focus-within .tsk-cat-flyout { display: grid; }
+.tsk-cat-flyout a {
+  display: block;
+  padding: 7px 9px;
+  border-radius: var(--tsk-r-sm);
+  color: var(--tsk-ink-2);
+  font-size: 13px;
+  white-space: normal;
+}
+.tsk-cat-flyout a:hover { background: var(--tsk-green-050); color: var(--tsk-green-700); }
+.tsk-cat-flyout .tsk-cat-sub-all { grid-column: 1 / -1; margin-top: 8px; padding-top: 10px; border-top: 1px solid var(--tsk-line); color: var(--tsk-green-700); font-weight: 700; }
+.tsk-cat-flyout .tsk-cat-subtitle { grid-column: 1 / -1; padding: 2px 10px 9px; color: var(--tsk-green-700); font-size: 13.5px; font-weight: 800; }
+
+/* No hover on a touch screen, and no room beside a full-width column: the
+   subcategories simply stay in the menu there. */
+@media (max-width: 1024px) {
+  .tsk-cat-flyout { display: none !important; }
+}
+
+/*
+ * The filter's folds.
+ *
+ * The chevrons were decoration: every heading had one and none of them did
+ * anything. They are controls now, so they have to look pressable and they have
+ * to turn when the thing they fold is folded.
+ */
+.tsk-filter-head { display: flex; align-items: center; justify-content: space-between; width: 100%; border: 0; font: inherit; text-align: left; cursor: pointer; }
+.tsk-filter-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.tsk-filter-toggle h4 { margin: 0; }
+.tsk-filter-toggle svg,
+.tsk-filter-head svg { width: 18px; height: 18px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: transform .18s ease; }
+.tsk-filter-toggle svg.is-closed { transform: rotate(180deg); }
+.tsk-filter-head svg.is-closed { transform: rotate(-90deg); }
+
+/*
+ * The recently-viewed bar.
+ *
+ * Sits directly on top of the phone dock and under the chat launchers — every
+ * offset in this stack is measured from the one below it, so nothing has to be
+ * guessed twice. See the --tsk-* stack in tsk-design-system.css.
+ *
+ * Left-aligned and narrow rather than full width: it is a way back to one
+ * product, not a second navigation bar, and the right-hand side of the screen
+ * belongs to the cart and the chat buttons.
+ */
+.tsk-recentbar {
+  position: fixed;
+  /* Centred, not tucked into the corner.
+
+     It was pinned left at 340px, which is out of the way — and out of the way
+     is out of mind for the one control whose whole job is to be noticed on the
+     way back. Centred with auto margins rather than a transform, because the
+     transform is already spoken for by the enter and leave transition. */
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: min(560px, calc(100vw - 24px));
+  bottom: calc(var(--tsk-dock-h) + var(--tsk-consent-h) + var(--tsk-bottom-gap));
+  z-index: 980;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 8px 7px 9px;
+  border: 1px solid var(--tsk-line);
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(12, 40, 20, .18);
+}
+.tsk-recentbar-item {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) auto;
+  gap: 9px;
+  align-items: center;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+.tsk-recentbar-item img { width: 46px; height: 46px; border-radius: 999px; object-fit: contain; background: #f5f7f5; }
+.tsk-recentbar-item span { display: grid; gap: 1px; min-width: 0; }
+.tsk-recentbar-item small { color: var(--tsk-dim); font-size: 10.5px; font-weight: 700; letter-spacing: .04em; }
+.tsk-recentbar-item b { overflow: hidden; font-size: 13.5px; text-overflow: ellipsis; white-space: nowrap; }
+.tsk-recentbar-item strong { padding-right: 6px; color: var(--tsk-green-700); font-size: 15px; font-weight: 800; white-space: nowrap; }
+/* Buy, at the right end, because that is what the bar is for. The close is
+   deliberately quieter: it is the way out, not the point. */
+.tsk-recentbar-buy {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  height: 38px;
+  padding: 0 15px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #54b62b, #2f8a14);
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(47, 138, 20, .28);
+}
+.tsk-recentbar-buy:hover { background: linear-gradient(135deg, #4aa724, #26720f); }
+.tsk-recentbar-buy:disabled { opacity: .6; cursor: progress; }
+.tsk-recentbar-buy svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+
+.tsk-recentbar-close {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #f1f4f1;
+  color: #6b756e;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+.tsk-recentbar-close:hover { background: #e3e8e4; color: #1d2a22; }
+.tsk-recentbar-enter-active, .tsk-recentbar-leave-active { transition: opacity .2s ease, transform .2s ease; }
+.tsk-recentbar-enter-from, .tsk-recentbar-leave-to { opacity: 0; transform: translateY(8px); }
+
+@media (max-width: 640px) {
+  .tsk-recentbar { width: calc(100vw - 20px); }
+  .tsk-recentbar-item b { font-size: 12.5px; }
+  .tsk-recentbar-item strong { font-size: 13.5px; }
+  .tsk-recentbar-buy { padding: 0 12px; }
+  .tsk-recentbar-buy span { display: none; }
+}

@@ -1,0 +1,15 @@
+/* Release 56: make the referral trail visible at a glance in Admin Orders. */
+#adminOrdersSummary{grid-template-columns:repeat(5,minmax(0,1fr));}
+.order-summary-card.agent-summary{appearance:none;cursor:pointer;text-align:left;border:1px solid #bce5d3;background:linear-gradient(135deg,#effcf5,#f7fffb);color:#073b2d;position:relative;overflow:hidden}
+.order-summary-card.agent-summary::after{content:'↗';position:absolute;right:12px;bottom:8px;font-size:20px;color:#11885d;opacity:.55}
+.order-summary-card.agent-summary b{font-size:18px}.order-summary-card.agent-summary em{display:block;margin-top:3px;color:#397564;font-size:11px;font-style:normal}
+.order-card-v31.has-agent-attribution{border-left:4px solid #10a875}
+.order-tag.agent{background:#e9fbf3!important;border-color:#a9e4ca!important;color:#087451!important;font-weight:800}
+.order-agent-box{margin-top:12px;padding:14px 15px;border:1px solid #a7dec4;border-radius:12px;background:linear-gradient(135deg,#effcf5,#f9fffc);box-shadow:0 6px 18px rgba(5,91,61,.06)}
+.order-agent-box.direct{border-color:#e8e5df;background:#fbfaf8;box-shadow:none}
+.agent-kicker{display:block;margin-bottom:5px;color:#0c8c60;font-size:10px;letter-spacing:.1em;font-weight:900;text-transform:uppercase}.order-agent-box.direct .agent-kicker{color:#80766d}
+.order-agent-box strong{display:block;color:#073c2d;font-size:16px}.agent-ref,.agent-id{margin-top:5px;color:#487064;font-size:12px}.agent-ref code{padding:2px 6px;border-radius:5px;background:#d7f5e6;color:#075e42;font-weight:800}
+.order-agent-box a{display:inline-flex;margin-top:10px;padding:6px 10px;border-radius:8px;background:#0b6d4d;color:#fff!important;font-size:12px;font-weight:800;text-decoration:none}.order-agent-box a:hover{background:#075c40}
+.order-agent-box p{margin:9px 0 0;color:#5f736b;font-size:12px;line-height:1.45}.order-item-placeholder{width:52px;height:52px;border-radius:8px;background:#f4f5f4}.order-totals{border-top:1px solid #eee7e4;margin-top:10px;padding-top:10px}
+@media(max-width:1100px){#adminOrdersSummary{grid-template-columns:repeat(3,minmax(0,1fr));}}
+@media(max-width:650px){#adminOrdersSummary{grid-template-columns:repeat(2,minmax(0,1fr));}.order-summary-card.agent-summary{grid-column:span 2}.order-agent-box{padding:12px}.order-tag.agent{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}

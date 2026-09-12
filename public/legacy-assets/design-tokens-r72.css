@@ -1,0 +1,54 @@
+/* R72 design tokens: compatibility layer only. Legacy variables remain available. */
+:root{
+  --tsk-brand-950:#062c21;
+  --tsk-brand-900:#083d2e;
+  --tsk-brand-800:#0b5e43;
+  --tsk-brand-700:#0c7652;
+  --tsk-brand-100:#e8f5ee;
+  --tsk-accent-600:#c88b18;
+  --tsk-accent-500:#e7ad37;
+  --tsk-danger-600:#b42318;
+  --tsk-success-600:#147a50;
+  --tsk-surface:#ffffff;
+  --tsk-surface-soft:#f5f8f6;
+  --tsk-canvas:#f7f9f8;
+  --tsk-text:#102f26;
+  --tsk-text-muted:#5b7169;
+  --tsk-border:#dce7e1;
+  --tsk-shadow-sm:0 4px 14px rgba(4,45,33,.07);
+  --tsk-shadow-md:0 14px 34px rgba(4,45,33,.12);
+  --tsk-shadow-lg:0 24px 64px rgba(4,45,33,.18);
+  --tsk-radius-sm:8px;
+  --tsk-radius-md:12px;
+  --tsk-radius-lg:18px;
+  --tsk-radius-xl:24px;
+  --tsk-radius-pill:999px;
+  --tsk-space-1:4px;
+  --tsk-space-2:8px;
+  --tsk-space-3:12px;
+  --tsk-space-4:16px;
+  --tsk-space-5:24px;
+  --tsk-space-6:32px;
+  --tsk-space-7:48px;
+  --tsk-ease:cubic-bezier(.2,.7,.2,1);
+  --tsk-fast:160ms;
+  --tsk-normal:220ms;
+  --tsk-z-header:70;
+  --tsk-z-dock:200;
+  --tsk-z-toast:500;
+  --tsk-z-modal:900;
+  --tsk-z-consent:950;
+}
+
+html[data-theme="dark"]{
+  color-scheme:dark;
+  --tsk-surface:#10251f;
+  --tsk-surface-soft:#142d25;
+  --tsk-canvas:#0b1d18;
+  --tsk-text:#f2f8f5;
+  --tsk-text-muted:#b8cbc3;
+  --tsk-border:#2b4c40;
+  --tsk-shadow-sm:0 4px 14px rgba(0,0,0,.22);
+  --tsk-shadow-md:0 14px 34px rgba(0,0,0,.32);
+  --tsk-shadow-lg:0 24px 64px rgba(0,0,0,.42);
+}

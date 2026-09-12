@@ -1,0 +1,37 @@
+/* =========================================================================
+   THAISERKIT SUPPLY — Release 21 Bug-fix & Refinement Pass
+   Loads after premium-polish-v20.css. Additive only.
+   ========================================================================= */
+
+/* ---------- 1) Collapsible filter groups (accordion) ---------- */
+.filter-group h4{cursor:pointer;position:relative;padding-right:20px;user-select:none;}
+.filter-group h4::after{
+  content:"";position:absolute;right:2px;top:50%;width:7px;height:7px;
+  border-right:2px solid currentColor;border-bottom:2px solid currentColor;
+  transform:translateY(-70%) rotate(45deg);transition:transform .22s ease;
+  opacity:.8;
+}
+.filter-group.collapsed h4::after{transform:translateY(-30%) rotate(-135deg);}
+.filter-group.collapsed > *:not(h4){display:none!important;}
+
+/* ---------- 2) Brand row ----------
+   Release 69 retired the old duplicated marquee. The responsive grid in
+   luxury-storefront.css is now the single layout contract for this section. */
+body[data-page="home"] .brand-wordmark{
+  color:#2e7d32;font-size:18px;font-weight:800;letter-spacing:.02em;line-height:1;
+}
+@media (max-width:760px){
+  body[data-page="home"] .brand-wordmark{font-size:12px;}
+}
+
+/* ---------- 3) Category icons: normalize inconsistent visual weight ---------- */
+/* Each icon uses the same 24x24 viewBox, but some path shapes fill much less
+   of that box than others (e.g. the pipe icon is a thin centered band), which
+   reads as "different size" next to a full-bleed icon like the wrench. Nudge
+   the outliers so the whole list reads as one consistent icon set. */
+.cat-ic{overflow:visible;transform-box:fill-box;transform-origin:50% 50%;}
+.cat-ic-pipe{transform:scale(1.28);}
+.cat-ic-bars{transform:scale(1.08);}
+.cat-ic-sprayer{transform:scale(1.06);}
+.cat-ic-plant{transform:scale(.92);}
+.cat-ic-boxes{transform:scale(.96);}

@@ -1,0 +1,16 @@
+node_modules
+.next
+.open-next
+.wrangler
+out
+tsconfig.tsbuildinfo
+coverage
+playwright-report
+test-results
+.env
+.env.local
+.env.production
+googleauth.env
+googleauth.txt
+*.log
+.DS_Store

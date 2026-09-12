@@ -1,0 +1,8 @@
+/* Release 58: hard boundaries for shared chrome. No page-level theme may resize these icons. */
+#site-header .market-utility,#site-header .market-utility *{box-sizing:border-box}
+#site-header .market-utility .market-promises{display:flex!important;align-items:center!important;gap:22px!important}
+#site-header .market-utility .market-promises span,#site-header .market-utility .market-phone{display:inline-flex!important;align-items:center!important;gap:6px!important;white-space:nowrap!important;font-size:12px!important;line-height:1.2!important}
+#site-header .market-utility .market-promises svg,#site-header .market-utility .market-phone svg{display:block!important;width:16px!important;height:16px!important;min-width:16px!important;max-width:16px!important;max-height:16px!important;flex:0 0 16px!important}
+#site-header .topbar svg{max-width:26px!important;max-height:26px!important}#site-header .brand-logo svg{width:44px!important;height:44px!important;max-width:44px!important;max-height:44px!important}
+#site-footer .foot-contact svg,#site-footer .soc-row svg{width:16px!important;height:16px!important;max-width:16px!important;max-height:16px!important;flex:0 0 16px!important}
+@media(max-width:760px){#site-header .market-utility .market-promises{display:none!important}#site-header .market-utility .market-phone{font-size:10px!important}}

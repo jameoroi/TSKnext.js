@@ -1,0 +1,1023 @@
+/* =========================================================================
+   THAISERKIT design system — the bright storefront look.
+
+   Loaded last so it wins over the legacy site/assets chain, which still
+   dresses the pages that have not been rebuilt on these components. Every
+   class here is `tsk-` prefixed, so the two layers never fight over a
+   selector: a page is either on the new components or the old ones.
+   ========================================================================= */
+
+:root {
+  --tsk-font-heading: 'Prompt', 'Noto Sans Thai', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --tsk-font-body: 'Noto Sans Thai', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --tsk-green: #4caf00;
+  --tsk-green-600: #43980a;
+  --tsk-green-700: #35790a;
+  --tsk-green-050: #f2faea;
+  --tsk-green-100: #e3f4d2;
+  --tsk-bar: #2f8b13;
+  --tsk-bar-dark: #103b18;
+
+  --tsk-ink: #1d2a22;
+  --tsk-ink-2: #46564c;
+  /* 3.61:1 on white, which fails AA for the brand name and dates on every
+     product card. Darkened to the least that passes (4.51:1). */
+  --tsk-dim: #657268;
+  --tsk-line: #e6ece7;
+  --tsk-line-2: #f0f4f1;
+  --tsk-page: #f6f8f6;
+
+  /* 4.32:1 — just under AA, and it is the price. 4.83:1. */
+  --tsk-price: #d92d23;
+  /* White on #ec4067 was 3.82:1. This keeps the pink and reaches 4.76:1. */
+  --tsk-sale: #d92a54;
+  --tsk-hot: #ff8a00;
+  /* White on this orange is 2.36:1. Rather than dull the badge, its text is
+     dark: #1d2a22 on #ff8a00 is 6.32:1 and the orange is untouched. */
+  --tsk-hot-ink: #1d2a22;
+  --tsk-star: #ffa000;
+
+  --tsk-r-sm: 8px;
+  --tsk-r: 12px;
+  --tsk-r-lg: 16px;
+  --tsk-elev: 0 2px 10px rgba(23, 60, 33, .06);
+  --tsk-elev-2: 0 10px 30px rgba(23, 60, 33, .10);
+  --tsk-shell: 1400px;
+}
+
+.tsk-shell { width: min(var(--tsk-shell), calc(100% - 32px)); margin-inline: auto; }
+
+/* ============================================================ utility bar */
+.tsk-utility {
+  /* Deep, near-black green on the left easing out to the brand green on the
+     right, so the promise list sits on the dark end and the contact block on
+     the lighter one. */
+  background: linear-gradient(90deg, #061a0b 0%, #10391a 38%, #216a11 74%, #2f8b13 100%);
+  color: #fff;
+  font-size: 12.5px;
+}
+.tsk-utility .tsk-shell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 38px;
+}
+.tsk-utility-list { display: flex; align-items: center; gap: 22px; min-width: 0; }
+.tsk-utility-list span,
+.tsk-utility-right a,
+.tsk-utility-right span { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+.tsk-utility svg { width: 15px; height: 15px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.tsk-utility-right { display: flex; align-items: center; gap: 16px; }
+.tsk-utility-right a:hover { text-decoration: underline; }
+.tsk-utility-phone {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .16);
+  font-weight: 700;
+}
+/* The LINE tile is gone: it is drawn as its own logo in the social row now,
+   like the other three. See app/utils/socialMarks.ts. */
+
+/* ================================================================== header */
+.tsk-header {
+  /*
+   * Sticky, not `relative`.
+   *
+   * The header shortens once the page has moved and slides away entirely when
+   * the reader scrolls down, and neither behaviour is possible for a box still
+   * taking part in the page's flow: `translateY(-100%)` on an in-flow header
+   * leaves its space behind as a gap, and losing 74px of height reflows
+   * everything below it. That reflow was the flicker — near the threshold the
+   * jump could carry the page back under it, which expanded the header, which
+   * moved the page again, for as long as somebody kept scrolling.
+   */
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  background: #fff;
+}
+
+/*
+ * And again, louder, because five other sheets have an opinion about this one
+ * property and between them they left the header sticky on three pages and
+ * in-flow on the rest:
+ *
+ *   site/assets/style.css                  #site-header  sticky
+ *   site/assets/platform-perfect-r66.css   #site-header  relative
+ *   app/assets/nuxt-legacy-bridge.css      #site-header  relative
+ *   app/assets/fast-storefront.css         #site-header  relative
+ *   site/assets/luxury-storefront.css      #site-header  relative !important  (max-width: 760px)
+ *   site/assets/storefront-experience-r71  #site-header  sticky   !important  (home/product/products only)
+ *
+ * Which one won depended on the page and the viewport, and an in-flow header
+ * cannot do either of the things the rules below ask of it: shortening it
+ * reflowed everything under it, and sliding it away left its space behind as
+ * a gap. `#site-header.tsk-header` outranks every plain `#site-header` above,
+ * and the `!important` is there for exactly one of them — the mobile rule in
+ * luxury-storefront.css.
+ */
+#site-header.tsk-header { position: sticky !important; top: 0 !important; }
+.tsk-header-main { border-bottom: 1px solid var(--tsk-line); }
+.tsk-header-main .tsk-shell {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 28px;
+  min-height: 84px;
+}
+
+.tsk-brand { display: inline-flex; align-items: center; gap: 12px; min-width: 0; }
+/*
+ * The logo, with nothing drawn behind it.
+ *
+ * It sat on a pale green rounded square, which read as a frame around the mark
+ * — a box inside the header, holding another box. A logo is already a shape on
+ * a background; giving it a second one just makes the header look like it is
+ * showing an attachment. The size stays, so nothing around it moves.
+ */
+.tsk-brand-mark {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 52px;
+  height: 52px;
+  overflow: hidden;
+}
+.tsk-brand-mark img { width: 100%; height: 100%; object-fit: contain; }
+.tsk-brand-name { display: grid; gap: 1px; min-width: 0; }
+.tsk-brand-name b {
+  color: var(--tsk-ink);
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: .01em;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+.tsk-brand-name small { color: var(--tsk-green-600); font-size: 11.5px; font-weight: 600; letter-spacing: .02em; }
+
+/*
+ * One bar, not three pieces.
+ *
+ * The AI button was given a pill of its own with seven pixels of margin either
+ * side. Inside a row whose field and search key are two halves of a rounded
+ * outline, that reads as a button someone dropped on top of the search box —
+ * which is what the owner saw. The outline is on the row now and the three
+ * children are segments of it: white field, green AI, green key.
+ */
+.tsk-search {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  max-width: 620px;
+  margin-inline: auto;
+  /* No clipping here. `overflow: hidden` rounded the green end and took the
+     suggestions panel with it — recent searches, popular searches and the
+     product matches are absolutely positioned inside this form, so hiding the
+     overflow hid all of them on any screen wide enough not to fall back to the
+     fixed mobile layout. The green end rounds its own right corners instead. */
+  overflow: visible;
+  border: 1px solid var(--tsk-line);
+  border-radius: 999px;
+  background: var(--tsk-card, #fff);
+  box-shadow: 0 1px 3px rgba(16, 40, 28, .06);
+}
+.tsk-search:focus-within { border-color: #cfe4d2; box-shadow: 0 0 0 3px rgba(76,175,0,.14); }
+/* The glass in the field, ahead of the placeholder. */
+.tsk-search-glass { display: grid; place-items: center; flex: 0 0 auto; padding-left: 16px; color: #7f8c85; }
+.tsk-search-glass svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.tsk-search:focus-within { background: #fff; box-shadow: 0 0 0 2px rgba(76,175,0,.32); }
+.tsk-search { position: relative; }
+.tsk-search-results { position: absolute; z-index: 70; top: calc(100% + 8px); left: 0; right: 0; overflow: hidden; background: var(--tsk-surface, #fff); border: 1px solid #dfe8e1; border-radius: 14px; box-shadow: 0 18px 46px rgba(13, 52, 31, .18); }
+.tsk-search-result { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 10px 12px; color: var(--tsk-ink, #183126); text-decoration: none; border-bottom: 1px solid #edf2ee; transition: background .16s ease; }
+.tsk-search-result:hover, .tsk-search-result:focus-visible { background: #f3faee; outline: none; }
+.tsk-search-result img { width: 52px; height: 52px; border-radius: 9px; object-fit: contain; background: #fff; }
+.tsk-search-result span { min-width: 0; display: grid; gap: 3px; }
+.tsk-search-result b { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 14px; }
+.tsk-search-result small { color: #728078; font-size: 12px; }
+.tsk-search-result strong { color: var(--tsk-green, #287d0f); white-space: nowrap; font-size: 14px; }
+.tsk-search-state { padding: 18px; text-align: center; color: #69776f; font-size: 14px; }
+.tsk-search-all { width: 100%; min-height: 42px; border: 0; background: #f3faee; color: var(--tsk-green, #287d0f); font: inherit; font-weight: 700; cursor: pointer; }
+.tsk-search .tsk-search-ai-card { display: grid; place-items: initial; grid-template-columns: 42px minmax(0,1fr) auto; align-items: center; gap: 12px; width: calc(100% - 20px); height: auto; min-height: 70px; margin: 10px; padding: 12px; border: 0; border-radius: 12px; background: linear-gradient(135deg,#ffcf48,#ffc439); color: #16291e; text-align: left; cursor: pointer; box-shadow: 0 4px 12px rgba(138,96,0,.12); }
+.tsk-search-ai-card > span:nth-child(2) { display: grid; gap: 2px; }
+.tsk-search-ai-card b { font-size: 15px; }
+.tsk-search-ai-card small { font-size: 12px; opacity: .76; }
+.tsk-search-ai-card strong { padding: 8px 11px; border-radius: 9px; background: #245d43; color: #fff; white-space: nowrap; font-size: 13px; }
+.tsk-search-ai-spark { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 10px; background: #245d43; color: #fff; }
+.tsk-search-ai-spark svg { width: 23px!important; height: 23px!important; }
+.tsk-search-discovery { display: grid; gap: 18px; padding: 16px 18px 20px; }
+.tsk-search-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 9px; color: #69776f; font-size: 13px; }
+.tsk-search-heading button { min-height: auto; padding: 2px 4px; border: 0; background: transparent!important; color: #718079!important; font: inherit; }
+.tsk-search-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.tsk-search-chips button { min-height: 36px; padding: 7px 13px; border: 1px solid #dde5df!important; border-radius: 999px; background: #fff!important; color: #34443a!important; font: inherit; font-size: 13px; cursor: pointer; }
+.tsk-search-chips button:hover { border-color: #78ad55!important; background: #f3faee!important; }
+.tsk-ai-products { display: grid; gap: 7px; width: min(330px, 100%); margin-top: 8px; }
+.tsk-ai-product { display: grid; grid-template-columns: 54px minmax(0,1fr); gap: 9px; align-items: center; padding: 8px; border: 1px solid #dfe8e1; border-radius: 11px; background: #fff; color: #20362b; text-decoration: none; box-shadow: 0 4px 14px rgba(20,60,38,.07); }
+.tsk-ai-product:hover { border-color: #78ad55; transform: translateY(-1px); }
+.tsk-ai-product img { width: 54px; height: 54px; object-fit: contain; border-radius: 8px; }
+.tsk-ai-product span { min-width: 0; display: grid; gap: 2px; }
+.tsk-ai-product b { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 12px; }
+.tsk-ai-product small { color: #718079; font-size: 11px; }
+.tsk-ai-product strong { color: #287d0f; font-size: 12px; }
+/*
+ * The field has to give up its own shape, and it takes force to make it.
+ *
+ * Three global rules dress every input on the site — a radius, a background
+ * and a border, two of them with !important — so inside the bar the field was
+ * still a rounded box with its own fill, sitting in the pill like a card on a
+ * tray. That rounded right edge against the green is what read as two layers.
+ *
+ * The bar is the control here; the field is a hole in it. Hence the weight:
+ * these are not preferences, they are undoing rules that already insist.
+ */
+.tsk-search input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="submit"]):not([type="button"]) {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 48px;
+  padding: 0 14px;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font: inherit;
+  font-size: 14px;
+  color: var(--tsk-ink) !important;
+  /* Said out loud rather than left to the browser and the operating system.
+     The caret inherited a colour close to the field itself, and the focus ring
+     was whatever Windows had been told the accent colour was — which is how a
+     green shop ends up with a red line and a red halo when somebody clicks in
+     the search box. */
+  caret-color: var(--tsk-green, #4caf00);
+  outline: none !important;
+}
+.tsk-search input::placeholder { color: #a3aea7; }
+.tsk-search input:focus { outline: none; }
+.tsk-search button {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  height: 46px;
+  border: 0;
+  color: #fff;
+  cursor: pointer;
+  transition: background .18s ease;
+}
+/*
+ * The AI entry, as a button rather than as a tint.
+ *
+ * It was pale green text on pale green, wedged between the field and the search
+ * key and reading as part of the furniture — a label somebody had shaded in.
+ * It is the newest thing in this header and the one nobody is looking for, so
+ * it has to carry its own weight: a filled pill, its own edge, and the sentence
+ * it actually does. "ถาม AI" reads as a feature name; "ค้นหาด้วย AI" reads as
+ * something to press.
+ */
+.tsk-search-actions {
+  border-radius: 0 999px 999px 0;
+  /* Out over the border, not inside it.
+
+     The row carries a 1px hairline all the way round, so the green block sat
+     within it with a thread of white above, below and to the right — the seam
+     the owner could see. Pulling it out by that pixel on three sides lets the
+     green run to the bar's own edge and the two read as one shape. */
+  margin: -1px -1px -1px 0;
+  display: flex;
+  align-items: stretch;
+  flex: 0 0 auto;
+  /* Dark at the seam, brighter at the tip — the drawing lights the end of the
+     bar, which is where the eye is being sent. */
+  background: linear-gradient(90deg, #0f6b16, #2fa61e);
+}
+.tsk-search-ai {
+  grid-auto-flow: column;
+  gap: 9px;
+  height: auto;
+  margin: 0;
+  padding: 0 14px 0 16px;
+  border-radius: 0;
+  background: none;
+  color: #fff !important;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.tsk-search-rule { width: 1px; height: 20px; background: rgba(255,255,255,.42); }
+.tsk-search-ai:hover { background: rgba(255,255,255,.12); color: #fff !important; }
+.tsk-search-ai svg { width: 15px; height: 15px; stroke-width: 2; }
+.tsk-search-submit {
+  width: 52px;
+  border-radius: 0;
+  background: none;
+}
+.tsk-search-submit:hover { background: rgba(255,255,255,.12); }
+.tsk-search svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+
+.tsk-header-actions { display: flex; align-items: center; gap: 22px; }
+.tsk-action {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--tsk-ink-2);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: color .18s ease;
+}
+.tsk-action:hover { color: var(--tsk-green-600); }
+.tsk-action > svg { width: 23px; height: 23px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.tsk-action-admin { color: var(--tsk-green-700); }
+.tsk-action-profile { display: grid; gap: 1px; line-height: 1.12; }
+.tsk-action-profile b { max-width: 130px; overflow: hidden; font-size: 12px; text-overflow: ellipsis; }
+.tsk-action-profile small { color: var(--tsk-green-600); font-size: 10px; font-weight: 700; }
+.tsk-badge {
+  position: absolute;
+  top: -7px;
+  left: 15px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--tsk-hot);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+}
+
+/* ===================================================================== nav */
+.tsk-nav { border-bottom: 1px solid var(--tsk-line); background: #fff; }
+.tsk-nav .tsk-shell { display: flex; align-items: stretch; gap: 26px; }
+
+.tsk-cat-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+  min-width: 208px;
+  margin: 8px 0;
+  padding: 11px 16px;
+  border: 0;
+  border-radius: var(--tsk-r-sm);
+  background: var(--tsk-green);
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .18s ease;
+}
+.tsk-cat-button:hover { background: var(--tsk-green-600); }
+/* White on the bright green is 2.82:1. The darker brand green is 5.40:1 and
+   matches what .tsk-btn-primary now uses, so the two greens stay in step. */
+.tsk-cat-button { background: var(--tsk-green-700); }
+.tsk-cat-button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.tsk-cat-button .tsk-caret { margin-left: auto; }
+
+.tsk-nav-links { display: flex; align-items: stretch; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+.tsk-nav-links::-webkit-scrollbar { display: none; }
+.tsk-nav-links a {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 18px;
+  border-bottom: 3px solid transparent;
+  color: var(--tsk-ink-2);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: color .18s ease, border-color .18s ease, background .18s ease;
+}
+.tsk-nav-links a:hover { color: var(--tsk-green-600); }
+.tsk-nav-links a.active {
+  border-bottom-color: var(--tsk-green);
+  background: var(--tsk-green-050);
+  color: var(--tsk-green-700);
+  font-weight: 700;
+}
+
+/* ============================================================== page frame */
+.tsk-breadcrumb { padding: 14px 0; color: var(--tsk-dim); font-size: 12.5px; }
+.tsk-breadcrumb a:hover { color: var(--tsk-green-600); }
+.tsk-breadcrumb .sep { margin: 0 7px; opacity: .6; }
+
+.tsk-page { padding-bottom: 46px; background: var(--tsk-page); }
+.tsk-page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 18px;
+  margin-bottom: 18px;
+}
+.tsk-page-head h1 { margin: 0; color: var(--tsk-ink); font-size: clamp(22px, 2.6vw, 30px); font-weight: 800; }
+.tsk-page-head .tsk-count { margin-left: 12px; color: var(--tsk-dim); font-size: 13.5px; font-weight: 400; }
+.tsk-breadcrumb-current { color: var(--tsk-ink-2); }
+/* Header variant used by TskPageHeader: title with a supporting line beneath,
+   the actions slot staying on the right. */
+.tsk-page-head-stacked { align-items: flex-end; padding-bottom: 18px; border-bottom: 1px solid var(--tsk-line); }
+.tsk-page-head-stacked p { margin: 8px 0 0; max-width: 680px; color: var(--tsk-dim); font-size: 13.5px; line-height: 1.8; }
+
+.tsk-card { border: 1px solid var(--tsk-line); border-radius: var(--tsk-r); background: #fff; box-shadow: var(--tsk-elev); }
+
+/* ================================================================ buttons */
+.tsk-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 11px 22px;
+  border: 1px solid transparent;
+  border-radius: var(--tsk-r-sm);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .18s ease, border-color .18s ease, color .18s ease, transform .18s ease;
+}
+.tsk-btn svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+/*
+ * White on the bright brand green measured 2.82:1, well under the 4.5:1 white
+ * text needs — on the primary call to action, the button a shopper is meant to
+ * press. The brand green is unchanged everywhere else; this uses the darker
+ * green already in the palette, so the button is still the same colour family
+ * rather than a new one. Revert by putting --tsk-green back if the brand
+ * owner prefers the brighter shade and accepts the contrast.
+ */
+.tsk-btn-primary { background: var(--tsk-green-700); color: #fff; }
+.tsk-btn-primary:hover { background: var(--tsk-green-600); transform: translateY(-1px); }
+.tsk-btn-ghost { border-color: var(--tsk-green); background: #fff; color: var(--tsk-green-700); }
+.tsk-btn-ghost:hover { background: var(--tsk-green-050); transform: translateY(-1px); }
+.tsk-btn-block { width: 100%; }
+
+/* =========================================================== product card */
+.tsk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(198px, 1fr)); gap: 14px; }
+
+.tsk-pcard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--tsk-line);
+  border-radius: var(--tsk-r);
+  background: #fff;
+  transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+/*
+ * Lifts and grows a little under the pointer.
+ *
+ * The lift alone reads as the card being picked up; the shopper asked for the
+ * product to come forward, which is a change of size, not of height. 1.03 is
+ * about a six-pixel gain on a shelf card — enough to single one card out of a
+ * row of five, small enough that the grid does not appear to breathe. The
+ * z-index is what lets it grow over its neighbours instead of under them.
+ */
+.tsk-pcard:hover,
+.tsk-pcard:focus-within {
+  z-index: 2;
+  border-color: var(--tsk-green-100);
+  box-shadow: var(--tsk-elev-2);
+  transform: translateY(-3px) scale(1.03);
+}
+/* No hover on a touch screen: a tap would leave a card stuck enlarged, sitting
+   over the one beside it, until something else was tapped. */
+@media (hover: none) {
+  .tsk-pcard:hover,
+  .tsk-pcard:focus-within { transform: none; }
+}
+
+.tsk-pcard-tag {
+  position: absolute;
+  top: 9px;
+  left: 9px;
+  z-index: 3;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--tsk-sale);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .01em;
+}
+.tsk-pcard-tag.hot { background: var(--tsk-hot); }
+.tsk-pcard-tag.out { background: #7c8a82; }
+
+.tsk-pcard-actions {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  z-index: 3;
+  display: grid;
+  gap: 6px;
+  opacity: 0;
+  transform: translateX(6px);
+  transition: opacity .2s ease, transform .2s ease;
+}
+.tsk-pcard:hover .tsk-pcard-actions,
+.tsk-pcard:focus-within .tsk-pcard-actions { opacity: 1; transform: none; }
+.tsk-round {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--tsk-line);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .95);
+  color: var(--tsk-ink-2);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background .16s ease, color .16s ease, border-color .16s ease;
+}
+.tsk-round:hover { border-color: var(--tsk-green); background: var(--tsk-green); color: #fff; }
+.tsk-round.active { border-color: var(--tsk-sale); background: var(--tsk-sale); color: #fff; }
+
+/*
+ * The product photograph fills the card, corner to corner.
+ *
+ * It used to sit inside 12px of white padding and be fitted with `contain`, so
+ * a photograph that was not square got a white margin on two sides and the
+ * padding on the other two — a frame drawn around a picture that is already
+ * inside a bordered card. `cover` crops instead, which is the trade: a supplier
+ * photograph composed with its subject at the edge loses a little of it.
+ */
+.tsk-pcard-media { display: block; aspect-ratio: 1 / 1; overflow: hidden; background: #fff; }
+.tsk-pcard-media img { width: 100%; height: 100%; object-fit: cover; will-change: transform; transition: transform .42s cubic-bezier(.2, .8, .2, 1), filter .28s ease; }
+/* A product with no photograph. The square is already reserved by the rule
+   above, so this only fills it — with something that says "no picture" rather
+   than the blank white that reads as a page which failed to load. */
+.tsk-pcard-nopic {
+  display: grid; place-content: center; justify-items: center; gap: 6px;
+  width: 100%; height: 100%;
+  background: var(--tsk-green-050, #f2faea);
+  color: var(--tsk-muted, #6a756f);
+}
+.tsk-pcard-nopic small { font-size: 10.5px; }
+.tsk-pcard:hover .tsk-pcard-media img,
+.tsk-pcard:focus-within .tsk-pcard-media img { transform: scale(1.06); filter: saturate(1.04); }
+
+/* The name began immediately under the photograph, close enough to read as a
+   caption printed on it. A line of air separates the picture from the words
+   about it. */
+.tsk-pcard-body { display: flex; flex-direction: column; gap: 5px; padding: 10px 12px 12px; }
+.tsk-pcard-name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.7em;
+  color: var(--tsk-ink);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+.tsk-pcard:hover .tsk-pcard-name { color: var(--tsk-green-700); }
+.tsk-pcard-brand { color: var(--tsk-dim); font-size: 10.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; }
+/* Brand on the left, rating on the right, one line. Both are meta about the
+   product rather than part of the offer, so they share a row and the offer —
+   price and buy — gets the row below to itself. `min-width: 0` lets a long
+   brand name ellipsis rather than pushing the rating out of the card. */
+.tsk-pcard-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 15px; }
+.tsk-pcard-meta .tsk-pcard-brand { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tsk-pcard-meta .tsk-rating { flex: 0 0 auto; }
+
+.tsk-pcard-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 7px; min-width: 0; }
+.tsk-pcard-price b { color: var(--tsk-price); font-size: 16px; font-weight: 800; }
+/* Was #a9b3ad at 2.16:1 — the was-price was barely legible to anyone. */
+.tsk-pcard-price del { color: #6b7a72; font-size: 12px; }
+
+/* The price sits here now, so the row has to clear the 30px button rather than
+   the 17px rating line it used to hold. */
+.tsk-pcard-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 4px; min-height: 30px; }
+.tsk-rating { display: inline-flex; align-items: center; gap: 4px; color: var(--tsk-ink-2); font-size: 11.5px; }
+.tsk-rating svg { width: 13px; height: 13px; fill: var(--tsk-star); stroke: none; }
+.tsk-rating span { color: var(--tsk-dim); }
+
+.tsk-cart-btn {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: var(--tsk-r-sm);
+  background: var(--tsk-green);
+  color: #fff;
+  cursor: pointer;
+  transition: background .16s ease, transform .16s ease;
+}
+.tsk-cart-btn:hover { background: var(--tsk-green-600); transform: scale(1.07); }
+.tsk-cart-btn:disabled { background: #c3ccc6; cursor: not-allowed; transform: none; }
+.tsk-cart-btn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ============================================================ trust strip */
+.tsk-trust-band { padding: 16px 0; background: var(--tsk-page); }
+.tsk-trust-band .tsk-card { display: grid; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr)); }
+.tsk-trust-cell { display: flex; align-items: center; gap: 12px; padding: 18px 20px; }
+.tsk-trust-cell + .tsk-trust-cell { border-left: 1px solid var(--tsk-line-2); }
+.tsk-trust-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--tsk-green-050);
+  color: var(--tsk-green-700);
+}
+.tsk-trust-icon svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.tsk-trust-cell b { display: block; color: var(--tsk-ink); font-size: 13.5px; font-weight: 700; }
+.tsk-trust-cell small { color: var(--tsk-dim); font-size: 12px; }
+
+/* ================================================================= footer */
+.tsk-footer { border-top: 1px solid var(--tsk-line); background: #fff; }
+.tsk-footer-grid {
+  display: grid;
+  grid-template-columns: minmax(240px, 1.5fr) repeat(3, minmax(150px, 1fr)) auto;
+  gap: 30px;
+  padding: 40px 0 30px;
+}
+.tsk-footer h4 { margin: 0 0 14px; color: var(--tsk-ink); font-size: 14.5px; font-weight: 700; }
+.tsk-footer ul { display: grid; gap: 9px; }
+.tsk-footer a { color: var(--tsk-ink-2); font-size: 13px; }
+.tsk-footer a:hover { color: var(--tsk-green-600); }
+.tsk-footer-about p { margin: 14px 0 0; color: var(--tsk-dim); font-size: 12.5px; line-height: 1.75; }
+/* The contact block is a real <address>, so it needs the italics reset that a
+   <ul> did not. */
+.tsk-footer-contact { display: grid; gap: 9px; font-style: normal; }
+.tsk-footer-contact span,
+.tsk-footer-contact li { color: var(--tsk-ink-2); font-size: 13px; line-height: 1.7; }
+.tsk-footer-hours { color: var(--tsk-dim) !important; font-size: 12.5px !important; }
+
+/* Legal identity strip. Sits between the link columns and the copyright line. */
+.tsk-footer-legal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  padding: 15px 0 0;
+  border-top: 1px solid var(--tsk-line);
+  color: var(--tsk-dim);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.tsk-footer-legal-name { color: var(--tsk-ink-2); font-weight: 700; }
+
+.tsk-soc { display: flex; gap: 9px; margin-top: 16px; }
+/* A channel the shop does not have yet keeps its place in the row without
+   pretending to lead anywhere: the mark is drawn, dimmed, and is not a link. */
+.tsk-soc span.is-inactive { cursor: default; opacity: .45; }
+/*
+ * The mark and nothing else.
+ *
+ * Each of these is a complete logo — its own rounded tile in its own colour —
+ * so the green circle this used to draw behind them was a frame around
+ * something that already has one, and it flattened four different brands into
+ * four identical rings. The box is gone; the size is fixed so all four sit on
+ * one line whatever shape they are.
+ */
+.tsk-soc a,
+.tsk-soc span.is-inactive {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  transition: transform .18s ease, filter .18s ease;
+}
+.tsk-soc a:hover { transform: translateY(-2px); filter: brightness(1.08); }
+.tsk-soc svg { width: 30px; height: 30px; display: block; }
+
+.tsk-footer-qr { display: grid; justify-items: center; gap: 8px; }
+.tsk-footer-qr img { width: 104px; height: 104px; border: 1px solid var(--tsk-line); border-radius: 10px; }
+.tsk-footer-qr span { padding: 3px 11px; border-radius: 999px; background: var(--tsk-green); color: #fff; font-size: 11px; font-weight: 700; }
+
+.tsk-footer-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 15px 0;
+  border-top: 1px solid var(--tsk-line);
+  color: var(--tsk-dim);
+  font-size: 12px;
+}
+.tsk-pay { display: flex; align-items: center; gap: 8px; }
+.tsk-pay i {
+  display: grid;
+  place-items: center;
+  height: 24px;
+  min-width: 38px;
+  padding: 0 7px;
+  border: 1px solid var(--tsk-line);
+  border-radius: 5px;
+  background: #fff;
+  color: var(--tsk-ink-2);
+  font-size: 9.5px;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: .02em;
+}
+
+/* ============================================================ responsive */
+@media (max-width: 1100px) {
+  .tsk-header-main .tsk-shell { grid-template-columns: auto minmax(0, 1fr); gap: 16px; row-gap: 10px; padding-block: 12px; }
+  .tsk-header-actions { grid-column: 2; justify-self: end; gap: 16px; }
+  .tsk-search { grid-column: 1 / -1; grid-row: 2; max-width: none; }
+  .tsk-action span { display: none; }
+  .tsk-footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 760px) {
+  .tsk-shell { width: calc(100% - 24px); }
+  .tsk-utility-list { display: none; }
+  .tsk-utility .tsk-shell { justify-content: flex-end; }
+  .tsk-cat-button { min-width: 0; }
+  .tsk-cat-button span { display: none; }
+  .tsk-nav .tsk-shell { gap: 12px; }
+  .tsk-brand-name b { font-size: 17px; }
+  .tsk-brand-mark { width: 42px; height: 42px; }
+  /* Narrow: the words go, the pill stays a pill. It used to collapse to a
+     42px square with the gradient still on it, which read as a stray tile. */
+  .tsk-search-ai span { display: none; }
+  .tsk-search-ai { width: 44px; padding: 0; }
+  .tsk-search-results { position: fixed; top: 112px; left: 8px; right: 8px; max-height: calc(100dvh - 130px); overflow: auto; }
+  .tsk-search-ai-card { grid-template-columns: 38px minmax(0,1fr); }
+  .tsk-search-ai-card strong { display: none; }
+  .tsk-trust-cell + .tsk-trust-cell { border-left: 0; border-top: 1px solid var(--tsk-line-2); }
+  .tsk-footer-grid { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .tsk-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .tsk-pcard-name { font-size: 12.5px; }
+}
+
+/* Small text utilities shared by the rebuilt pages. */
+.tsk-dim { color: var(--tsk-dim); font-size: 13px; }
+.tsk-muted-note { color: var(--tsk-dim); font-size: 12px; line-height: 1.7; }
+
+/* =========================================================================
+   Back to top.
+
+   The legacy sheets paint this as a lime conic-gradient ring and force
+   `opacity: 1 !important` on it, so the override has to be equally weighted
+   and the hidden state has to hang off visibility rather than opacity.
+   ========================================================================= */
+html:not([data-theme="dark"]) .back-to-top,
+html[data-theme="dark"] .back-to-top {
+  position: fixed !important;
+  left: 20px !important;
+  right: auto !important;
+  bottom: 24px !important;
+  z-index: 880 !important;
+  display: grid !important;
+  place-items: center;
+  width: 42px !important;
+  height: 42px !important;
+  /* The ring is the scroll indicator: a faint green track that fills
+     clockwise as the page nears the bottom. plugins/storefront-motion.client.ts
+     keeps --btt-progress in step with scroll position. */
+  border: 2px solid transparent !important;
+  border-radius: 50% !important;
+  background:
+    linear-gradient(#fff, #fff) padding-box,
+    conic-gradient(
+      from -90deg,
+      var(--tsk-green) 0 var(--btt-progress, 0deg),
+      rgba(76, 175, 0, .16) var(--btt-progress, 0deg) 360deg
+    ) border-box !important;
+  color: var(--tsk-ink-2) !important;
+  font-size: 17px;
+  visibility: hidden;
+  opacity: 0 !important;
+  pointer-events: none;
+  box-shadow: var(--tsk-elev-2) !important;
+  transition: opacity .22s ease, visibility .22s ease, color .18s ease, border-color .18s ease !important;
+}
+html:not([data-theme="dark"]) .back-to-top.show,
+html[data-theme="dark"] .back-to-top.show {
+  visibility: visible;
+  opacity: 1 !important;
+  pointer-events: auto;
+}
+html:not([data-theme="dark"]) .back-to-top:hover,
+html[data-theme="dark"] .back-to-top:hover { color: var(--tsk-green-700) !important; }
+
+@media (max-width: 640px) {
+  /* Bottom-left, clear of the mobile dock. The chat launcher owns the right. */
+  html .back-to-top { left: 14px !important; right: auto !important; bottom: 80px !important; width: 38px !important; height: 38px !important; }
+}
+
+/* =========================================================================
+   Image loading shimmer.
+
+   The legacy sheets paint a shimmer skeleton on every <img> as a loading
+   affordance — `img { background: linear-gradient(...) }` plus a lazy-loading
+   variant. It is invisible on a white card but shows straight through
+   transparent artwork, which is why the chat launcher sat in a pale box. The
+   components below draw their own backgrounds, so clear it there.
+   ========================================================================= */
+:is(
+  .tsk-contact-button,
+  .tsk-brand-box,
+  .tsk-brand-mark,
+  .tsk-catcard-media,
+  .tsk-split-photo,
+  .tsk-pcard-media,
+  .tsk-tile,
+  .tsk-article,
+  .tsk-gallery-main,
+  .tsk-thumbs-track,
+  .tsk-hero-slide,
+  .tsk-cart-thumb,
+  .tsk-compare-table,
+  .tsk-footer-qr,
+  .tsk-avatar-ring
+) img {
+  background: none !important;
+  animation: none !important;
+}
+
+/* ================================================================== toast */
+/*
+ * The failure tone.
+ *
+ * `.toast` is styled by the legacy sheet and has always drawn a green tick on a
+ * dark card, which is right after a save and actively misleading after one that
+ * failed — the back office now reports both through this one element, so the
+ * two have to look different at a glance and not only read differently.
+ */
+.toast.is-bad { background: #7a1f2b; color: #ffe9ec; }
+.toast.is-bad svg { color: #ff9aa6; }
+
+/* ========================================================== header on scroll */
+/*
+ * Out of the way going down, back on the way up.
+ *
+ * The header is 184px of sticky, which at any browser zoom above 100% covers
+ * the part of a product page somebody zoomed in to read. The transition itself
+ * has been on #site-header for releases — see LegacyHeader.vue for why nothing
+ * was driving it. `visibility` rather than `pointer-events` alone so a hidden
+ * header is out of the tab order too.
+ */
+#site-header.tsk-header-away {
+  transform: translateY(-100%);
+  opacity: 0;
+  visibility: hidden;
+}
+
+/*
+ * And shorter once the page has moved, which is the other half.
+ *
+ * Hiding on the way down was only ever half an answer: scrolling back up is
+ * something people do constantly while browsing a shelf, and it brought all
+ * 184px back — 38 of utility bar, 85 of logo row, 61 of menu — over the
+ * products. On a 768px laptop that is 22% of the screen given to a phone number
+ * and a row of social links.
+ *
+ * Away from the top the utility bar goes and the two rows that stay lose their
+ * slack: 184 becomes about 110. The menu is not one of the things removed — it
+ * exists only in that bar, and the logo row has no hamburger to reach it by, so
+ * dropping it would take navigation with it. The full header returns at the top
+ * of the page, where somebody who does want the phone number is.
+ *
+ * `max-height` with `overflow: hidden` rather than `display: none` so the bar
+ * slides rather than vanishing, and so nothing under it jumps by 38px the
+ * instant a wheel moves.
+ */
+#site-header.tsk-header-compact .tsk-utility {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  border-bottom-width: 0;
+  transition: max-height .2s ease, opacity .16s ease;
+}
+#site-header .tsk-utility {
+  max-height: 120px;
+  overflow: hidden;
+  transition: max-height .2s ease, opacity .16s ease;
+}
+#site-header.tsk-header-compact .tsk-header-main .tsk-shell { min-height: 62px; }
+#site-header.tsk-header-compact .tsk-nav-links a { font-size: 13.5px; }
+#site-header.tsk-header-compact .tsk-cat-button { margin: 4px 0; padding: 8px 14px; }
+#site-header .tsk-header-main .tsk-shell,
+#site-header .tsk-cat-button { transition: min-height .2s ease, margin .2s ease, padding .2s ease; }
+
+@media (prefers-reduced-motion: reduce) {
+  /* The height still changes — it is covering something — but without the
+     travel, which is the part the preference is about. */
+  #site-header .tsk-utility,
+  #site-header.tsk-header-compact .tsk-utility,
+  #site-header .tsk-header-main .tsk-shell,
+  #site-header .tsk-cat-button { transition: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* Still gets out of the way — it is covering something — but without the
+     travel, which is the part the preference is actually about. */
+  #site-header.tsk-header-away { transform: none; }
+}
+
+/* The shop's other channels, beside the phone number and LINE in the top bar.
+   Outlined rather than filled: LINE is the one the shop answers fastest and
+   keeps its brand-green tile, so the rest sit a step quieter than it. */
+/* Same in the top bar: the logo is the whole control, at the height the LINE
+   tile beside it already uses so the row stays level. */
+.tsk-utility-social {
+  display: grid;
+  place-items: center;
+  /* 26px rather than 24: LINE's mark carries a wordmark inside its bubble, and
+     below about this size the letters stop being letters. */
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+  transition: transform .16s ease, filter .16s ease;
+}
+.tsk-utility-social:hover { transform: translateY(-1px); filter: brightness(1.1); }
+.tsk-utility-social svg { width: 26px; height: 26px; display: block; }
+
+/* --------------------------------------------------- payment marks, footer */
+/*
+ * The row was five text pills. A shopper checking whether their card is taken
+ * scans this row, and a word has to be read before it means anything — the
+ * marks are recognised at a glance and in any language.
+ */
+.tsk-pay i { min-width: 44px; }
+.tsk-pay i svg { width: 24px; height: 16px; }
+/* Outlined marks: the three with no logo of their own — a QR code, a banknote,
+   a bank — drawn in the same weight so they read as one set. */
+.tsk-pay .tsk-pay-line { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; color: var(--tsk-ink); }
+.tsk-pay .tsk-pay-line rect, .tsk-pay .tsk-pay-line circle { fill: none; }
+/* PromptPay's QR squares are solid; the outline weight above would fill them in. */
+.tsk-pay i[title^="พร้อมเพย์"] .tsk-pay-line path { fill: currentColor; stroke: none; }
+.tsk-pay-visa span {
+  color: #1434cb;
+  font-size: 12px;
+  font-weight: 800;
+  font-style: italic;
+  letter-spacing: .04em;
+}
+html[data-theme="dark"] .tsk-pay-visa span { color: #7d94ff; }
+
+/* ------------------------------------------- social tiles in brand colour */
+/*
+ * The tile carries the brand's own colour and the mark is knocked out of it in
+ * white — LINE green, Facebook blue, Instagram's gradient, TikTok black — which
+ * is how each of the four is drawn by its owner.
+ *
+ * They were all one green circle before, so the row was four identical shapes a
+ * reader had to decode one at a time. The colour is recognised before the shape
+ * is, which is the entire reason a shop shows a logo instead of the word.
+ *
+ * The colour comes from SOCIAL_BRAND as an inline background, so these two
+ * rules only have to stop painting over it and make the glyph white.
+ */
+/* The colour lives inside each mark now — see app/utils/socialMarks.ts. */
+
+/* A placeholder card has to occupy exactly what a real one will, or the
+   skeleton solves the "is it loading?" question and creates the layout-shift
+   one instead. It borrows .tsk-pcard for its box and only drops the parts that
+   assume content. */
+.tsk-pcard-loading {
+  pointer-events: none;
+  background: var(--tsk-surface, #fff);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.tsk-pcard-loading::after { content: none; }
+
+
+
+/*
+ * The bottom of the screen, as one stack.
+ *
+ * Four things want to live down there — the phone dock, the recently-viewed
+ * bar, the two chat launchers and the compare bar — and each used to pick its
+ * own offset, which is why they landed on top of one another. Every offset
+ * below is measured from the one under it, so moving the dock moves everything
+ * above it and nothing has to be re-guessed.
+ *
+ * The product page's buy bar is deliberately absent: it belongs to the product
+ * detail work and is not this file's to move.
+ */
+:root {
+  --tsk-dock-h: 0px;
+  --tsk-recentbar-h: 0px;
+  --tsk-bottom-gap: 12px;
+  /*
+   * How much room the cookie banner is taking at the bottom of the screen.
+   *
+   * Everything pinned down there already stacks by adding up what is beneath
+   * it — the recent-purchase bar clears the dock, the chat launcher clears the
+   * dock and the recent bar. The banner arrived without joining that sum and
+   * landed underneath the recent bar, which is what a reader saw: a green
+   * "ยอมรับทั้งหมด" with a product toast sitting across it.
+   *
+   * Zero until the banner is on screen, and set from its measured height while
+   * it is — the banner is one line on a desktop and four on a phone, so a fixed
+   * number here would be wrong on one of them.
+   */
+  --tsk-consent-h: 0px;
+}
+@media (max-width: 900px) {
+  :root { --tsk-dock-h: 68px; }
+}

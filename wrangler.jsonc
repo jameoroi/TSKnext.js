@@ -1,0 +1,13 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "thaiserxtra",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
+  "vars": {
+    "APP_ORIGIN": "https://thaiserxtra.jame-orori.workers.dev",
+    "NEXT_PUBLIC_APP_ORIGIN": "https://thaiserxtra.jame-orori.workers.dev"
+  },
+  "observability": { "enabled": true }
+}

@@ -1,0 +1,14 @@
+(function(){
+  const esc=v=>String(v??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
+  const field=(label,name,value='',type='text',wide=false)=>`<label class="${wide?'wide':''}">${label}<input name="${name}" type="${type}" value="${esc(value)}"></label>`;
+  async function mount(){
+    const dash=document.getElementById('agentDash'); if(!dash||dash.hidden||document.getElementById('agentProfileCard'))return;
+    let a;try{a=(await tskAgentDashboard()).agent;}catch(_){return;}
+    const card=document.createElement('section');card.id='agentProfileCard';card.className='ac-card agent-profile-card';
+    const photo=String(a.avatar_url||'').trim(),color=/^#[0-9a-f]{6}$/i.test(a.theme_color||'')?a.theme_color:'#0b7051';
+    card.innerHTML=`<div class="ac-card-head"><div><h2>ตั้งค่าร้านและข้อมูลรับค่าคอม</h2><p class="ac-muted">ตัวแทนแก้ไขที่อยู่ บัญชีรับเงิน LINE/Facebook รูปโปรไฟล์ และธีมร้านได้เอง</p></div></div><div class="agent-profile-grid"><aside class="agent-profile-preview"><img id="agentAvatarPreview" src="${esc(photo)}" alt="รูปโปรไฟล์" ${photo?'':'hidden'} onerror="this.hidden=true"><b>${esc(a.store_name)}</b></aside><form id="agentProfileForm" class="agent-profile-form">${field('ลิงก์รูปโปรไฟล์ (https)','avatar_url',a.avatar_url,'url')}${field('สีธีมร้าน','theme_color',color,'color')}<label class="wide">แนะนำร้านของคุณ<textarea name="store_bio" maxlength="500">${esc(a.store_bio)}</textarea></label>${field('LINE OA / LINE Chat','line_oa_url',a.line_oa_url,'url')}${field('Facebook / Messenger','facebook',a.facebook,'url')}<label class="wide">ที่อยู่<input name="address" value="${esc(a.address)}"></label>${field('จังหวัด','province',a.province)}${field('รหัสไปรษณีย์','postal_code',a.postal_code)}${field('เบอร์โทรติดต่อ','phone',a.phone,'tel')}${field('ธนาคาร','bank_name',a.bank_name)}${field('ชื่อบัญชี','bank_account_name',a.bank_account_name)}${field('เลขบัญชีรับค่าคอม','bank_account_no',a.bank_account_no)}<div class="wide"><button class="btn-solid" type="submit">บันทึกข้อมูลของฉัน</button></div></form><aside class="agent-chat-preview"><h3>คุยกับลูกค้า</h3><p>หน้า Agent Store จะแสดงปุ่ม LINE/Facebook จากข้อมูลด้านซ้าย ลูกค้าติดต่อคุณได้โดยตรง</p><p>อีเมลล็อกอินแก้ผ่าน Super Admin เพื่อป้องกันการยึดบัญชี</p></aside></div>`;
+    dash.appendChild(card);
+    card.querySelector('form').onsubmit=async e=>{e.preventDefault();const data=Object.fromEntries(new FormData(e.currentTarget).entries());try{const r=await tskAgentProfileUpdate(data),next=String(r.agent.avatar_url||'').trim(),preview=document.getElementById('agentAvatarPreview');preview.src=next;preview.hidden=!next;alert('บันทึกข้อมูลแล้ว');}catch(_){alert('บันทึกไม่สำเร็จ โปรดตรวจสอบลิงก์รูป/LINE/Facebook ให้เป็น https://');}};
+  }
+  setInterval(mount,700);document.addEventListener('DOMContentLoaded',mount);
+})();

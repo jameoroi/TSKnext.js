@@ -1,0 +1,98 @@
+/* Gap-fillers for motion the legacy stylesheets never needed, because the
+   effects that use them were introduced during the Nuxt migration. Everything
+   else (reveal, mv-in, particles, glow, back-to-top ring, hero parallax) is
+   already styled by site/assets/motion-polish-v23.css and friends. */
+
+/* Add-to-cart: the button pulses and a dot flies to the header cart badge. */
+.cart-added { animation: tsk-cart-added .5s cubic-bezier(.22, 1, .36, 1); }
+@keyframes tsk-cart-added {
+  0% { transform: scale(1); }
+  40% { transform: scale(.88); }
+  100% { transform: scale(1); }
+}
+
+.cart-count.cart-pop { animation: tsk-cart-pop .5s cubic-bezier(.22, 1, .36, 1); }
+@keyframes tsk-cart-pop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.45); }
+  100% { transform: scale(1); }
+}
+
+.cart-fly-dot {
+  position: fixed;
+  z-index: 9999;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--pink, #e56b9f);
+  box-shadow: 0 0 0 4px rgba(229, 107, 159, .22);
+  pointer-events: none;
+  animation: tsk-cart-fly .7s cubic-bezier(.5, -0.2, .7, 1) forwards;
+}
+@keyframes tsk-cart-fly {
+  0% { transform: translate3d(0, 0, 0) scale(1); opacity: 1; }
+  70% { opacity: 1; }
+  100% { transform: translate3d(var(--fly-x, 0), var(--fly-y, 0), 0) scale(.35); opacity: 0; }
+}
+
+/* Vue renders the hero progress segments as <button>; the legacy markup used
+   <span class="seg"><i></i></span>. Keep the segment fill animation for both. */
+.hero-progress button { position: relative; overflow: hidden; }
+
+@media (prefers-reduced-motion: reduce) {
+  .cart-added,
+  .cart-count.cart-pop,
+  .cart-fly-dot { animation: none; }
+  .cart-fly-dot { display: none; }
+}
+
+/* Route-aware reveal and category pointer glow. The React runtime re-arms
+   these after App Router navigations and respects reduced-motion. */
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity .5s cubic-bezier(.22,1,.36,1), transform .5s cubic-bezier(.22,1,.36,1);
+}
+.reveal.in { opacity: 1; transform: translateY(0); }
+.cat-card { position: relative; isolation: isolate; overflow: hidden; }
+.cat-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(16,185,129,.13), transparent 48%);
+  transition: opacity .22s ease;
+}
+.cat-card:hover::before { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .cat-card::before { display: none; }
+}
+
+/* Motion behaviors preserved from the Nuxt storefront plugin without loading
+   the old global bundles that would fight Tailwind/React layout ownership. */
+.hero-features .hf-item,
+.sec-head h2 { opacity: 0; transform: translateY(12px); transition: opacity .5s ease, transform .5s cubic-bezier(.22,1,.36,1); }
+.hero-features.mv-in .hf-item,
+.sec-head.mv-in h2 { opacity: 1; transform: translateY(0); }
+.hero-features.mv-in .hf-item:nth-child(2) { transition-delay: .08s; }
+.hero-features.mv-in .hf-item:nth-child(3) { transition-delay: .16s; }
+.hero-features.mv-in .hf-item:nth-child(4) { transition-delay: .24s; }
+
+.home-member-card { position: relative; isolation: isolate; overflow: hidden; }
+.home-member-card > *:not(.mv-particle-field) { position: relative; z-index: 2; }
+.mv-particle-field { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 1; border-radius: inherit; }
+.mv-particle-field span { position: absolute; bottom: -10px; border-radius: 999px; background: rgba(255,255,255,.4); animation: tsk-particle-rise linear infinite; }
+@keyframes tsk-particle-rise { to { transform: translate3d(20px,-340px,0); opacity: 0; } }
+
+.hero-slide { isolation: isolate; }
+.hero-slide::after { content: ''; position: absolute; inset: 0; z-index: 2; pointer-events: none; background: radial-gradient(circle at var(--v25-x,50%) var(--v25-y,50%),rgba(255,255,255,.17),transparent 28%); opacity: .7; transition: opacity .35s ease; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-features .hf-item,
+  .sec-head h2 { opacity: 1; transform: none; transition: none; }
+  .mv-particle-field { display: none; }
+  .hero-slide::after { display: none; }
+}

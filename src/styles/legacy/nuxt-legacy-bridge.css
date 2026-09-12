@@ -1,0 +1,75 @@
+.legacy-nuxt-shell{min-height:100vh}
+.nuxt-carousel{min-height:0;border:0;border-radius:0;background:transparent;box-shadow:none}
+.hero-copy{position:absolute;z-index:3;left:clamp(18px,4vw,52px);bottom:clamp(24px,5vw,58px);display:grid;gap:8px;max-width:min(600px,calc(100% - 36px));padding:20px 24px;border-radius:14px;background:rgba(5,34,26,.72);color:#fff;backdrop-filter:blur(6px)}
+.hero-copy span{font-size:clamp(18px,2.6vw,32px);font-weight:800;line-height:1.15}
+.hero-copy strong{font-size:clamp(13px,1.5vw,18px);font-weight:500}
+.hero-copy .btn-solid{width:max-content;margin-top:4px}
+.hero-empty .hero-copy{position:relative;inset:auto;min-height:420px;align-content:center;max-width:none;border-radius:0;background:linear-gradient(135deg,#0b2e22,#153f32);color:#fff}
+.hero-progress{z-index:4;display:flex;gap:5px}
+.hero-progress>span{display:block;width:32px;height:4px;border-radius:99px;background:rgba(255,255,255,.46)}
+.hero-progress>span.active{background:#8fd400}
+.home-cat-link,.nav-links a,.top-actions a,.market-account a{cursor:pointer}
+.nuxt-empty{grid-column:1/-1}
+@media(max-width:900px){.market-promises,.top-info{display:none}.topbar>.wrap{flex-wrap:wrap}.header-search{order:3;flex:1 0 100%;margin-top:10px}.top-actions{margin-left:auto}.hero-copy{bottom:18px;left:18px;padding:16px 18px}.hero-empty .hero-copy{min-height:300px}}
+@media(max-width:640px){.market-utility-inner{flex-wrap:wrap}.market-account{margin-left:0}.top-actions{width:100%;justify-content:space-between}.navbar .wrap{overflow-x:auto}.nav-links{min-width:max-content}.home-commerce{grid-template-columns:1fr!important}.home-cat-sidebar{order:2}.home-main-column{order:1}.home-benefits{order:3}.hero-copy{position:relative;left:auto;bottom:auto;max-width:none;border-radius:0;background:rgba(5,34,26,.74)}.hero-slide{min-height:280px}.hero-copy span{font-size:22px}}
+
+/*
+ * The whole of what platform-perfect-r66.css was still doing.
+ *
+ * That file is 15.5 KB of `#site-header .admin-ribbon`, `.market-utility`,
+ * `.topbar` and a page's worth of pink-and-green tokens for a header markup
+ * this app does not render any more. Two of its ninety-three selectors matched
+ * anything at all, and of everything they declared, exactly this line changed a
+ * pixel: the header's typeface, which shifts the search field by 11px, and the
+ * stacking context the dropdown depends on. Measured rule by rule against the
+ * live page, not read off the source.
+ */
+/*
+ * Kanit is requested in app.vue. It was not, for a long time, and this rule
+ * quietly fell through to the browser's default sans-serif — the 11px the
+ * comment above measured was being paid for a face that never arrived.
+ */
+#site-header { position: relative; z-index: 1000; font-family: 'Kanit', var(--tsk-font-heading, sans-serif); }
+
+/*
+ * The ambient glow above the footer, kept from motion-polish-v23.css.
+ *
+ * Thirteen kilobytes of that file reached four selectors on the live pages, and
+ * this is the one a person can see: a soft rose bloom rising out of the top of
+ * the footer on every page. Dropping the file without it turned that band flat
+ * grey, which is the only difference the screenshots showed. Ported rather than
+ * kept, because the other 99% of the file styles a page this app stopped
+ * rendering.
+ */
+footer { position: relative; overflow: hidden; }
+footer::before {
+  content: "";
+  position: absolute;
+  top: -90px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(700px, 60%);
+  height: 190px;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(ellipse at center, rgba(229, 107, 159, .16), transparent 70%);
+  filter: blur(6px);
+}
+footer .wrap { position: relative; z-index: 1; }
+
+/*
+ * What mobile-rebuild.css was still doing on a phone.
+ *
+ * Six of its seventy-seven selectors reached anything, and all of them are in
+ * one block: the floating things at the bottom of a phone screen have to clear
+ * the dock, and the dock is 68px tall. Without it the dock lost 4px of height
+ * and the toast, the chat bubble and the back-to-top button sat on top of it.
+ * The rest of the file rebuilds a product grid this app renders with tsk-*.
+ */
+@media (max-width: 760px) {
+  .tsk-mobile-dock { height: 68px !important; }
+  .tsk-compare-bar { bottom: 84px !important; }
+  .toast { right: 12px !important; left: 12px !important; bottom: 84px !important; }
+  .fb-chat-bubble { right: 14px !important; bottom: 84px !important; width: 50px !important; height: 50px !important; }
+  .back-to-top { left: 14px !important; bottom: 84px !important; }
+}

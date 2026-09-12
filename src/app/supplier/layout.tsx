@@ -1,0 +1,1 @@
+import { PortalShell } from '@/components/portal/portal-shell';import { requireRole } from '@/server/auth/guards';export default async function Layout({children}:{children:React.ReactNode}){await requireRole('supplier','/supplier');return <PortalShell role="supplier" title="Supplier Portal">{children}</PortalShell>}

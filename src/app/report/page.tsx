@@ -1,0 +1,53 @@
+import type { Metadata } from 'next';
+import { AdminPageHeader } from '@/components/admin/page-header';
+import { ReportDashboard } from '@/components/admin/report-dashboard';
+import { serverLegacyRequest } from '@/server/legacy-api';
+
+export const metadata: Metadata = { title: 'สรุปข้อมูลเว็บไซต์ | THAISERKIT SUPPLY' };
+
+export const dynamic = 'force-dynamic';
+
+/**
+ * /report — สรุปข้อมูลเว็บไซต์ (ศูนย์ผู้ดูแลระบบ)
+ * ใช้ข้อมูลจริงจากหลังบ้านเท่านั้น (admin.reports.sales + admin.analytics.report)
+ * ไม่มีการ hardcode ยอดขาย/สถิติ/ชื่อสินค้า — ว่างแล้ว dashboard แสดง empty state เอง
+ */
+export default async function ReportPage() {
+  const now = new Date();
+  const to = now.toISOString().slice(0, 10);
+  const from = new Date(now.getTime() - 29 * 86_400_000).toISOString().slice(0, 10);
+  let sales: Record<string, unknown> = { summary: {}, daily: [], top_products: [], previous: null };
+  let analytics: Record<string, unknown> = {
+    summary: {},
+    daily: [],
+    top_products: [],
+    top_pages: [],
+    members: {},
+    previous: null,
+  };
+  const errors: string[] = [];
+  try {
+    sales = await serverLegacyRequest('admin.reports.sales', { from, to, include_previous: '1' });
+  } catch (error) {
+    errors.push(`admin.reports.sales: ${error instanceof Error ? error.message : 'unknown_error'}`);
+  }
+  try {
+    analytics = await serverLegacyRequest('admin.analytics.report', { from, to });
+  } catch (error) {
+    errors.push(`admin.analytics.report: ${error instanceof Error ? error.message : 'unknown_error'}`);
+  }
+  return (
+    <>
+      <AdminPageHeader
+        title="สรุปข้อมูลเว็บไซต์"
+        description="ภาพรวมผู้เข้าชม ยอดขาย สินค้าขายดี เส้นทางลูกค้า และ Insight จากระบบ AI"
+      />
+      <ReportDashboard
+        initialRange={{ from, to }}
+        initialSales={sales}
+        initialAnalytics={analytics}
+        initialError={errors.join(' | ')}
+      />
+    </>
+  );
+}

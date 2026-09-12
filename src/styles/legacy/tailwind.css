@@ -1,0 +1,102 @@
+/**
+ * Tailwind, brought in beside twenty-one megabytes of stylesheets rather than
+ * on top of them.
+ *
+ * Two things are deliberately missing, and both would otherwise take the shop
+ * down on the first deploy.
+ *
+ * No preflight. Tailwind's reset is written for a project that starts with it:
+ * it strips margins off headings, list styling off lists, borders off inputs
+ * and sizing off images. This shop has twenty-five legacy stylesheets and a
+ * dozen tsk-* ones that were all written assuming the browser defaults are
+ * still there. Importing the reset would not "modernise" that cascade, it would
+ * silently unstyle every page built on it.
+ *
+ * And utilities go in a cascade layer. Anything unlayered beats anything
+ * layered, whatever the specificity, so the existing CSS keeps winning every
+ * argument it is already in and a Tailwind class can never quietly redefine a
+ * component somebody else is maintaining. The cost is that a utility will not
+ * override a legacy rule on the same element — which is the correct default
+ * here: new markup gets Tailwind, old markup keeps its own stylesheet, and
+ * where the two really must meet there is the `!` modifier to say so out loud.
+ *
+ * The theme layer is imported because the design tokens below are expressed as
+ * Tailwind theme variables, which is what makes `bg-brand` and `text-ink` work
+ * at all.
+ */
+@layer theme, base, components, utilities;
+
+@import "tailwindcss/theme.css" layer(theme) source(none);
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
+
+/**
+ * Where to look for class names, said explicitly.
+ *
+ * Tailwind v4 otherwise walks the whole project. That is the right default for
+ * a project whose source is its source; here it means reading `site/` — thirty
+ * legacy HTML pages and twenty-one megabytes of stylesheets — on every build,
+ * and minting utilities for any string in them that happens to look like one.
+ * Slow, and it fills the bundle with rules for markup that Tailwind does not
+ * style and never will.
+ *
+ * `source(none)` above turns the walk off. These are the directories where
+ * Tailwind classes are actually written.
+ */
+@source "../components";
+@source "../pages";
+@source "../layouts";
+@source "../composables";
+@source "../utils";
+@source "../app.vue";
+
+/**
+ * The storefront's own colours, restated as theme variables.
+ *
+ * These are not new values. They are the ones already in app/assets/tsk-*.css,
+ * lifted so that Tailwind and the hand-written stylesheets cannot drift into
+ * two slightly different greens — the failure that makes a design system look
+ * like two design systems.
+ */
+@theme {
+  --color-brand-50: #f2f9f0;
+  --color-brand-100: #e0f0da;
+  --color-brand-200: #c2e1b6;
+  --color-brand-300: #96cb85;
+  --color-brand-400: #6bb355;
+  --color-brand-500: #4b9700;
+  --color-brand-600: #3d7a00;
+  --color-brand-700: #2f5e00;
+  --color-brand-800: #1f3f16;
+  --color-brand-900: #0b2e22;
+
+  --color-ink: #1f2522;
+  --color-ink-2: #5c6b64;
+  --color-ink-3: #8a978f;
+
+  --color-surface: #ffffff;
+  --color-surface-2: #f7f9f7;
+  --color-line: #e3e9e4;
+
+  --font-sans: "Noto Sans Thai", "Prompt", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Prompt", "Noto Sans Thai", ui-sans-serif, system-ui, sans-serif;
+
+  --radius-card: 14px;
+
+  --shadow-card: 0 1px 2px rgb(16 24 20 / 0.04), 0 8px 24px rgb(16 24 20 / 0.06);
+  --shadow-lift: 0 12px 32px rgb(16 24 20 / 0.12);
+}
+
+/**
+ * The same tokens after dark, so a component written once reads correctly in
+ * both themes. The storefront switches on `html[data-theme="dark"]`, which is
+ * what useColorMode already sets, rather than on the media query alone — the
+ * shop has a toggle and the toggle has to win.
+ */
+html[data-theme="dark"] {
+  --color-surface: #10201a;
+  --color-surface-2: #16291f;
+  --color-line: #24382c;
+  --color-ink: #eaf3ec;
+  --color-ink-2: #a9bdb0;
+  --color-ink-3: #7d9285;
+}

@@ -1,0 +1,392 @@
+{
+  "/legacy-assets/banners/1.png": {
+    "width": 2280,
+    "height": 1080,
+    "original": "/legacy-assets/banners/1.png",
+    "avif": [
+      {
+        "width": 360,
+        "url": "/img/banners/1-360.avif",
+        "bytes": 12722
+      },
+      {
+        "width": 720,
+        "url": "/img/banners/1-720.avif",
+        "bytes": 38759
+      },
+      {
+        "width": 1280,
+        "url": "/img/banners/1-1280.avif",
+        "bytes": 87583
+      },
+      {
+        "width": 1920,
+        "url": "/img/banners/1-1920.avif",
+        "bytes": 142161
+      }
+    ],
+    "webp": [
+      {
+        "width": 360,
+        "url": "/img/banners/1-360.webp",
+        "bytes": 20352
+      },
+      {
+        "width": 720,
+        "url": "/img/banners/1-720.webp",
+        "bytes": 62230
+      },
+      {
+        "width": 1280,
+        "url": "/img/banners/1-1280.webp",
+        "bytes": 141328
+      },
+      {
+        "width": 1920,
+        "url": "/img/banners/1-1920.webp",
+        "bytes": 229242
+      }
+    ]
+  },
+  "/legacy-assets/banners/2.png": {
+    "width": 2280,
+    "height": 1080,
+    "original": "/legacy-assets/banners/2.png",
+    "avif": [
+      {
+        "width": 360,
+        "url": "/img/banners/2-360.avif",
+        "bytes": 11275
+      },
+      {
+        "width": 720,
+        "url": "/img/banners/2-720.avif",
+        "bytes": 31367
+      },
+      {
+        "width": 1280,
+        "url": "/img/banners/2-1280.avif",
+        "bytes": 67596
+      },
+      {
+        "width": 1920,
+        "url": "/img/banners/2-1920.avif",
+        "bytes": 110882
+      }
+    ],
+    "webp": [
+      {
+        "width": 360,
+        "url": "/img/banners/2-360.webp",
+        "bytes": 17820
+      },
+      {
+        "width": 720,
+        "url": "/img/banners/2-720.webp",
+        "bytes": 50216
+      },
+      {
+        "width": 1280,
+        "url": "/img/banners/2-1280.webp",
+        "bytes": 105878
+      },
+      {
+        "width": 1920,
+        "url": "/img/banners/2-1920.webp",
+        "bytes": 166308
+      }
+    ]
+  },
+  "/legacy-assets/banners/3.png": {
+    "width": 2280,
+    "height": 1080,
+    "original": "/legacy-assets/banners/3.png",
+    "avif": [
+      {
+        "width": 360,
+        "url": "/img/banners/3-360.avif",
+        "bytes": 11986
+      },
+      {
+        "width": 720,
+        "url": "/img/banners/3-720.avif",
+        "bytes": 35087
+      },
+      {
+        "width": 1280,
+        "url": "/img/banners/3-1280.avif",
+        "bytes": 78749
+      },
+      {
+        "width": 1920,
+        "url": "/img/banners/3-1920.avif",
+        "bytes": 129164
+      }
+    ],
+    "webp": [
+      {
+        "width": 360,
+        "url": "/img/banners/3-360.webp",
+        "bytes": 17946
+      },
+      {
+        "width": 720,
+        "url": "/img/banners/3-720.webp",
+        "bytes": 54304
+      },
+      {
+        "width": 1280,
+        "url": "/img/banners/3-1280.webp",
+        "bytes": 120600
+      },
+      {
+        "width": 1920,
+        "url": "/img/banners/3-1920.webp",
+        "bytes": 190050
+      }
+    ]
+  },
+  "/legacy-assets/banners/4.png": {
+    "width": 2280,
+    "height": 1080,
+    "original": "/legacy-assets/banners/4.png",
+    "avif": [
+      {
+        "width": 360,
+        "url": "/img/banners/4-360.avif",
+        "bytes": 12109
+      },
+      {
+        "width": 720,
+        "url": "/img/banners/4-720.avif",
+        "bytes": 36752
+      },
+      {
+        "width": 1280,
+        "url": "/img/banners/4-1280.avif",
+        "bytes": 83071
+      },
+      {
+        "width": 1920,
+        "url": "/img/banners/4-1920.avif",
+        "bytes": 134944
+      }
+    ],
+    "webp": [
+      {
+        "width": 360,
+        "url": "/img/banners/4-360.webp",
+        "bytes": 18788
+      },
+      {
+        "width": 720,
+        "url": "/img/banners/4-720.webp",
+        "bytes": 57272
+      },
+      {
+        "width": 1280,
+        "url": "/img/banners/4-1280.webp",
+        "bytes": 127780
+      },
+      {
+        "width": 1920,
+        "url": "/img/banners/4-1920.webp",
+        "bytes": 199756
+      }
+    ]
+  },
+  "/legacy-assets/banners/5.png": {
+    "width": 2280,
+    "height": 1080,
+    "original": "/legacy-assets/banners/5.png",
+    "avif": [
+      {
+        "width": 360,
+        "url": "/img/banners/5-360.avif",
+        "bytes": 11755
+      },
+      {
+        "width": 720,
+        "url": "/img/banners/5-720.avif",
+        "bytes": 39156
+      },
+      {
+        "width": 1280,
+        "url": "/img/banners/5-1280.avif",
+        "bytes": 92213
+      },
+      {
+        "width": 1920,
+        "url": "/img/banners/5-1920.avif",
+        "bytes": 149903
+      }
+    ],
+    "webp": [
+      {
+        "width": 360,
+        "url": "/img/banners/5-360.webp",
+        "bytes": 16896
+      },
+      {
+        "width": 720,
+        "url": "/img/banners/5-720.webp",
+        "bytes": 56330
+      },
+      {
+        "width": 1280,
+        "url": "/img/banners/5-1280.webp",
+        "bytes": 132444
+      },
+      {
+        "width": 1920,
+        "url": "/img/banners/5-1920.webp",
+        "bytes": 214768
+      }
+    ]
+  },
+  "/legacy-assets/banners/6.png": {
+    "width": 2280,
+    "height": 1080,
+    "original": "/legacy-assets/banners/6.png",
+    "avif": [
+      {
+        "width": 360,
+        "url": "/img/banners/6-360.avif",
+        "bytes": 11749
+      },
+      {
+        "width": 720,
+        "url": "/img/banners/6-720.avif",
+        "bytes": 36964
+      },
+      {
+        "width": 1280,
+        "url": "/img/banners/6-1280.avif",
+        "bytes": 81936
+      },
+      {
+        "width": 1920,
+        "url": "/img/banners/6-1920.avif",
+        "bytes": 132472
+      }
+    ],
+    "webp": [
+      {
+        "width": 360,
+        "url": "/img/banners/6-360.webp",
+        "bytes": 17848
+      },
+      {
+        "width": 720,
+        "url": "/img/banners/6-720.webp",
+        "bytes": 54532
+      },
+      {
+        "width": 1280,
+        "url": "/img/banners/6-1280.webp",
+        "bytes": 121026
+      },
+      {
+        "width": 1920,
+        "url": "/img/banners/6-1920.webp",
+        "bytes": 190220
+      }
+    ]
+  },
+  "/legacy-assets/chat-launcher.png": {
+    "width": 360,
+    "height": 386,
+    "original": "/legacy-assets/chat-launcher.png",
+    "avif": [
+      {
+        "width": 360,
+        "url": "/img/chat-launcher-360.avif",
+        "bytes": 16240
+      }
+    ],
+    "webp": [
+      {
+        "width": 360,
+        "url": "/img/chat-launcher-360.webp",
+        "bytes": 30974
+      }
+    ]
+  },
+  "/legacy-assets/icon-512.png": {
+    "width": 512,
+    "height": 512,
+    "original": "/legacy-assets/icon-512.png",
+    "avif": [
+      {
+        "width": 360,
+        "url": "/img/icon-512-360.avif",
+        "bytes": 12658
+      }
+    ],
+    "webp": [
+      {
+        "width": 360,
+        "url": "/img/icon-512-360.webp",
+        "bytes": 24790
+      }
+    ]
+  },
+  "/legacy-assets/logo.png": {
+    "width": 271,
+    "height": 262,
+    "original": "/legacy-assets/logo.png",
+    "avif": [
+      {
+        "width": 271,
+        "url": "/img/logo-271.avif",
+        "bytes": 10417
+      }
+    ],
+    "webp": [
+      {
+        "width": 271,
+        "url": "/img/logo-271.webp",
+        "bytes": 19340
+      }
+    ]
+  },
+  "/legacy-assets/og-network-v1.png": {
+    "width": 1672,
+    "height": 941,
+    "original": "/legacy-assets/og-network-v1.png",
+    "avif": [
+      {
+        "width": 360,
+        "url": "/img/og-network-v1-360.avif",
+        "bytes": 5334
+      },
+      {
+        "width": 720,
+        "url": "/img/og-network-v1-720.avif",
+        "bytes": 15136
+      },
+      {
+        "width": 1280,
+        "url": "/img/og-network-v1-1280.avif",
+        "bytes": 33791
+      }
+    ],
+    "webp": [
+      {
+        "width": 360,
+        "url": "/img/og-network-v1-360.webp",
+        "bytes": 6898
+      },
+      {
+        "width": 720,
+        "url": "/img/og-network-v1-720.webp",
+        "bytes": 20548
+      },
+      {
+        "width": 1280,
+        "url": "/img/og-network-v1-1280.webp",
+        "bytes": 46592
+      }
+    ]
+  }
+}

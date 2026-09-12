@@ -1,0 +1,22 @@
+/* THAISERKIT SUPPLY — Production polish layer */
+:root{--shadow-soft:0 12px 34px rgba(11,46,34,.09);--shadow-hover:0 20px 44px rgba(11,46,34,.15)}
+.dev-note{display:none!important}
+html{scroll-behavior:smooth} body{background:#fff;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}
+a,button,input,select,textarea{outline-offset:3px} a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(229,107,159,.48)}
+.hero{overflow:hidden}.hero-slide{background:var(--dark-2)}.hero-layer{filter:saturate(1.02) contrast(1.01)}
+.hero-features{box-shadow:0 10px 30px rgba(11,46,34,.08)}
+.prod-card,.news-card,.cat-card,.article-card,.value-card,.admin-card,.summary-box,.filter-box{box-shadow:0 2px 0 rgba(11,46,34,.02);transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}
+.prod-card:hover,.news-card:hover,.cat-card:hover,.article-card:hover,.value-card:hover{transform:translateY(-5px);box-shadow:var(--shadow-hover);border-color:rgba(229,107,159,.35)}
+.prod-card img,.news-card img,.cat-card img{transition:transform .35s ease}.prod-card:hover img,.news-card:hover img,.cat-card:hover img{transform:scale(1.025)}
+.btn-solid,.btn-line,.btn-outline{min-height:42px;transition:transform .18s ease,box-shadow .18s ease,background .18s ease}.btn-solid:hover,.btn-line:hover,.btn-outline:hover{transform:translateY(-1px)}
+.navbar{backdrop-filter:saturate(1.2) blur(12px)}
+.nav-search{transition:box-shadow .2s,border-color .2s}.nav-search:focus-within{box-shadow:0 0 0 4px rgba(229,107,159,.13);border-color:var(--pink)}
+.trust-bar{background:#f7faf8;border-top:1px solid #edf2ef;border-bottom:1px solid #edf2ef}.trust-bar .wrap{display:flex;justify-content:center;gap:28px;flex-wrap:wrap;padding:10px 24px;font-size:12px;color:#51665b}.trust-bar b{color:var(--dark-1)}
+.skip-link{position:fixed;left:12px;top:-60px;z-index:99999;background:#fff;color:#0b2e22;padding:10px 14px;border-radius:8px;box-shadow:var(--shadow-soft)}.skip-link:focus{top:12px}
+@media(max-width:720px){.section{padding-top:38px;padding-bottom:38px}.hero-features .wrap{grid-template-columns:1fr 1fr}.hf-item{padding:14px 8px}.hf-item span{font-size:11px}.prod-grid,.listing-grid{gap:12px}.detail-title{font-size:22px}.detail-price{font-size:26px}.foot-grid{gap:24px}.nav-search input{font-size:16px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+/* Rose Pink + subtle Gold accent — 2026 */
+.section-title::after,.page-title::after{background:linear-gradient(90deg,var(--pink),var(--gold-accent));}
+.btn-solid{box-shadow:0 8px 20px rgba(229,107,159,.20);}
+.prod-card:hover,.news-card:hover,.cat-card:hover,.article-card:hover{box-shadow:0 18px 45px rgba(185,63,118,.12),0 0 0 1px rgba(199,154,85,.16);}

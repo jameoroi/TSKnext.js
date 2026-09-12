@@ -1,0 +1,111 @@
+/* Release 25 — premium interaction layer */
+:root{--v25-ease:cubic-bezier(.22,1,.36,1);--v25-rose:#d84b83;--v25-gold:#e7b760}
+body[data-page="home"] .hero-slide{isolation:isolate;transform:translateZ(0)}
+body[data-page="home"] .hero-slide::before{content:"";position:absolute;inset:-35%;z-index:3;pointer-events:none;background:linear-gradient(112deg,transparent 37%,rgba(255,255,255,.04) 44%,rgba(255,226,185,.24) 49%,rgba(255,255,255,.07) 53%,transparent 60%);transform:translateX(-58%) rotate(2deg);animation:v25HeroSweep 7.5s var(--v25-ease) infinite}
+body[data-page="home"] .hero-slide::after{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;background:radial-gradient(circle at var(--v25-x,50%) var(--v25-y,50%),rgba(255,255,255,.12),transparent 25%);opacity:.65;transition:opacity .4s ease}
+.hero-layer{will-change:transform,filter;filter:saturate(1.035) contrast(1.015)}
+.hero-progress .seg{position:relative;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.13)}
+.hero-progress .seg i{position:relative;background:linear-gradient(90deg,#f7b4cd,var(--v25-gold),#fff4d9,#f7b4cd)!important;background-size:220% 100%!important;box-shadow:0 0 9px rgba(247,190,142,.48)}
+.hero-progress .seg i::after{content:"";position:absolute;right:-2px;top:50%;width:8px;height:8px;border-radius:50%;transform:translateY(-50%);background:#fff;box-shadow:0 0 10px #fff,0 0 20px rgba(231,183,96,.9)}
+.hero-arrow{overflow:hidden!important;box-shadow:0 8px 24px rgba(3,29,21,.2)!important}
+.hero-arrow::after{content:"";position:absolute;inset:-30%;background:linear-gradient(120deg,transparent 35%,rgba(255,255,255,.42),transparent 64%);transform:translateX(-90%);transition:transform .65s var(--v25-ease)}
+.hero-arrow:hover::after{transform:translateX(90%)}
+.fb-chat-bubble{isolation:isolate;box-shadow:0 14px 35px rgba(0,115,255,.30),0 0 0 1px rgba(255,255,255,.55)!important}
+.fb-chat-bubble::before{content:"";position:absolute;inset:-8px;border-radius:50%;z-index:-1;background:conic-gradient(from 0deg,transparent,rgba(0,153,255,.55),transparent 38%,rgba(216,75,131,.28),transparent 70%);filter:blur(2px);animation:v25Orbit 5s linear infinite}
+.fb-chat-bubble::after{content:"";position:absolute;width:7px;height:7px;border-radius:50%;right:1px;top:1px;background:#fff;box-shadow:0 0 8px #fff,0 0 15px #43b4ff;animation:v25Spark 2.8s ease-in-out infinite}
+.fb-chat-bubble:hover{transform:translateY(-5px) scale(1.08)!important}
+.home-member-card{border:1px solid rgba(231,183,96,.35)!important;box-shadow:0 18px 44px rgba(68,35,49,.10),inset 0 1px rgba(255,255,255,.75)!important;transition:transform .55s var(--v25-ease),box-shadow .55s var(--v25-ease)!important}
+.home-member-card:hover{transform:translateY(-5px);box-shadow:0 25px 60px rgba(68,35,49,.16),0 0 0 1px rgba(216,75,131,.12)!important}
+.home-member-card::after{content:"";position:absolute;inset:-1px;pointer-events:none;border-radius:inherit;background:linear-gradient(110deg,transparent 25%,rgba(255,255,255,.55) 42%,transparent 58%);transform:translateX(-120%);animation:v25MemberShine 8s var(--v25-ease) infinite;z-index:1}
+.home-member-card .member-point{transition:transform .3s var(--v25-ease),background .3s ease}
+.home-member-card:hover .member-point:nth-of-type(1){transform:translateX(4px)}
+.home-member-card:hover .member-point:nth-of-type(2){transform:translateX(8px)}
+.home-member-card:hover .member-point:nth-of-type(3){transform:translateX(12px)}
+.gift-visual{filter:drop-shadow(0 12px 14px rgba(120,53,75,.16));animation:v25Gift 4s ease-in-out infinite!important}
+#featuredGrid .prod-card{transform-style:preserve-3d;transition:transform .45s var(--v25-ease),box-shadow .45s var(--v25-ease),border-color .3s ease!important}
+#featuredGrid .prod-card:hover{transform:translateY(-7px) scale(1.012);box-shadow:0 22px 48px rgba(18,53,42,.14)!important;border-color:rgba(216,75,131,.24)!important}
+#featuredGrid .prod-card .prod-img img{transition:transform .65s var(--v25-ease),filter .45s ease!important}
+#featuredGrid .prod-card:hover .prod-img img{transform:scale(1.055);filter:saturate(1.05) contrast(1.02)}
+#featuredGrid .prod-card::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(115deg,transparent 28%,rgba(255,255,255,.48),transparent 58%);transform:translateX(-120%);transition:transform .8s var(--v25-ease)}
+#featuredGrid .prod-card:hover::after{transform:translateX(120%)}
+@keyframes v25HeroSweep{0%,70%{transform:translateX(-62%) rotate(2deg);opacity:0}75%{opacity:1}100%{transform:translateX(62%) rotate(2deg);opacity:0}}
+@keyframes v25ProgressGlow{to{background-position:220% 0}}
+@keyframes v25Orbit{to{transform:rotate(360deg)}}
+@keyframes v25Spark{0%,100%{transform:scale(.7);opacity:.45}50%{transform:scale(1.35);opacity:1}}
+@keyframes v25MemberShine{0%,68%{transform:translateX(-120%)}82%,100%{transform:translateX(120%)}}
+@keyframes v25Gift{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-7px) rotate(1.3deg)}}
+@media(max-width:760px){body[data-page="home"] .hero-slide::after{display:none}.home-member-card:hover{transform:none}#featuredGrid .prod-card:hover{transform:translateY(-3px)}}
+@media(prefers-reduced-motion:reduce){body[data-page="home"] .hero-slide::before,.hero-progress .seg i,.fb-chat-bubble::before,.fb-chat-bubble::after,.home-member-card::after,.gift-visual{animation:none!important}}
+
+/* ========================================================================== 
+   RELEASE 26 CLEANUP — cleaner interaction requested by owner
+   1) Back-to-top: one circle only; scroll progress is the outer edge itself.
+   2) Messenger: no white spark / orbit glow / radar rings.
+   3) Remove decorative underlines from nav, section titles and hover text.
+   ========================================================================== */
+
+/* 1) Single-circle scroll progress. No secondary SVG/ring. */
+.back-to-top{
+  --btt-progress:0deg;
+  overflow:hidden!important;
+  border:2px solid transparent!important;
+  background:
+    linear-gradient(var(--dark-1),var(--dark-1)) padding-box,
+    conic-gradient(from -90deg,var(--pink) 0 var(--btt-progress),rgba(229,107,159,.20) var(--btt-progress) 360deg) border-box!important;
+  box-shadow:0 8px 22px rgba(5,37,28,.18)!important;
+}
+.back-to-top .btt-ring{display:none!important;}
+.back-to-top:hover{
+  background:
+    linear-gradient(#123d30,#123d30) padding-box,
+    conic-gradient(from -90deg,var(--pink-light) 0 var(--btt-progress),rgba(229,107,159,.26) var(--btt-progress) 360deg) border-box!important;
+  box-shadow:0 10px 25px rgba(5,37,28,.22)!important;
+}
+.back-to-top:hover svg{color:var(--pink-light)!important;}
+
+/* 2) Messenger: keep only a restrained float; remove visual noise. */
+.fb-chat-bubble{
+  box-shadow:0 10px 24px rgba(5,37,28,.22)!important;
+  animation:tskFabIn .5s cubic-bezier(.34,1.56,.64,1) both,mvFabFloat 4.2s ease-in-out .7s infinite!important;
+}
+.fb-chat-bubble::before,
+.fb-chat-bubble::after,
+.fb-chat-ping,
+.fb-chat-ping::before,
+.fb-chat-ping::after{
+  content:none!important;
+  display:none!important;
+  animation:none!important;
+  box-shadow:none!important;
+  filter:none!important;
+}
+.fb-chat-bubble:hover{
+  transform:translateY(-3px) scale(1.045)!important;
+  box-shadow:0 12px 28px rgba(5,37,28,.26)!important;
+}
+
+/* 3) No animated/decorative text underlines. */
+.nav-links a::after,
+.sec-head h2::after,
+.section-title::after,
+.page-title::after,
+footer .foot-links a::after,
+footer .foot-bottom .policy a::after,
+.home-cat-link::after{
+  content:none!important;
+  display:none!important;
+}
+.sec-head h2{padding-bottom:0!important;}
+.nav-links a,
+.nav-links a:hover,
+.nav-links a:focus-visible,
+footer .foot-links a,
+footer .foot-bottom .policy a,
+.home-cat-link,
+.home-cat-link:hover{
+  text-decoration:none!important;
+}
+
+@media (prefers-reduced-motion:reduce){
+  .fb-chat-bubble{animation:none!important;}
+}

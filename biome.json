@@ -1,0 +1,7 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.2.3/schema.json",
+  "files": { "ignoreUnknown": true, "includes": ["**", "!src/legacy-reference/**", "!public/legacy-assets/**", "!docs/legacy/**"] },
+  "formatter": { "enabled": true, "indentStyle": "space", "indentWidth": 2, "lineWidth": 110 },
+  "linter": { "enabled": true, "rules": { "recommended": true } },
+  "javascript": { "formatter": { "quoteStyle": "single", "semicolons": "always", "trailingCommas": "all" } }
+}

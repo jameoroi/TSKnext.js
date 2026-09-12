@@ -1,0 +1,110 @@
+/* =========================================================================
+   THAISERKIT SUPPLY — Release 20 Premium Polish
+   Additive layer only. Loads LAST so it can refine, never replace, the
+   existing green / gold / rose identity. No layout structure is changed —
+   this file only upgrades depth, motion, typography rhythm and finish.
+   ========================================================================= */
+
+:root{
+  --tsk-shadow-sm: 0 2px 8px rgba(11,46,34,.08);
+  --tsk-shadow-md: 0 10px 26px rgba(11,46,34,.14);
+  --tsk-shadow-lg: 0 20px 48px rgba(11,46,34,.20);
+  --tsk-shadow-gold: 0 8px 22px rgba(199,154,85,.28);
+  --tsk-ease: cubic-bezier(.22,.82,.28,1);
+  --tsk-radius: 14px;
+  --tsk-gold-line: linear-gradient(90deg,rgba(199,154,85,0) 0%,#c79a55 50%,rgba(199,154,85,0) 100%);
+}
+
+/* ---------- Foundations ---------- */
+*{scrollbar-width:thin;scrollbar-color:#c79a55 #eef2ef;}
+::-webkit-scrollbar{width:10px;height:10px;}
+::-webkit-scrollbar-track{background:#eef2ef;}
+::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#dcb877,#b98a44);border-radius:8px;border:2px solid #eef2ef;}
+::-webkit-scrollbar-thumb:hover{background:#c79a55;}
+
+::selection{background:#c79a55;color:#0B2E22;}
+
+:focus-visible{outline:2px solid #c79a55;outline-offset:2px;border-radius:4px;}
+
+img{transition:filter .5s ease;}
+img[loading="lazy"]{background:linear-gradient(90deg,#f2f2f0 25%,#e9e9e6 37%,#f2f2f0 63%);background-size:400% 100%;animation:tskShimmer 1.4s ease infinite;}
+img[loading="lazy"][src=""]{opacity:0;}
+@keyframes tskShimmer{0%{background-position:100% 0}100%{background-position:0 0}}
+
+body{letter-spacing:.1px;}
+h1,h2,h3,.sec-head h2{letter-spacing:.1px;}
+
+/* ---------- Header: soft glass depth ---------- */
+.topbar{position:relative;box-shadow:0 6px 20px rgba(5,25,18,.18);}
+.navbar{position:sticky;top:0;z-index:40;box-shadow:0 8px 20px rgba(41,20,29,.14);}
+.brand-logo{filter:drop-shadow(0 2px 6px rgba(0,0,0,.25));}
+.nav-search input{transition:box-shadow .25s var(--tsk-ease),transform .25s var(--tsk-ease);}
+.nav-search input:focus{box-shadow:0 0 0 3px rgba(199,154,85,.35);transform:translateY(-1px);}
+
+/* ---------- Section rhythm ---------- */
+.sec-head{position:relative;}
+.sec-head h2{position:relative;padding-bottom:10px;}
+.sec-head h2::after{content:"";position:absolute;left:0;bottom:0;width:46px;height:3px;border-radius:3px;background:var(--tsk-gold-line);background:linear-gradient(90deg,#c79a55,#e8c98d);}
+
+/* ---------- Buttons: gold-tipped micro interaction ---------- */
+.btn-solid,.btn-line,.btn-outline{position:relative;overflow:hidden;transition:transform .22s var(--tsk-ease),box-shadow .22s var(--tsk-ease),background-color .22s var(--tsk-ease),color .22s var(--tsk-ease);}
+.btn-solid{box-shadow:var(--tsk-shadow-sm);}
+.btn-solid:hover{transform:translateY(-2px);box-shadow:var(--tsk-shadow-gold);}
+.btn-solid:active,.btn-line:active,.btn-outline:active{transform:translateY(0) scale(.98);}
+.btn-line:hover{box-shadow:var(--tsk-shadow-sm);transform:translateY(-2px);}
+.btn-solid::before,.btn-line::before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.35) 50%,transparent 60%);transform:translateX(-120%);transition:transform .6s var(--tsk-ease);pointer-events:none;}
+.btn-solid:hover::before,.btn-line:hover::before{transform:translateX(120%);}
+
+/* ---------- Category cards ---------- */
+.cat-card{box-shadow:var(--tsk-shadow-sm);}
+.cat-card:hover{box-shadow:var(--tsk-shadow-lg);}
+.cat-icon-badge{box-shadow:inset 0 0 0 1px rgba(199,154,85,.25);}
+
+/* ---------- Product cards: richer elevation + gold corner on hover ---------- */
+.prod-card{box-shadow:var(--tsk-shadow-sm)!important;transition:transform .28s var(--tsk-ease),box-shadow .28s var(--tsk-ease),border-color .28s var(--tsk-ease)!important;}
+.prod-card:hover{box-shadow:var(--tsk-shadow-md)!important;border-color:#e8c98d!important;}
+.prod-img img{transition:transform .5s var(--tsk-ease)!important;}
+.prod-card:hover .prod-img img{transform:scale(1.07)!important;}
+.prod-tag{box-shadow:0 3px 8px rgba(0,0,0,.18);}
+.p-price{position:relative;}
+.p-cart{transition:transform .22s var(--tsk-ease),box-shadow .22s var(--tsk-ease);}
+.p-cart:hover{transform:translateY(-2px) scale(1.05);box-shadow:var(--tsk-shadow-gold);}
+
+/* ---------- Brand row: subtle lift ---------- */
+.brand-box img{transition:transform .3s var(--tsk-ease),filter .3s var(--tsk-ease);filter:grayscale(.15) opacity(.9);}
+.brand-box:hover img{transform:translateY(-3px) scale(1.04);filter:grayscale(0) opacity(1);}
+
+/* ---------- Hero polish ---------- */
+.hero-slide{box-shadow:var(--tsk-shadow-lg);}
+.hero-arrow{transition:transform .22s var(--tsk-ease),background-color .22s var(--tsk-ease);}
+.hero-arrow:hover{transform:translateY(-50%) scale(1.08);}
+
+/* ---------- Toast: refined finish ---------- */
+.toast{backdrop-filter:blur(6px);box-shadow:0 14px 34px rgba(0,0,0,.32);border:1px solid rgba(199,154,85,.35);}
+
+/* ---------- Forms: consistent premium field style ---------- */
+input,select,textarea{transition:box-shadow .2s var(--tsk-ease),border-color .2s var(--tsk-ease);}
+input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(199,154,85,.28);}
+
+/* ---------- Reveal-on-scroll (progressive enhancement; safe no-op if unused) ---------- */
+.reveal{opacity:1;}
+@media (prefers-reduced-motion: no-preference){
+  .reveal{animation:tskFadeUp .6s var(--tsk-ease) both;}
+}
+@keyframes tskFadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+/* ---------- Skeleton loading utility (opt-in via class="tsk-skel") ---------- */
+.tsk-skel{position:relative;overflow:hidden;background:#eef1ef;color:transparent!important;border-radius:8px;}
+.tsk-skel::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.65),transparent);transform:translateX(-100%);animation:tskSkelSweep 1.3s ease infinite;}
+@keyframes tskSkelSweep{to{transform:translateX(100%)}}
+
+/* ---------- Mobile refinement ---------- */
+@media (max-width: 640px){
+  .sec-head h2::after{width:34px;height:2.5px;}
+  .btn-solid,.btn-line{border-radius:20px;}
+}
+
+/* ---------- Print (keep clean receipts/invoices readable) ---------- */
+@media print{
+  .hero-arrow,.toast,.nav-search,.top-actions{display:none!important;}
+}

@@ -1,0 +1,30 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: thaiserkit
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports: ["5432:5432"]
+    volumes: ["postgres_data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d thaiserkit"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  redis:
+    image: redis:8-alpine
+    command: ["redis-server","--appendonly","yes"]
+    ports: ["6379:6379"]
+    volumes: ["redis_data:/data"]
+  meilisearch:
+    image: getmeili/meilisearch:v1.20
+    environment:
+      MEILI_ENV: development
+      MEILI_MASTER_KEY: masterKey
+    ports: ["7700:7700"]
+    volumes: ["meili_data:/meili_data"]
+volumes:
+  postgres_data:
+  redis_data:
+  meili_data:

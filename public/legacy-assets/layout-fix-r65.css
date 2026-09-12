@@ -1,0 +1,57 @@
+/* Release 65: scoped layout recovery for reports, agent storefront and home discovery. */
+
+/* Reports: keep wide chart/table content inside the primary column. */
+.r63-admin:has(.report-kpis)>.r63-shell>.r63-card:first-of-type{margin-bottom:18px}
+.r63-admin:has(.report-kpis)>.r63-shell>.r63-grid{grid-template-columns:minmax(0,1fr) minmax(300px,380px)}
+.r63-admin:has(.report-kpis)>.r63-shell>.r63-grid>*,.r63-admin:has(.report-kpis)>.r63-shell>.r63-grid .r63-stack,.r63-admin:has(.report-kpis)>.r63-shell>.r63-grid .r63-card{min-width:0}
+.r63-admin:has(.report-kpis) .report-chart{width:100%;max-width:100%;box-sizing:border-box}
+.r63-admin:has(.report-kpis) .report-kpis .r63-kpi{min-width:0}
+.r63-admin:has(.report-kpis) .report-kpis strong{display:block;overflow-wrap:anywhere;font-size:clamp(17px,1.45vw,22px)}
+
+/* Agent store: restore the three-column desktop header contract. */
+@media (min-width:761px){
+  body[data-page="agent-store"] #site-header .navbar{height:44px!important;min-height:44px!important}
+  body[data-page="agent-store"] #site-header .navbar .wrap{width:min(calc(100% - 36px),1460px)!important;max-width:1460px!important;height:44px!important;min-height:44px!important;margin-inline:auto!important;padding:0!important;display:grid!important;grid-template-columns:minmax(210px,280px) minmax(0,1fr) minmax(240px,360px)!important;align-items:stretch!important;gap:0!important}
+  body[data-page="agent-store"] #site-header .category-nav-label{display:flex!important;align-items:center!important;height:44px!important;min-width:0!important;padding:0 18px!important;white-space:nowrap!important}
+  body[data-page="agent-store"] #site-header .nav-links{display:flex!important;align-items:stretch!important;flex-wrap:nowrap!important;min-width:0!important;width:auto!important;height:44px!important;overflow:hidden!important}
+  body[data-page="agent-store"] #site-header .nav-links a{display:flex!important;align-items:center!important;height:44px!important;padding:0 16px!important;white-space:nowrap!important}
+  body[data-page="agent-store"] #site-header .nav-search{display:block!important;grid-column:3!important;grid-row:1!important;width:auto!important;height:44px!important;margin:0!important;padding:5px 0 5px 12px!important}
+  body[data-page="agent-store"] #site-header .nav-search input{height:34px!important}
+  body[data-page="agent-store"] #site-header .nav-search button{width:30px!important;height:30px!important;right:2px!important;top:7px!important}
+}
+@media (min-width:761px) and (max-width:1100px){
+  body[data-page="agent-store"] #site-header .navbar .wrap{grid-template-columns:190px minmax(0,1fr) 250px!important}
+  body[data-page="agent-store"] #site-header .nav-links a{padding-inline:11px!important;font-size:11px!important}
+}
+
+/* Home: the R52 discovery markup needs its matching layout rules. */
+body[data-page="home"] .r52-discovery{width:min(calc(100% - 36px),1432px);max-width:1432px;margin:34px auto 10px;box-sizing:border-box}
+body[data-page="home"] .r52-discovery-inner{display:grid;grid-template-columns:minmax(220px,280px) minmax(0,1fr);gap:18px;padding:28px;border-radius:24px;background:linear-gradient(125deg,#073c2e,#07513d 58%,#0a684a);box-shadow:0 22px 45px rgba(5,59,44,.18);color:#fff}
+body[data-page="home"] .r52-discovery-intro{min-width:0;padding:8px 8px 8px 14px}
+body[data-page="home"] .r52-discovery-intro span{font-size:11px;letter-spacing:.15em;font-weight:800;color:#f7c75a}
+body[data-page="home"] .r52-discovery-intro h2{margin:8px 0;font-size:clamp(24px,2vw,29px);line-height:1.15;color:#fff}
+body[data-page="home"] .r52-discovery-intro p{margin:0;color:#cde5d9;font-size:14px}
+body[data-page="home"] .r52-job-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;min-width:0}
+body[data-page="home"] .r52-job-card{position:relative;display:block;min-width:0;min-height:136px;overflow:hidden;padding:20px;border:1px solid rgba(255,255,255,.22);border-radius:18px;background:rgba(255,255,255,.09);color:#fff;text-decoration:none;box-sizing:border-box;transition:transform .25s,background .25s}
+body[data-page="home"] .r52-job-card:hover{transform:translateY(-5px);background:rgba(255,255,255,.18);color:#fff}
+body[data-page="home"] .r52-job-card::before{content:"";position:absolute;right:-28px;bottom:-54px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.12)}
+body[data-page="home"] .r52-job-card b,body[data-page="home"] .r52-job-card small{position:relative;display:block}
+body[data-page="home"] .r52-job-card b{font-size:20px}
+body[data-page="home"] .r52-job-card small{margin-top:8px;color:#d8eee2;font-size:12px;line-height:1.45}
+body[data-page="home"] .r52-job-card i{position:absolute;right:14px;top:12px;color:#f7c75a;font-size:12px;font-style:normal;font-weight:800}
+body[data-page="home"] .r52-power{background:linear-gradient(140deg,rgba(237,76,141,.32),rgba(255,255,255,.08))}
+body[data-page="home"] .r52-agri{background:linear-gradient(140deg,rgba(246,183,60,.28),rgba(255,255,255,.08))}
+
+@media (max-width:900px){.r63-admin:has(.report-kpis)>.r63-shell>.r63-grid{grid-template-columns:1fr}}
+@media (max-width:760px){
+  body[data-page="home"] .r52-discovery{width:100%;margin:22px 0 6px;padding:0 14px}
+  body[data-page="home"] .r52-discovery-inner{display:block;padding:20px;border-radius:18px}
+  body[data-page="home"] .r52-discovery-intro{padding:0 0 16px}
+  body[data-page="home"] .r52-discovery-intro h2{font-size:23px}
+  body[data-page="home"] .r52-job-grid{gap:8px}
+  body[data-page="home"] .r52-job-card{min-height:120px;padding:14px 10px;border-radius:14px}
+  body[data-page="home"] .r52-job-card b{font-size:16px}
+  body[data-page="home"] .r52-job-card small{font-size:10px;line-height:1.3}
+  body[data-page="home"] .r52-job-card i{right:9px;top:8px}
+}
+@media (max-width:520px){body[data-page="home"] .r52-job-grid{grid-template-columns:1fr}body[data-page="home"] .r52-job-card{min-height:100px}}

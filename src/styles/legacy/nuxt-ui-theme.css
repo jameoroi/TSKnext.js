@@ -1,0 +1,164 @@
+/* =========================================================================
+   Theme for the generic .nuxt-* building blocks.
+
+   assets/main.css ships them as an unstyled Nuxt-starter default: system font,
+   grey cards, pill buttons. Several pages the migration rebuilt (account,
+   track-order, verify-payment, contact, and the whole back office) still use
+   them, so they read as a different website from the storefront. This layer
+   maps them onto the storefront's own type, palette and spacing instead of
+   rewriting every page's markup.
+   ========================================================================= */
+
+:root {
+  --tsk-ui-ink: #16241d;
+  --tsk-ui-muted: #67736c;
+  --tsk-ui-line: #e2eae4;
+  --tsk-ui-surface: #fff;
+  --tsk-ui-shadow: 0 10px 30px rgba(10, 45, 30, .07);
+  --tsk-ui-radius: 14px;
+}
+
+/* main.css sets Inter on :root, which cascades into every page that has not
+   been rebuilt on the legacy classes. */
+:root { font-family: 'Noto Sans Thai', system-ui, -apple-system, 'Segoe UI', sans-serif; }
+
+.nuxt-section {
+  width: min(1280px, calc(100% - 40px));
+  margin-inline: auto;
+  padding-block: clamp(24px, 4vw, 44px);
+  color: var(--tsk-ui-ink);
+}
+.nuxt-section + .nuxt-section { padding-top: 0; }
+
+.nuxt-section > h1,
+.nuxt-card > h1 {
+  margin: 0 0 6px;
+  color: var(--dark-1, #0b2e22);
+  font-size: clamp(23px, 3vw, 31px);
+  font-weight: 800;
+  letter-spacing: -.01em;
+}
+.nuxt-section h2,
+.nuxt-card h2 {
+  margin: 0 0 14px;
+  color: var(--dark-1, #0b2e22);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.nuxt-card {
+  padding: clamp(18px, 2.4vw, 26px);
+  border: 1px solid var(--tsk-ui-line);
+  border-radius: var(--tsk-ui-radius);
+  background: var(--tsk-ui-surface);
+  box-shadow: var(--tsk-ui-shadow);
+}
+.nuxt-card + .nuxt-card { margin-top: 16px; }
+/* A card nested in a grid of cards should not restate the outer elevation. */
+.nuxt-grid .nuxt-card { box-shadow: none; }
+
+.nuxt-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+
+.nuxt-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.nuxt-section > .nuxt-actions:first-child { justify-content: space-between; margin-bottom: 20px; }
+
+.nuxt-form { display: grid; gap: 14px; max-width: 620px; }
+.nuxt-form label { display: grid; gap: 6px; color: #46564e; font-size: 13px; font-weight: 600; }
+
+.nuxt-form input,
+.nuxt-form textarea,
+.nuxt-form select,
+.nuxt-input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 13px;
+  border: 1px solid #dfe7e1;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--tsk-ui-ink);
+  font: inherit;
+  font-weight: 400;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+.nuxt-form textarea { min-height: 92px; resize: vertical; }
+.nuxt-form input:focus,
+.nuxt-form textarea:focus,
+.nuxt-form select:focus,
+.nuxt-input:focus {
+  outline: none;
+  border-color: var(--rose-shadow, #b93f76);
+  box-shadow: 0 0 0 3px rgba(185, 63, 118, .12);
+}
+
+.nuxt-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 11px 22px;
+  border: 1px solid var(--dark-1, #0b2e22);
+  border-radius: 10px;
+  background: var(--dark-1, #0b2e22);
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background .18s ease, border-color .18s ease, color .18s ease, transform .18s ease;
+}
+.nuxt-button:hover { background: var(--dark-2, #123a2c); border-color: var(--dark-2, #123a2c); transform: translateY(-1px); }
+.nuxt-button:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+.nuxt-button.alt { background: #fff; color: var(--dark-1, #0b2e22); }
+.nuxt-button.alt:hover { background: var(--rose-shadow, #b93f76); border-color: var(--rose-shadow, #b93f76); color: #fff; }
+/* A form's own submit is the primary action on the page it sits in. */
+.nuxt-form > .nuxt-button { justify-self: start; }
+
+.nuxt-muted { color: var(--tsk-ui-muted); font-size: 13.5px; }
+
+.nuxt-empty {
+  padding: 26px;
+  border: 1px dashed #cfdcd3;
+  border-radius: var(--tsk-ui-radius);
+  background: #fbfdfb;
+  color: var(--tsk-ui-muted);
+  text-align: center;
+}
+
+.nuxt-error,
+.nuxt-success {
+  margin: 0;
+  padding: 11px 14px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.nuxt-error { border: 1px solid #f2cfcb; background: #fdf5f4; color: #a3271c; }
+.nuxt-success { border: 1px solid #c8e6d2; background: #f3fbf5; color: #1b6d38; }
+
+.nuxt-media-placeholder {
+  display: grid;
+  place-items: center;
+  min-height: 160px;
+  border: 1px dashed #cfdcd3;
+  border-radius: 10px;
+  color: var(--tsk-ui-muted);
+  font-size: 13px;
+}
+
+.nuxt-json {
+  padding: 14px;
+  border-radius: 10px;
+  background: #0f231b;
+  color: #d8ede2;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  overflow-x: auto;
+}
+
+@media (max-width: 640px) {
+  .nuxt-section { width: min(1280px, calc(100% - 24px)); }
+  .nuxt-section > .nuxt-actions:first-child { align-items: flex-start; flex-direction: column; }
+  .nuxt-form > .nuxt-button { justify-self: stretch; width: 100%; }
+}

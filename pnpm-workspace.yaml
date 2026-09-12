@@ -1,0 +1,8 @@
+allowBuilds:
+  '@sentry/cli': true
+  core-js: true
+  esbuild: true
+  msgpackr-extract: true
+  msw: true
+  protobufjs: true
+  workerd: true

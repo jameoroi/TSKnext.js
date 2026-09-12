@@ -1,0 +1,19 @@
+/* Release 30 — global clean UI rules applied to EVERY storefront page */
+:root{--v30-pink:#e56b9f;--v30-dark:#062f24}
+/* Back-to-top: exactly one circle. The circumference itself shows page scroll progress. */
+.back-to-top{--btt-progress:0deg;overflow:hidden!important;border:2px solid transparent!important;background:linear-gradient(var(--dark-1,#063a2c),var(--dark-1,#063a2c)) padding-box,conic-gradient(from -90deg,var(--pink,#e56b9f) 0 var(--btt-progress),rgba(229,107,159,.18) var(--btt-progress) 360deg) border-box!important;box-shadow:0 8px 22px rgba(5,37,28,.18)!important}
+.back-to-top .btt-ring,.back-to-top::before,.back-to-top::after{display:none!important;content:none!important}
+.back-to-top:hover{background:linear-gradient(#123d30,#123d30) padding-box,conic-gradient(from -90deg,var(--pink-light,#f6a8c7) 0 var(--btt-progress),rgba(229,107,159,.22) var(--btt-progress) 360deg) border-box!important;box-shadow:0 10px 25px rgba(5,37,28,.22)!important}
+/* Messenger: clean single button, no white dot, glow, radar, orbit or decorative ring. */
+.fb-chat-bubble{box-shadow:0 10px 24px rgba(5,37,28,.20)!important;animation:tskFabIn .5s cubic-bezier(.34,1.56,.64,1) both,mvFabFloat 4.4s ease-in-out .7s infinite!important}
+.fb-chat-bubble::before,.fb-chat-bubble::after,.fb-chat-ping,.fb-chat-ping::before,.fb-chat-ping::after{content:none!important;display:none!important;animation:none!important;box-shadow:none!important;filter:none!important;border:0!important;background:none!important}
+.fb-chat-bubble:hover{transform:translateY(-3px) scale(1.04)!important;box-shadow:0 12px 26px rgba(5,37,28,.24)!important}
+/* No decorative/animated underlines anywhere in shared navigation, headings or footer links. */
+a:hover,a:focus{text-decoration:none!important}
+.nav-links a::before,.nav-links a::after,.sec-head h2::before,.sec-head h2::after,.section-title::before,.section-title::after,.page-title::before,.page-title::after,.page-title-icon::before,.page-title-icon::after,.home-cat-link::before,.home-cat-link::after,footer a::before,footer a::after,.admin-ribbon a::before,.admin-ribbon a::after{content:none!important;display:none!important}
+.nav-links a,.nav-links a:hover,.nav-links a:focus-visible,.home-cat-link,.home-cat-link:hover,footer a,footer a:hover,.admin-ribbon a{text-decoration:none!important}
+.sec-head h2,.section-title,.page-title,.page-title-icon{padding-bottom:0!important}
+/* Logo shell stays transparent on every page. Pixel background removal is handled by production-client.js. */
+.brand-logo,.brand-logo img{background:transparent!important;border:0!important;outline:0!important;box-shadow:none!important;padding:0!important}
+.brand-logo img{border-radius:0!important}
+@media(prefers-reduced-motion:reduce){.fb-chat-bubble{animation:none!important}}

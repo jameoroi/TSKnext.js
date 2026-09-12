@@ -1,0 +1,60 @@
+/* R72 shared component contract. Scoped and additive to avoid breaking legacy pages. */
+html{scroll-behavior:smooth}
+body{accent-color:var(--tsk-brand-700);text-rendering:optimizeLegibility}
+body :is(.p-price,.detail-price,.p-price-old,.detail-price-old,[data-money]){font-variant-numeric:tabular-nums}
+
+:is(a,button,input,select,textarea,[role="button"]):focus-visible{
+  outline:3px solid color-mix(in srgb,var(--tsk-accent-500) 78%,#fff);
+  outline-offset:3px;
+  box-shadow:0 0 0 5px color-mix(in srgb,var(--tsk-brand-800) 18%,transparent);
+}
+
+:is(.btn-solid,.btn-line,.btn-outline,.r63-btn,.tsk-privacy-ok){
+  min-height:42px;
+  border-radius:var(--tsk-radius-md);
+  transition:transform var(--tsk-fast) var(--tsk-ease),box-shadow var(--tsk-normal) var(--tsk-ease),background-color var(--tsk-fast) ease,border-color var(--tsk-fast) ease;
+}
+@media (hover:hover) and (pointer:fine){
+  :is(.btn-solid,.btn-line,.btn-outline,.r63-btn,.tsk-privacy-ok):not(:disabled):hover{transform:translateY(-2px)}
+}
+:is(button,.btn-solid,.btn-line,.btn-outline):disabled{cursor:not-allowed;opacity:.58;transform:none}
+
+:is(input,select,textarea){font:inherit}
+:is(input,select,textarea):not([type="checkbox"]):not([type="radio"]):not([type="color"]){
+  border-radius:var(--tsk-radius-md);
+}
+
+:is(.empty-state,.r63-empty,.tsk-empty){
+  padding:clamp(24px,4vw,48px);
+  border:1px dashed var(--tsk-border);
+  border-radius:var(--tsk-radius-lg);
+  color:var(--tsk-text-muted);
+  background:var(--tsk-surface-soft);
+  text-align:center;
+}
+
+.tsk-skip-link{
+  position:fixed;left:16px;top:12px;z-index:1000;
+  transform:translateY(-160%);padding:10px 14px;border-radius:10px;
+  background:var(--tsk-brand-950);color:#fff;text-decoration:none;font-weight:700;
+}
+.tsk-skip-link:focus{transform:translateY(0)}
+
+html[data-theme="dark"] body{background:var(--tsk-canvas);color:var(--tsk-text)}
+html[data-theme="dark"] :is(.section,.tsk-panel,.prod-card,.partner-card,.agent-store-card,.r63-card,.r63-panel,.home-member-card,.news-card,.contact-card,.legal){
+  background-color:var(--tsk-surface);color:var(--tsk-text);border-color:var(--tsk-border);
+}
+html[data-theme="dark"] :is(.prod-info,.detail-layout,.detail-tabs-full,.spec-table>div,.seller-trust-box,.home-benefit,.brand-list a,.brand-card,.nav-search input,.tsk-search-suggest){
+  background-color:var(--tsk-surface);color:var(--tsk-text);border-color:var(--tsk-border);
+}
+html[data-theme="dark"] :is(h1,h2,h3,h4,.p-name,.p-brand,.detail-title,.sec-head h2,.page-title){color:var(--tsk-text)}
+html[data-theme="dark"] :is(p,small,.muted,.detail-meta,.detail-desc,.seller-copy,.footer-links a){color:var(--tsk-text-muted)}
+html[data-theme="dark"] :is(input,select,textarea){background:#0d211b;color:var(--tsk-text);border-color:var(--tsk-border)}
+html[data-theme="dark"] .site-header{background:rgba(10,29,23,.96)}
+html[data-theme="dark"] .main-nav{background:#0a211a}
+
+/* See the note in app/assets/fast-storefront.css: loops off, transitions kept. */
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}
+}

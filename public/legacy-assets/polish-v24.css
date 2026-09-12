@@ -1,0 +1,163 @@
+/* =========================================================================
+   THAISERKIT SUPPLY — Release 24 — Punch-list polish
+   Additive only. Loads last (after motion-polish-v23). Covers:
+   B1 sidebar glow · B2 mobile fallbacks · C1 quick view · C2 checkout
+   stepper/trust badges · E2 skeleton coverage · E3 empty-state polish ·
+   E4 toast progress bar · E5 dark mode
+   ========================================================================= */
+
+/* ---------------------------------------------------------------------
+   E5 — Dark mode
+   Flips core surface/text tokens when <html data-theme="dark">. Brand
+   colors (pink/gold accents) are kept so the storefront still reads as
+   THAISERKIT, only backgrounds/text/borders invert.
+--------------------------------------------------------------------- */
+html[data-theme="dark"]{
+  --gray:#1b2320;
+}
+html[data-theme="dark"] body{background:#111613;color:#dfe7e2;}
+html[data-theme="dark"] .topbar,
+html[data-theme="dark"] .navbar,
+html[data-theme="dark"] .market-utility,
+html[data-theme="dark"] footer,
+html[data-theme="dark"] .checkout-card,
+html[data-theme="dark"] .summary-box,
+html[data-theme="dark"] .home-cat-sidebar,
+html[data-theme="dark"] .cat-card,
+html[data-theme="dark"] .prod-card,
+html[data-theme="dark"] .home-member-card,
+html[data-theme="dark"] .news-card,
+html[data-theme="dark"] .brand-card{
+  background:#161d19!important;border-color:#26312c!important;color:#dfe7e2;
+}
+html[data-theme="dark"] .header-search input,
+html[data-theme="dark"] .nav-search input,
+html[data-theme="dark"] .form-field input,
+html[data-theme="dark"] .form-field textarea,
+html[data-theme="dark"] select{
+  background:#1b2320!important;border-color:#2c3934!important;color:#dfe7e2!important;
+}
+html[data-theme="dark"] .p-name,
+html[data-theme="dark"] h1,html[data-theme="dark"] h2,html[data-theme="dark"] h3{color:#f2f6f4!important;}
+html[data-theme="dark"] .prod-tag{filter:brightness(.92);}
+html[data-theme="dark"] .home-cat-link{background:#161d19!important;color:#dfe7e2!important;border-color:#26312c!important;}
+html[data-theme="dark"] .home-cat-link:hover{background:#1f2721!important;}
+html[data-theme="dark"] .skeleton-card .sk-img,
+html[data-theme="dark"] .sk-line{background:linear-gradient(90deg,#1c2521 25%,#26312c 37%,#1c2521 63%);}
+
+/* toggle button, sits in top-actions */
+.theme-toggle-btn{
+  display:inline-flex;align-items:center;gap:6px;background:none;border:1px solid rgba(255,255,255,.28);
+  border-radius:20px;padding:6px 12px;cursor:pointer;color:inherit;font:inherit;font-size:12px;
+}
+.theme-toggle-btn svg{width:15px;height:15px;flex:none;}
+.theme-toggle-btn .tt-moon{display:none;}
+html[data-theme="dark"] .theme-toggle-btn .tt-sun{display:none;}
+html[data-theme="dark"] .theme-toggle-btn .tt-moon{display:inline-block;}
+@media(max-width:900px){
+  .theme-toggle-btn{padding:6px 8px;}
+  .theme-toggle-btn .tt-label{display:none;}
+}
+
+/* ---------------------------------------------------------------------
+   B1 — Sidebar category mouse-follow glow (mirrors .cat-card treatment)
+--------------------------------------------------------------------- */
+.home-cat-link{--mx:50%;--my:50%;position:relative;overflow:hidden;}
+.home-cat-link::after{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:0;
+  transition:opacity .25s ease;
+  background:radial-gradient(120px circle at var(--mx) var(--my),rgba(230,90,150,.16),transparent 65%);
+}
+.home-cat-link:hover::after{opacity:1;}
+
+/* ---------------------------------------------------------------------
+   B2 — Touch-device fallbacks: replace hover-only motion with
+   tap/scroll-driven equivalents on coarse pointers.
+--------------------------------------------------------------------- */
+@media (hover:none) and (pointer:coarse){
+  .cat-card::after,.home-cat-link::after{transition:opacity .35s ease;}
+  .cat-card.mv-touch-glow::after,.home-cat-link.mv-touch-glow::after{opacity:1;}
+  /* header shrinks on scroll instead of relying on :hover */
+  .topbar{transition:padding .2s ease,box-shadow .2s ease;}
+  body.mv-scrolled .topbar{box-shadow:0 4px 14px rgba(0,0,0,.12);}
+}
+
+/* ---------------------------------------------------------------------
+   C1 — Quick view modal
+--------------------------------------------------------------------- */
+.qv-backdrop{
+  position:fixed;inset:0;background:rgba(10,16,13,.55);backdrop-filter:blur(2px);
+  z-index:9998;display:flex;align-items:center;justify-content:center;padding:20px;
+  opacity:0;pointer-events:none;transition:opacity .2s ease;
+}
+.qv-backdrop.show{opacity:1;pointer-events:auto;}
+.qv-modal{
+  background:#fff;border-radius:16px;max-width:760px;width:100%;max-height:88vh;overflow:auto;
+  display:grid;grid-template-columns:1fr 1fr;gap:0;position:relative;
+  transform:translateY(14px) scale(.98);transition:transform .25s ease;box-shadow:0 30px 60px rgba(0,0,0,.28);
+}
+.qv-backdrop.show .qv-modal{transform:translateY(0) scale(1);}
+.qv-close{
+  position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;border:none;
+  background:rgba(0,0,0,.06);cursor:pointer;display:grid;place-items:center;z-index:2;
+}
+.qv-close:hover{background:rgba(0,0,0,.12);}
+.qv-img{background:var(--gray);display:flex;align-items:center;justify-content:center;padding:20px;}
+.qv-img img{width:100%;max-height:320px;object-fit:contain;}
+.qv-body{padding:26px 26px 26px 10px;display:flex;flex-direction:column;}
+.qv-brand{font-size:12px;color:#8ea297;text-transform:uppercase;letter-spacing:.04em;}
+.qv-name{font-size:19px;font-weight:600;margin:6px 0 12px;line-height:1.35;}
+.qv-price-wrap{display:flex;align-items:baseline;gap:10px;margin-bottom:16px;}
+.qv-price{font-size:22px;font-weight:700;color:var(--pink-deep,#b7326c);}
+.qv-price-old{font-size:14px;color:#a9b6af;text-decoration:line-through;}
+.qv-actions{display:flex;gap:10px;margin-top:auto;padding-top:10px;}
+.qv-link{font-size:12.5px;color:#8ea297;margin-top:12px;}
+.qv-link a{color:var(--pink-deep,#b7326c);text-decoration:underline;}
+@media (max-width:640px){
+  .qv-modal{grid-template-columns:1fr;}
+  .qv-body{padding:20px;}
+}
+
+/* trigger button, added alongside wishlist/compare round actions */
+.tsk-round-action.qv-trigger svg{width:16px;height:16px;}
+
+/* ---------------------------------------------------------------------
+   C2 — Checkout stepper + trust badges
+--------------------------------------------------------------------- */
+.checkout-stepper{display:flex;align-items:center;gap:6px;margin:0 0 24px;list-style:none;padding:0;flex-wrap:wrap;}
+.checkout-stepper li{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#9aa9a2;}
+.checkout-stepper li b{
+  width:24px;height:24px;border-radius:50%;background:#eef1ef;color:#8ea297;font-size:11.5px;
+  display:flex;align-items:center;justify-content:center;font-weight:600;transition:.2s;
+}
+.checkout-stepper li.done b{background:#1f8a4c;color:#fff;}
+.checkout-stepper li.current{color:var(--dark-1,#0b2e22);font-weight:600;}
+.checkout-stepper li.current b{background:var(--dark-1,#0b2e22);color:#fff;}
+.checkout-stepper .stepper-sep{width:26px;height:1px;background:#e4e9e6;}
+
+.trust-badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;padding-top:16px;border-top:1px dashed #ece5e2;}
+.trust-badge{display:flex;align-items:center;gap:6px;font-size:11px;color:#6c7d73;}
+.trust-badge svg{width:15px;height:15px;color:#1f8a4c;flex:none;}
+
+/* ---------------------------------------------------------------------
+   E3 — Empty-state polish (gentle float on the icon, clearer CTA row)
+--------------------------------------------------------------------- */
+.empty-state svg,.empty-cart svg{animation:mvFloat 3.2s ease-in-out infinite;}
+@keyframes mvFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+.empty-state .btn-line,.empty-state .btn-solid{margin-top:14px;}
+
+/* ---------------------------------------------------------------------
+   E4 — Toast progress bar
+--------------------------------------------------------------------- */
+.toast{overflow:hidden;}
+.toast .toast-bar{
+  position:absolute;left:0;bottom:0;height:3px;background:rgba(255,255,255,.85);width:100%;
+  transform-origin:left;animation:none;
+}
+.toast.show .toast-bar{animation:mvToastBar 2.2s linear forwards;}
+@keyframes mvToastBar{from{transform:scaleX(1);}to{transform:scaleX(0);}}
+
+@media (prefers-reduced-motion: reduce){
+  .empty-state svg,.empty-cart svg{animation:none;}
+  .toast.show .toast-bar{animation:none;}
+}

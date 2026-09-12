@@ -1,0 +1,626 @@
+/* =========================================================================
+   Content and account pages.
+
+   These pages keep their original markup — the work here is re-dressing the
+   handful of legacy classes they use so they match the storefront instead of
+   the retired dark-green and pink palette.
+   ========================================================================= */
+
+/* ============================================================ page shells */
+.breadcrumb { padding: 14px 0; background: var(--tsk-page); color: var(--tsk-dim); font-size: 12.5px; }
+.breadcrumb .wrap { width: min(var(--tsk-shell), calc(100% - 32px)); margin-inline: auto; }
+.breadcrumb a:hover { color: var(--tsk-green-600); }
+.breadcrumb .sep { margin: 0 7px; opacity: .6; }
+.breadcrumb .current { color: var(--tsk-ink-2); }
+
+/* Hero used by /about and every StaticContentPage. */
+.about-hero {
+  padding: 52px 0;
+  background: linear-gradient(135deg, var(--tsk-green-700), var(--tsk-green));
+  color: #fff;
+  text-align: center;
+}
+.about-hero .wrap { width: min(var(--tsk-shell), calc(100% - 32px)); margin-inline: auto; }
+.about-hero h1 { margin: 0; font-size: clamp(23px, 3vw, 32px); font-weight: 800; }
+.about-hero p { max-width: 660px; margin: 12px auto 0; color: rgba(255, 255, 255, .88); font-size: 14px; line-height: 1.8; }
+
+.legacy-content-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; align-items: stretch; }
+.legacy-content-card {
+  padding: 26px 24px;
+  border: 1px solid var(--tsk-line);
+  border-radius: var(--tsk-r);
+  background: #fff;
+  box-shadow: var(--tsk-elev);
+}
+.legacy-content-card h2 { margin: 0 0 12px; color: var(--tsk-ink); font-size: 19px; font-weight: 700; }
+.legacy-content-card p { margin: 0 0 18px; color: var(--tsk-ink-2); font-size: 13.5px; line-height: 1.9; }
+
+/* /about supporting blocks. */
+.about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+.about-grid img { width: 100%; height: 340px; border-radius: var(--tsk-r); object-fit: cover; }
+.about-grid h2 { margin-bottom: 14px; color: var(--tsk-ink); font-size: 23px; font-weight: 800; }
+.about-grid p { margin-bottom: 12px; color: var(--tsk-ink-2); font-size: 13.5px; line-height: 1.9; }
+
+.value-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 10px; }
+.value-card { padding: 26px 20px; border: 1px solid var(--tsk-line); border-radius: var(--tsk-r); background: #fff; text-align: center; }
+.value-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: var(--tsk-green-050);
+  color: var(--tsk-green-700);
+  font-weight: 800;
+}
+.value-card h4 { margin-bottom: 8px; color: var(--tsk-ink); font-size: 15px; font-weight: 700; }
+.value-card p { color: var(--tsk-dim); font-size: 12.5px; line-height: 1.7; }
+
+.timeline { position: relative; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 24px; margin-top: 20px; }
+.timeline::before { content: ''; position: absolute; top: 7px; left: 0; right: 0; height: 2px; background: var(--tsk-line); }
+.tl-item { position: relative; flex: 1; min-width: 150px; text-align: center; }
+.tl-dot { position: relative; z-index: 2; width: 14px; height: 14px; margin: 0 auto 14px; border: 3px solid #fff; border-radius: 50%; background: var(--tsk-green); }
+.tl-item b { display: block; margin-bottom: 4px; color: var(--tsk-ink); font-size: 15px; }
+.tl-item span { color: var(--tsk-dim); font-size: 12px; }
+
+/* ==================================================================== auth */
+
+.auth-form .auth-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 18px; }
+.auth-form .auth-tab {
+  flex: 1 1 auto;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: var(--tsk-r-sm);
+  background: transparent;
+  color: var(--tsk-dim);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .16s ease, color .16s ease;
+}
+.auth-form .auth-tab:hover { background: var(--tsk-green-050); color: var(--tsk-green-700); }
+.auth-form .auth-tab.active { background: var(--tsk-green); color: #fff; }
+
+.auth-social { display: grid; gap: 10px; margin-bottom: 4px; }
+.auth-social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid var(--tsk-line);
+  border-radius: var(--tsk-r-sm);
+  background: #fff;
+  color: var(--tsk-ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+.auth-social-btn:hover { border-color: #b9c6bd; box-shadow: var(--tsk-elev); transform: translateY(-1px); }
+.auth-social-btn svg { width: 18px; height: 18px; flex: 0 0 auto; }
+.auth-social-btn.facebook { color: #1877f2; }
+
+.auth-divider { position: relative; margin: 16px 0 6px; text-align: center; }
+.auth-divider::before { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: var(--tsk-line); }
+.auth-divider span { position: relative; padding: 0 12px; background: #fff; color: var(--tsk-dim); font-size: 12px; }
+
+.auth-form .form-field { display: grid; gap: 6px; margin-bottom: 14px; }
+.auth-form .form-field label { color: var(--tsk-ink-2); font-size: 13px; font-weight: 600; }
+.auth-form .form-field input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 13px;
+  border: 1px solid var(--tsk-line);
+  border-radius: var(--tsk-r-sm);
+  font: inherit;
+  transition: border-color .16s ease, box-shadow .16s ease;
+}
+.auth-form .form-field input:focus { outline: none; border-color: var(--tsk-green); box-shadow: 0 0 0 3px rgba(76, 175, 0, .13); }
+
+.auth-form .auth-meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; color: var(--tsk-ink-2); font-size: 13px; }
+.auth-error { margin: -4px 0 12px; color: #a3271c; font-size: 12.5px; }
+.auth-success { margin: -4px 0 12px; color: #1b6d38; font-size: 12.5px; }
+.auth-link { padding: 0; border: 0; background: none; font: inherit; color: var(--tsk-green-700); text-decoration: underline; cursor: pointer; }
+
+/* The shared form still emits .btn-solid for its submit button. */
+.auth-form .btn-solid {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 22px;
+  border: 0;
+  border-radius: var(--tsk-r-sm);
+  background: var(--tsk-green);
+  color: #fff;
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .18s ease, transform .18s ease;
+}
+.auth-form .btn-solid:hover { background: var(--tsk-green-600); transform: translateY(-1px); }
+.auth-form .btn-solid:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+.auth-modal-card { border-radius: var(--tsk-r-lg); }
+.auth-modal-kicker { color: var(--tsk-green-700); }
+.auth-modal-head h2 { color: var(--tsk-ink); }
+.auth-modal-head p { color: var(--tsk-dim); }
+
+@media (max-width: 900px) {
+  .about-grid { grid-template-columns: 1fr; gap: 24px; }
+  .about-grid img { height: 260px; }
+}
+
+/* /about lays out its blocks inside `.section > .wrap`, which the legacy
+   sheets size; pin the shell width so it lines up with the header. */
+.about-hero + .section .wrap,
+.section .about-grid,
+.section .value-grid,
+.section .timeline { width: 100%; }
+.legacy-content-grid,
+.about-grid,
+.value-grid,
+.timeline { max-width: var(--tsk-shell); margin-inline: auto; }
+
+/* =========================================================================
+   Legacy token bridge.
+
+   The last sheet in the legacy chain (experience-r72.css) re-pointed the
+   original palette variables at a lime scheme and scoped them to
+   `html:not([data-theme=dark])`, which outranks a plain `:root`. Every
+   legacy component still reads those variables — `.btn-solid { background:
+   var(--pink) }` and so on — so matching that selector and re-pointing the
+   same variables at the storefront palette re-themes every page still on the
+   old classes in one move, rather than chasing each component selector.
+
+   Values are literals, not var() references: these are read by sheets that
+   load before the design system declares its own tokens.
+   ========================================================================= */
+html:not([data-theme="dark"]),
+html[data-theme="dark"] {
+  --dark-1: #1d2a22;
+  --dark-2: #35790a;
+  --dark-3: #43980a;
+  --pink: #4caf00;
+  --pink-light: #e3f4d2;
+  --pink-deep: #35790a;
+  --rose-shadow: #35790a;
+  --gold-accent: #43980a;
+  --gold-soft: #e3f4d2;
+  --white: #fff;
+  --gray: #f6f8f6;
+  --border: #e6ece7;
+}
+
+/* The legacy hero rules are !important and scoped the same way, so the
+   override has to match their weight to bring the hero into the new design. */
+html:not([data-theme="dark"]) :is(.about-hero, .video-hero),
+html[data-theme="dark"] :is(.about-hero, .video-hero) {
+  background: linear-gradient(135deg, #35790a, #4caf00) !important;
+  color: #fff !important;
+}
+html:not([data-theme="dark"]) :is(.about-hero, .video-hero) :is(h1, h2, h3),
+html[data-theme="dark"] :is(.about-hero, .video-hero) :is(h1, h2, h3) { color: #fff !important; }
+html:not([data-theme="dark"]) :is(.about-hero, .video-hero) p,
+html[data-theme="dark"] :is(.about-hero, .video-hero) p { color: rgba(255, 255, 255, .88) !important; }
+
+/* Legacy buttons, brought onto the storefront button shape. */
+html :is(.btn-solid, .btn-line, .btn-outline) {
+  min-height: 44px;
+  border-radius: 8px !important;
+  font-weight: 700 !important;
+}
+html .btn-solid {
+  border: 1px solid #4caf00 !important;
+  background: #4caf00 !important;
+  color: #fff !important;
+}
+html .btn-solid:hover { background: #43980a !important; border-color: #43980a !important; }
+html :is(.btn-line, .btn-outline) {
+  border: 1px solid #4caf00 !important;
+  background: #fff !important;
+  color: #35790a !important;
+}
+html :is(.btn-line, .btn-outline):hover { background: #f2faea !important; }
+
+/* ============================================================== partner apply */
+.partner-page { padding-bottom: 46px; background: var(--tsk-page); }
+.partner-hero {
+  padding: 48px 0;
+  background: linear-gradient(135deg, #35790a, #4caf00);
+  color: #fff;
+  text-align: center;
+}
+.partner-hero .wrap { width: min(var(--tsk-shell), calc(100% - 32px)); margin-inline: auto; }
+.partner-kicker { color: rgba(255, 255, 255, .82); font-size: 11.5px; font-weight: 800; letter-spacing: .12em; }
+.partner-hero h1 { margin: 8px 0; font-size: clamp(23px, 3vw, 32px); font-weight: 800; }
+.partner-hero p { max-width: 660px; margin: 0 auto; color: rgba(255, 255, 255, .88); font-size: 14px; line-height: 1.8; }
+.partner-badges { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 18px; }
+.partner-badges > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .16);
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.partner-page .section > .wrap { width: min(var(--tsk-shell), calc(100% - 32px)); margin-inline: auto; }
+.partner-form { display: grid; gap: 16px; max-width: 880px; margin-inline: auto; }
+.partner-card {
+  padding: 24px;
+  border: 1px solid var(--tsk-line);
+  border-radius: var(--tsk-r);
+  background: #fff;
+  box-shadow: var(--tsk-elev);
+}
+.partner-card h2 { margin: 0 0 4px; color: var(--tsk-ink); font-size: 16px; font-weight: 700; }
+.partner-note { margin: 0 0 14px; color: var(--tsk-dim); font-size: 12.5px; }
+.partner-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 14px; }
+.partner-grid label { display: grid; gap: 6px; color: var(--tsk-ink-2); font-size: 13px; font-weight: 600; }
+.partner-grid label.span2 { grid-column: 1 / -1; }
+.partner-grid input,
+.partner-grid textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 13px;
+  border: 1px solid var(--tsk-line);
+  border-radius: var(--tsk-r-sm);
+  background: #fff;
+  font: inherit;
+  font-size: 13.5px;
+  transition: border-color .16s ease, box-shadow .16s ease;
+}
+.partner-grid textarea { min-height: 90px; resize: vertical; }
+.partner-grid input:focus,
+.partner-grid textarea:focus { outline: none; border-color: var(--tsk-green); box-shadow: 0 0 0 3px rgba(76, 175, 0, .13); }
+.partner-grid small { color: var(--tsk-dim); font-size: 11.5px; font-weight: 400; }
+
+.partner-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 16px 18px;
+  border: 1px solid var(--tsk-line);
+  border-radius: var(--tsk-r);
+  background: #fff;
+  color: var(--tsk-ink-2);
+  font-size: 12.5px;
+  line-height: 1.7;
+}
+.partner-consent input { margin-top: 2px; accent-color: var(--tsk-green); }
+
+.partner-submit { width: 100%; min-height: 48px !important; font-size: 15px !important; }
+
+.partner-msg { padding: 16px 18px; border-radius: var(--tsk-r); font-size: 13.5px; line-height: 1.8; }
+.partner-msg.bad { border: 1px solid #f2cfcb; background: #fdf5f4; color: #a3271c; }
+.partner-msg.ok {
+  max-width: 620px;
+  margin-inline: auto;
+  border: 1px solid var(--tsk-green-100);
+  background: var(--tsk-green-050);
+  color: var(--tsk-ink-2);
+  text-align: center;
+}
+.partner-msg.ok b { color: var(--tsk-green-700); font-size: 16px; }
+
+/* =========================================================================
+   Loopless Thai type system.
+
+   The inherited sheets still name Kanit/Inter in several early rules. These
+   final declarations make the typography deterministic on every Nuxt route:
+   Noto Sans Thai for body copy and controls, Prompt for headings and product
+   names. Font sizes and spacing remain owned by each component.
+   ========================================================================= */
+:root,
+/*
+ * The header reads in the loopless face, like the headings.
+ *
+ * Noto Sans Thai is the body face and it is a looped Thai — it has the little
+ * circles at the start of each letter, which is right for a paragraph and wrong
+ * for a row of navigation labels sitting under a logo set in Prompt: the two
+ * faces disagree in the same eyeful. The header is signage, not reading matter,
+ * so it takes the heading face. `!important` and this specific, because the
+ * rule below is itself `!important` and would otherwise win.
+ */
+#site-header .tsk-nav-links a,
+#site-header .tsk-cat-button,
+#site-header .tsk-utility,
+#site-header .tsk-action-profile,
+#site-header .tsk-brand-name {
+  font-family: var(--tsk-font-heading) !important;
+}
+
+body,
+html body,
+input,
+button,
+select,
+textarea {
+  font-family: var(--tsk-font-body) !important;
+}
+
+/* Product names are part of the heading voice even when their markup is a
+   link instead of a heading element. Legacy aliases remain for safe fallbacks
+   during SSR and old-data rendering. */
+h1, h2, h3, h4, h5, h6,
+.tsk-brand-name b,
+.tsk-page-head h1,
+.tsk-section-head h2,
+.tsk-pcard-name,
+.tsk-pdp-title,
+.p-name,
+.detail-title,
+.nuxt-brand,
+.nuxt-carousel-copy strong {
+  font-family: var(--tsk-font-heading) !important;
+  letter-spacing: -0.012em;
+}
+
+.tsk-pcard-name { font-weight: 700; }
+
+/* Prices and counts read better with lining figures that line up column to
+   column. */
+.tsk-pcard-price,
+.tsk-pdp-price,
+.tsk-cart-total,
+.tsk-order-total,
+.tsk-summary-row,
+.tsk-account-stats b {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==================================================== written content pages
+   Terms, privacy, returns, news and videos share one reading column. These
+   pages previously used the legacy `.about-hero` + `.legacy-content-card`
+   layout, which is what made them look like a different website. */
+.tsk-prose {
+  width: min(760px, 100%);
+  margin: 24px 0 8px;
+  padding: clamp(22px, 4vw, 38px) clamp(20px, 4vw, 40px);
+  border: 1px solid var(--tsk-line);
+  border-radius: var(--tsk-r);
+  background: #fff;
+  box-shadow: var(--tsk-elev);
+}
+.tsk-prose-section + .tsk-prose-section { margin-top: 30px; padding-top: 26px; border-top: 1px solid var(--tsk-line); }
+.tsk-prose h2 { margin: 0 0 12px; color: var(--tsk-ink); font-size: clamp(17px, 2vw, 20px); font-weight: 700; }
+.tsk-prose p { margin: 0 0 12px; color: var(--tsk-ink-2); font-size: 14px; line-height: 1.95; }
+.tsk-prose p:last-child { margin-bottom: 0; }
+.tsk-prose ul { display: grid; gap: 9px; margin: 14px 0 0; padding-left: 20px; list-style: disc; }
+.tsk-prose li { color: var(--tsk-ink-2); font-size: 13.5px; line-height: 1.85; }
+.tsk-prose li::marker { color: var(--tsk-green); }
+.tsk-prose-action { margin-top: 28px; }
+
+/* ============================================================ about page
+   Rebuilt on the storefront system. The old markup used `.about-grid`,
+   `.value-card` and `.timeline` from the legacy sheets, which carried their
+   own type scale and spacing and made the page look imported. */
+.tsk-about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(22px, 4vw, 40px); align-items: center; margin-top: 26px; }
+.tsk-about-grid img { width: 100%; height: 340px; border-radius: var(--tsk-r); object-fit: cover; }
+.tsk-about-grid h2 { margin: 0 0 14px; color: var(--tsk-ink); font-size: clamp(19px, 2.3vw, 23px); font-weight: 800; }
+.tsk-about-grid p { margin: 0 0 12px; color: var(--tsk-ink-2); font-size: 13.5px; line-height: 1.9; }
+.tsk-about-grid p:last-child { margin-bottom: 0; }
+
+.tsk-about-identity { margin-top: 30px; padding: clamp(20px, 3vw, 28px); }
+.tsk-about-identity h2 { margin: 0 0 16px; color: var(--tsk-ink); font-size: 17px; font-weight: 700; }
+.tsk-about-identity dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px 26px; margin: 0; }
+.tsk-about-identity dt { margin-bottom: 3px; color: var(--tsk-dim); font-size: 12px; }
+.tsk-about-identity dd { margin: 0; color: var(--tsk-ink); font-size: 13.5px; font-weight: 600; line-height: 1.6; }
+
+.tsk-about-section { margin-top: 38px; }
+.tsk-about-section > h2 { margin: 0 0 18px; color: var(--tsk-ink); font-size: clamp(19px, 2.3vw, 23px); font-weight: 800; text-align: center; }
+
+.tsk-value-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; }
+.tsk-value-card { padding: 26px 20px; text-align: center; }
+.tsk-value-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: var(--tsk-green-050);
+  color: var(--tsk-green-700);
+  font-size: 18px;
+  font-weight: 700;
+}
+.tsk-value-card h3 { margin: 0 0 8px; color: var(--tsk-ink); font-size: 15px; font-weight: 700; }
+.tsk-value-card p { margin: 0; color: var(--tsk-dim); font-size: 12.5px; line-height: 1.75; }
+
+.tsk-timeline { position: relative; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 24px; margin: 0; padding: 0; list-style: none; }
+.tsk-timeline::before { content: ''; position: absolute; top: 7px; left: 0; right: 0; height: 2px; background: var(--tsk-line); }
+.tsk-timeline li { position: relative; flex: 1; min-width: 150px; text-align: center; }
+.tsk-timeline-dot { display: block; position: relative; z-index: 2; width: 14px; height: 14px; margin: 0 auto 14px; border: 3px solid var(--tsk-page); border-radius: 50%; background: var(--tsk-green); }
+.tsk-timeline b { display: block; margin-bottom: 4px; color: var(--tsk-ink); font-size: 15px; }
+.tsk-timeline span:not(.tsk-timeline-dot) { color: var(--tsk-dim); font-size: 12px; }
+
+@media (max-width: 800px) {
+  .tsk-about-grid { grid-template-columns: minmax(0, 1fr); }
+  .tsk-about-grid img { height: 240px; }
+  .tsk-timeline::before { display: none; }
+}
+
+/* ================================================== partner registration
+   Rebuilt on the storefront card + form system. The page used `.partner-hero`,
+   `.partner-card` and `.partner-grid` from partner-v38.css, a separate visual
+   language with its own spacing and field styling. */
+.tsk-partner-badges { display: flex; flex-wrap: wrap; gap: 10px; margin: 22px 0 18px; }
+.tsk-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid var(--tsk-green-100);
+  border-radius: 999px;
+  background: var(--tsk-green-050);
+  color: var(--tsk-green-700);
+  font-size: 12px;
+  font-weight: 700;
+}
+/*
+ * Dark type on the brand green, for the same reason the hot badge carries it.
+ *
+ * White on #4caf00 is 2.6:1 — under half of what AA asks — and this chip says
+ * "Official Store" on the page where somebody decides whether to trust the
+ * shop with their identity documents. The green is not touched; the text on it
+ * is, exactly as tsk-design-system.css already does for --tsk-hot-ink, which
+ * takes the same colour to 6.3:1.
+ */
+.tsk-chip-solid { border-color: var(--tsk-green); background: var(--tsk-green); color: var(--tsk-hot-ink, #1d2a22); }
+.tsk-chip b { font-size: 11px; }
+
+.tsk-partner-form { display: grid; gap: 16px; width: min(880px, 100%); }
+/* The sections are real fieldsets now, so the browser reset has to be undone. */
+.tsk-partner-form fieldset { min-width: 0; margin: 0; border: 1px solid var(--tsk-line); }
+.tsk-partner-form legend {
+  padding: 0 8px;
+  margin-left: -8px;
+  color: var(--tsk-ink);
+  font-size: 16px;
+  font-weight: 700;
+}
+.tsk-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 16px 18px;
+  border: 1px solid var(--tsk-line);
+  border-radius: var(--tsk-r);
+  background: #fff;
+  color: var(--tsk-ink-2);
+  font-size: 13px;
+  line-height: 1.8;
+  cursor: pointer;
+}
+.tsk-consent input { margin-top: 3px; flex: 0 0 auto; accent-color: var(--tsk-green); }
+.tsk-partner-submit { justify-self: start; min-width: 220px; }
+
+.tsk-partner-done { padding: clamp(22px, 4vw, 34px); margin: 24px 0 8px; width: min(680px, 100%); }
+.tsk-partner-done b { display: block; margin-bottom: 12px; color: var(--tsk-green-700); font-size: 18px; }
+.tsk-partner-done p { margin: 0 0 9px; color: var(--tsk-ink-2); font-size: 13.5px; line-height: 1.85; }
+.tsk-partner-done code { padding: 2px 8px; border-radius: 5px; background: var(--tsk-green-050); font-size: 13px; }
+.tsk-partner-done .tsk-btn { margin-top: 14px; }
+
+/* ========================================================= recently viewed */
+.tsk-recent { padding: clamp(30px, 5vw, 54px) 0; background: var(--tsk-page); }
+.tsk-recent-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.tsk-recent-head h2 { margin: 0; color: var(--tsk-ink); font-size: clamp(19px, 2.3vw, 24px); font-weight: 800; }
+.tsk-recent-head p { margin: 4px 0 0; color: var(--tsk-dim); font-size: 13px; }
+.tsk-recent-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+
+@media (max-width: 900px) { .tsk-recent-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* ================================================== admin data presentation
+   Replaces the raw <pre>{{ JSON.stringify(...) }}</pre> blocks the operations
+   and network pages used to render. */
+.tsk-table-wrap { overflow-x: auto; margin-top: 14px; }
+.tsk-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.tsk-table th,
+.tsk-table td { padding: 10px 12px; border-bottom: 1px solid var(--tsk-line); text-align: left; white-space: nowrap; }
+.tsk-table th { color: var(--tsk-dim); font-size: 12px; font-weight: 700; }
+.tsk-table td { color: var(--tsk-ink-2); }
+.tsk-table tbody tr:hover td { background: var(--tsk-green-050); }
+
+.tsk-raw-toggle { margin-top: 16px; }
+.tsk-raw-toggle summary { color: var(--tsk-dim); font-size: 12px; cursor: pointer; }
+.tsk-raw-toggle pre {
+  max-height: 420px;
+  margin-top: 10px;
+  padding: 14px;
+  overflow: auto;
+  border-radius: 10px;
+  background: #102c23;
+  color: #e6fff5;
+  font-size: 12px;
+  white-space: pre-wrap;
+}
+
+.tsk-status-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 14px;
+  margin-top: 22px;
+  padding: 18px 22px;
+  border-left: 4px solid var(--tsk-line);
+}
+.tsk-status-banner span { color: var(--tsk-dim); font-size: 12.5px; }
+.tsk-status-banner b { color: var(--tsk-ink); font-size: 16px; font-weight: 700; }
+.tsk-status-banner.is-ok { border-left-color: var(--tsk-green); }
+.tsk-status-banner.is-warn { border-left-color: #e0a300; }
+.tsk-status-banner.is-bad { border-left-color: #d13b3b; }
+
+.tsk-status-group { margin-top: 16px; padding: 20px 22px; }
+.tsk-status-group h2 { margin: 0 0 14px; color: var(--tsk-ink); font-size: 16px; font-weight: 700; }
+.tsk-status-group dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px 24px; margin: 0; }
+.tsk-status-group dt { margin-bottom: 3px; color: var(--tsk-dim); font-size: 12px; }
+.tsk-status-group dd { margin: 0; color: var(--tsk-ink); font-size: 14px; font-weight: 700; }
+
+/* Readiness report. Failing rows are sorted to the top by the page, so the
+   colour is a confirmation of where to look rather than the only signal — and
+   each row carries its state as text for a screen reader, since a tick and a
+   cross differ only by glyph. */
+.tsk-status-backup { margin: 0 0 14px; padding: 10px 12px; border-radius: 8px; font-size: 13.5px; line-height: 1.6; }
+.tsk-status-backup.is-ok { border: 1px solid var(--tsk-line); background: var(--tsk-page); color: var(--tsk-ink); }
+.tsk-status-backup.is-bad { border: 1px solid #d13b3b; background: rgba(209, 59, 59, .08); color: #a32a2a; }
+.tsk-status-checks { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 8px 20px; margin: 0; padding: 0; list-style: none; }
+.tsk-status-checks li { display: flex; align-items: center; gap: 8px; color: var(--tsk-ink); font-size: 13.5px; }
+.tsk-status-checks li > span[aria-hidden] { display: grid; place-items: center; width: 20px; height: 20px; flex: 0 0 20px; border-radius: 50%; font-size: 12px; font-weight: 700; }
+.tsk-status-checks li.is-ok > span[aria-hidden] { background: rgba(76, 175, 0, .14); color: var(--tsk-green-700); }
+.tsk-status-checks li.is-bad > span[aria-hidden] { background: rgba(209, 59, 59, .12); color: #a32a2a; }
+.tsk-status-checks li.is-bad { font-weight: 700; }
+.tsk-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* ============================================== videos and articles page */
+.tsk-media-section { margin-top: 34px; }
+.tsk-media-section > h2 { margin: 0 0 16px; color: var(--tsk-ink); font-size: clamp(19px, 2.3vw, 23px); font-weight: 800; }
+
+.tsk-video-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
+.tsk-video-card { overflow: hidden; padding: 0 0 18px; }
+.tsk-video-frame { position: relative; aspect-ratio: 16 / 9; background: var(--tsk-page); }
+.tsk-video-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.tsk-video-frame a { display: grid; place-items: center; width: 100%; height: 100%; color: var(--tsk-green-700); font-weight: 600; }
+.tsk-video-frame img { width: 100%; height: 100%; object-fit: cover; }
+.tsk-video-card h3 { margin: 16px 18px 6px; color: var(--tsk-ink); font-size: 15.5px; font-weight: 700; line-height: 1.5; }
+.tsk-video-card p { margin: 0 18px; color: var(--tsk-dim); font-size: 13px; line-height: 1.75; }
+
+.tsk-article-grid { display: grid; gap: 16px; }
+.tsk-article-card { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 20px; overflow: hidden; padding: 0; }
+.tsk-article-card img { width: 100%; height: 100%; min-height: 150px; object-fit: cover; }
+.tsk-article-card > div { padding: 20px 22px 20px 0; }
+.tsk-article-card h3 { margin: 0 0 8px; color: var(--tsk-ink); font-size: 17px; font-weight: 700; }
+.tsk-article-card p { margin: 0 0 8px; color: var(--tsk-ink-2); font-size: 13.5px; line-height: 1.85; }
+.tsk-article-body { color: var(--tsk-dim) !important; white-space: pre-line; }
+
+@media (max-width: 720px) {
+  .tsk-article-card { grid-template-columns: minmax(0, 1fr); }
+  .tsk-article-card img { min-height: 180px; }
+  .tsk-article-card > div { padding: 0 20px 20px; }
+}
+
+/* ---------------------------------------------------------------------------
+   The failure log on /operations/network.
+   Grouped by what broke rather than listed by when: sixty lines of one fault
+   is one fault, and a list in time order buries the second, different one.
+--------------------------------------------------------------------------- */
+.tsk-error-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.tsk-error-list li { display: grid; grid-template-columns: auto auto 1fr; gap: 10px; align-items: start; padding: 9px 0; border-top: 1px solid var(--tsk-line, #e6ece7); }
+.tsk-error-list li:first-child { border-top: 0; }
+.tsk-error-count { font-weight: 700; font-size: 12px; color: var(--tsk-ink, #1d2a22); font-variant-numeric: tabular-nums; }
+.tsk-error-status { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px; background: #fee2e2; color: #b91c1c; }
+.tsk-error-body { min-width: 0; display: grid; gap: 2px; }
+.tsk-error-body b { font-size: 12px; }
+.tsk-error-body small { font-size: 11px; color: var(--tsk-muted, #6a756f); overflow-wrap: anywhere; }
+.tsk-error-body em { font-size: 10px; font-style: normal; color: var(--tsk-muted, #6a756f); overflow-wrap: anywhere; }
+.tsk-error-note { margin: 10px 0 0; font-size: 10.5px; color: var(--tsk-muted, #6a756f); }

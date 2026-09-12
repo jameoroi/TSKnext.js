@@ -1,0 +1,105 @@
+/*
+ * The partner area's design tokens — one palette for every page an agent sees.
+ *
+ * Why this file exists: `agent/index.vue`, `agent/settings.vue` and
+ * `PartnerStorefront.vue` each carried their own `<style scoped>` block with
+ * its own hardcoded hexes, and the three had drifted into three different
+ * products. The dashboard was teal-and-blue on near-white (`#0f766e`,
+ * `#2563eb`, `#f5f7f8`), settings was near-black green (`#071d17`), and the
+ * shop was a dark island (`#071d18`) inside a shop that is otherwise light.
+ * None of them used `--tsk-*`, so none of them followed the site into dark
+ * mode either: the dashboard stayed white when the rest of the shop went dark.
+ *
+ * Everything here derives from the storefront tokens in tsk-design-system.css
+ * and tsk-theme.css, with literal fallbacks so a page still paints if this
+ * file loads before the chain. Rule 7 in CLAUDE.md asks new work to use
+ * `tsk-*` on the shop and `adm-*` in the back office; the partner area is
+ * neither, so it gets its own prefix that is defined *from* the shop's rather
+ * than beside it.
+ *
+ * Tokens only — no component rules. It is about 2 KB, which is why it can sit
+ * in the global chain rather than being layout-loaded the way tsk-admin.css is.
+ */
+
+:root {
+  /* Surfaces */
+  --ag-page: var(--tsk-page, #f6f8f6);
+  --ag-surface: #ffffff;
+  --ag-surface-soft: var(--tsk-green-050, #f2faea);
+  --ag-line: var(--tsk-line, #e6ece7);
+  --ag-line-soft: #eef3ee;
+
+  /* Text */
+  --ag-ink: var(--tsk-ink, #1d2a22);
+  --ag-ink-2: #3c4d43;
+  --ag-muted: var(--tsk-muted, #6a756f);
+
+  /* The house identity — the shop's green, not a second brand. */
+  --ag-accent: var(--tsk-green, #4caf00);
+  --ag-accent-deep: var(--tsk-green-600, #43980a);
+  --ag-accent-soft: var(--tsk-green-050, #f2faea);
+  --ag-accent-line: var(--tsk-green-100, #e3f4d2);
+  /* Text that sits *on* --ag-accent. Overridden per shop by the storefront
+     when a partner picks a pale colour — see PartnerStorefront.vue. */
+  --ag-accent-ink: #ffffff;
+
+  /* Status. Reserved for status only: colour carries meaning here, so the
+     dashboard must not spend it on decoration. */
+  --ag-warn: #b45309;
+  --ag-warn-soft: #fef3c7;
+  --ag-danger: #b91c1c;
+  --ag-danger-soft: #fee2e2;
+  --ag-info: #0f766e;
+  --ag-info-soft: #e7f4f1;
+
+  /* Shape and depth, shared so cards match across pages. */
+  --ag-radius: 16px;
+  --ag-radius-sm: 10px;
+  --ag-shadow: 0 5px 18px rgba(29, 42, 34, .06);
+  --ag-shadow-lg: 0 12px 30px rgba(29, 42, 34, .10);
+
+  /* The hero band, the one place the partner area is allowed to go dark. */
+  --ag-hero-from: #143a2a;
+  --ag-hero-to: #1f5c3c;
+  --ag-hero-ink: #eaf5ee;
+  --ag-hero-muted: #b8d3c2;
+  --ag-hero-line: rgba(234, 245, 238, .22);
+  --ag-hero-well: rgba(8, 30, 20, .45);
+}
+
+/*
+ * Night. Follows the same switch the rest of the shop uses, so the partner
+ * area stops being the one part of the site that ignores the theme.
+ */
+html[data-theme="dark"] {
+  --ag-page: var(--tsk-page, #0f1714);
+  --ag-surface: var(--tsk-card, #16211c);
+  --ag-surface-soft: #1a2620;
+  --ag-line: var(--tsk-line, #2a3a33);
+  --ag-line-soft: #223029;
+
+  --ag-ink: var(--tsk-ink, #e8f0eb);
+  --ag-ink-2: var(--tsk-ink-2, #d6e3db);
+  --ag-muted: var(--tsk-muted, #c3d2c9);
+
+  --ag-accent: #62c900;
+  --ag-accent-deep: #4caf00;
+  --ag-accent-soft: #16281a;
+  --ag-accent-line: #1d3520;
+  --ag-accent-ink: #08170a;
+
+  --ag-warn: #fbbf24;
+  --ag-warn-soft: #2e2410;
+  --ag-danger: #fca5a5;
+  --ag-danger-soft: #2c1618;
+  --ag-info: #5eead4;
+  --ag-info-soft: #10302c;
+
+  --ag-shadow: 0 5px 18px rgba(0, 0, 0, .35);
+  --ag-shadow-lg: 0 12px 30px rgba(0, 0, 0, .45);
+
+  --ag-hero-from: #0d2a1f;
+  --ag-hero-to: #14402b;
+  --ag-hero-line: rgba(234, 245, 238, .16);
+  --ag-hero-well: rgba(0, 0, 0, .38);
+}

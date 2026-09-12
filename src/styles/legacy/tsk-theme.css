@@ -1,0 +1,280 @@
+/*
+ * Day / night, and readable form fields.
+ *
+ * Two problems, one root cause. Inputs were painted `background: #fff` on a
+ * near-white page (`--tsk-page: #f6f8f6`) with a `#e6ece7` border, so a field
+ * was almost invisible against the page behind it — the shopper could not see
+ * where to type. And the dark palette in design-tokens-r72.css had never been
+ * reachable: nothing set `data-theme`, and the legacy variables the storefront
+ * actually paints with (`--tsk-page`, `--tsk-card`, `--tsk-ink`, `--tsk-line`)
+ * had no dark values at all.
+ *
+ * Loaded last in the stylesheet chain so it wins over the legacy sheets without
+ * needing !important on anything but the handful of rules that are themselves
+ * !important upstream.
+ */
+
+/* ---------------------------------------------------------------------------
+   Form fields — legible in both themes.
+   A field now sits slightly *inset* from the page rather than trying to be
+   brighter than it, which is what makes it visible on a white background.
+--------------------------------------------------------------------------- */
+:root {
+  --tsk-field-bg: #ffffff;
+  --tsk-field-border: #c2d2c8;
+  --tsk-field-border-hover: #9db3a6;
+  --tsk-field-shadow: inset 0 1px 2px rgba(13, 52, 40, .06);
+  --tsk-field-placeholder: #8d9c94;
+}
+
+/*
+ * `!important` here is not decoration. experience-r72.css carries a blanket
+ *   input,select,textarea{background:#F7F8F8!important;border-color:#E4E7E8!important}
+ * which is what made every field wash out into the page in the first place.
+ * An important declaration outranks any specificity, so this is the only way to
+ * override it short of editing that sheet, which the legacy static site and its
+ * tests still depend on.
+ */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="submit"]):not([type="button"]),
+textarea,
+select {
+  background: var(--tsk-field-bg) !important;
+  border: 1px solid var(--tsk-field-border) !important;
+  box-shadow: var(--tsk-field-shadow);
+  color: var(--tsk-ink) !important;
+}
+
+input:hover:not(:focus):not([type="checkbox"]):not([type="radio"]),
+textarea:hover:not(:focus),
+select:hover:not(:focus) {
+  border-color: var(--tsk-field-border-hover) !important;
+}
+
+input::placeholder,
+textarea::placeholder { color: var(--tsk-field-placeholder) !important; opacity: 1; }
+
+/* A disabled field must read as disabled, not as empty. */
+input:disabled,
+textarea:disabled,
+select:disabled {
+  background: var(--tsk-line-2, #f0f4f1) !important;
+  color: var(--tsk-dim) !important;
+  cursor: not-allowed;
+}
+
+/* ---------------------------------------------------------------------------
+   Night. White becomes near-black and text flips to near-white — softened off
+   pure #000/#fff, which is what makes a dark theme comfortable to read rather
+   than glaring.
+--------------------------------------------------------------------------- */
+html[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Legacy variables the storefront paints with. */
+  --tsk-page: #0f1714;
+  --tsk-card: #16211c;
+  --tsk-ink: #e8f0eb;
+  /*
+   * Secondary text, lifted well clear of grey.
+   *
+   * These were #b9c9c0 and #93a69c — legible by the measure, and still the
+   * colour of something switched off when the surface behind it is nearly
+   * black. This shop sells to tradespeople and farmers, plenty of whom are
+   * reading a phone at arm's length in daylight, and dates, brands and captions
+   * are not decoration. Both are now above 11:1 on the page and stay distinct
+   * from the primary ink, so the hierarchy survives the lift.
+   */
+  --tsk-ink-2: #d6e3db;
+  --tsk-dim: #c3d2c9;
+  --tsk-muted: #c3d2c9;
+  --tsk-line: #2a3a33;
+  --tsk-line-2: #223029;
+  --tsk-green-050: #16281a;
+  --tsk-green-100: #1d3520;
+
+  /*
+   * The console's own panels are painted from a separate set of variables
+   * (`.nuxt-card` and friends) that this file did not touch, so the chat reply
+   * pane and anything else built on them stayed white on a dark page — a blank
+   * white slab with no visible frame.
+   */
+  --tsk-ui-surface: #16211c;
+  --tsk-ui-line: #2e4239;
+  --tsk-ui-ink: #e8f0eb;
+  --tsk-ui-muted: #93a69c;
+  --tsk-ui-shadow: 0 10px 30px rgba(0, 0, 0, .35);
+
+  /* Fields: lifted off the surface instead of inset, so they stay visible. */
+  --tsk-field-bg: #1d2a24;
+  --tsk-field-border: #3a4f45;
+  --tsk-field-border-hover: #526c5e;
+  --tsk-field-shadow: inset 0 1px 2px rgba(0, 0, 0, .35);
+  --tsk-field-placeholder: #81958b;
+}
+
+/*
+ * The page background is painted by <html> and by each page's own wrapper, not
+ * by <body> — measured, not assumed: with data-theme="dark" set, the element
+ * under the cursor was `.tsk-home` and the canvas colour came from <html>.
+ * Theming body alone changed nothing visible, which is why every surface below
+ * is named explicitly. Each is !important because the legacy sheets set them
+ * that way.
+ */
+html[data-theme="dark"],
+html[data-theme="dark"] body,
+html[data-theme="dark"] .tsk-home,
+html[data-theme="dark"] .tsk-commerce,
+html[data-theme="dark"] .tsk-pdp,
+html[data-theme="dark"] .tsk-auth-page,
+html[data-theme="dark"] .tsk-page,
+html[data-theme="dark"] .legacy-nuxt-shell,
+html[data-theme="dark"] main,
+html[data-theme="dark"] #main-content {
+  background: var(--tsk-page) !important;
+  color: var(--tsk-ink) !important;
+}
+
+/* Header and footer are their own surfaces, a step lighter than the page so
+   the chrome stays distinguishable from the content. */
+html[data-theme="dark"] .topbar,
+html[data-theme="dark"] .navbar,
+html[data-theme="dark"] #site-header,
+html[data-theme="dark"] header,
+html[data-theme="dark"] .tsk-header,
+html[data-theme="dark"] .tsk-nav,
+html[data-theme="dark"] footer,
+html[data-theme="dark"] #site-footer,
+html[data-theme="dark"] .tsk-footer {
+  background: var(--tsk-card) !important;
+  color: var(--tsk-ink) !important;
+  border-color: var(--tsk-line) !important;
+}
+
+/* Body copy inside those surfaces. Headings are already handled by the legacy
+   dark block; these are the muted and secondary tones it does not cover. */
+html[data-theme="dark"] .tsk-dim,
+html[data-theme="dark"] .tsk-muted-note,
+html[data-theme="dark"] small,
+html[data-theme="dark"] p { color: inherit; }
+html[data-theme="dark"] .tsk-dim,
+html[data-theme="dark"] .tsk-muted-note { color: var(--tsk-dim) !important; }
+
+/* Surfaces that were painted white directly rather than through a variable. */
+html[data-theme="dark"] .tsk-card,
+html[data-theme="dark"] .adm-card,
+html[data-theme="dark"] .tsk-contact-panel,
+html[data-theme="dark"] .tsk-pcard,
+html[data-theme="dark"] .prod-card,
+/* This kept a white background while its text followed the theme and went
+   near-white: an article headline measured 1.03:1 against the card behind it,
+   which is not dim, it is gone. */
+html[data-theme="dark"] .tsk-article,
+html[data-theme="dark"] .tsk-article .tsk-article-body,
+html[data-theme="dark"] .tsk-tile,
+html[data-theme="dark"] .tsk-table-wrap,
+html[data-theme="dark"] .tsk-summary {
+  background: var(--tsk-card) !important;
+  color: var(--tsk-ink) !important;
+  border-color: var(--tsk-line) !important;
+}
+
+html[data-theme="dark"] .tsk-table th { background: var(--tsk-line-2); color: var(--tsk-ink); }
+html[data-theme="dark"] .tsk-table td { border-color: var(--tsk-line); }
+
+/* Product photography is shot on white. Left untouched it becomes a glowing
+   rectangle on a dark page, so the frame behind it stays light. */
+html[data-theme="dark"] .tsk-pcard img,
+html[data-theme="dark"] .prod-card img,
+html[data-theme="dark"] .tsk-pdp-gallery img {
+  background: #f4f6f5;
+  border-radius: inherit;
+}
+
+/* The incoming bubble only. The outgoing one is the shop green in both themes,
+   which is what tells the two apart at a glance. */
+html[data-theme="dark"] .tsk-im-log { background: #16211b; }
+html[data-theme="dark"] .tsk-im-row:not(.me) .tsk-im-bubble { background: #22322b; color: var(--tsk-ink); }
+html[data-theme="dark"] .tsk-im-note { background: #1e2c25; color: #9fb3a6; }
+html[data-theme="dark"] .tsk-im-composer { background: #16211b; border-top-color: #26332c; }
+html[data-theme="dark"] .tsk-im-composer textarea { background: #1e2c25; border-color: #2c3b33; }
+html[data-theme="dark"] .tsk-im-product { background: #1e2c25; border-color: #2c3b33; }
+html[data-theme="dark"] .tsk-contact-channel { background: #22322b; color: var(--tsk-ink); }
+
+/*
+ * The console pages that were built on the older `nuxt-*` component set rather
+ * than `adm-*`. The customer chat screen is the one that shows: its panels are
+ * `.nuxt-card`, which nothing here reached, so it rendered as bare white with
+ * no frame while the rest of the console was dark.
+ */
+html[data-theme="dark"] .nuxt-card,
+html[data-theme="dark"] .nuxt-section,
+html[data-theme="dark"] .nuxt-empty {
+  background: var(--tsk-ui-surface) !important;
+  border-color: var(--tsk-ui-line) !important;
+  color: var(--tsk-ui-ink);
+}
+html[data-theme="dark"] .nuxt-muted { color: var(--tsk-ui-muted); }
+html[data-theme="dark"] .nuxt-card h1,
+html[data-theme="dark"] .nuxt-card h2,
+html[data-theme="dark"] .nuxt-card h3 { color: var(--tsk-ui-ink); }
+
+/* The chat screen's own pieces, which carry their own light colours. */
+html[data-theme="dark"] .chat-admin-item {
+  background: var(--tsk-card) !important;
+  border-color: var(--tsk-line) !important;
+  color: var(--tsk-ink) !important;
+}
+html[data-theme="dark"] .chat-admin-item:hover,
+html[data-theme="dark"] .chat-admin-item.active { background: #1d3520 !important; border-color: var(--tsk-green, #4caf00) !important; }
+html[data-theme="dark"] .chat-admin-message p { background: #22322b; color: var(--tsk-ink); }
+html[data-theme="dark"] .chat-admin-message.admin p { background: #2c4a1e; color: #eaf7dd; }
+html[data-theme="dark"] .chat-admin-thread-head,
+html[data-theme="dark"] .chat-admin-reply { border-color: var(--tsk-line); }
+html[data-theme="dark"] .chat-admin-empty strong { color: var(--tsk-ink); }
+
+/* ---------------------------------------------------------------------------
+   The toggle itself.
+--------------------------------------------------------------------------- */
+.tsk-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid var(--tsk-line);
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  transition: background .18s ease, border-color .18s ease, transform .18s ease;
+}
+.tsk-theme-toggle:hover { background: var(--tsk-line-2); transform: rotate(-12deg); }
+.tsk-theme-toggle svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tsk-theme-toggle { transition: none; }
+  .tsk-theme-toggle:hover { transform: none; }
+}
+
+/* ====================================================== article cards, dark */
+/*
+ * White type on a white card.
+ *
+ * In dark mode the article card kept a `#fff` background — forced by an
+ * `!important` rule in the legacy chain that the theme never overrode — while
+ * the heading followed the theme and turned near-white. The result was a
+ * headline that could not be read at all: measured at #f7f8f8 on #ffffff, which
+ * is a contrast ratio of 1.03:1 against a required 4.5.
+ *
+ * The card follows the theme like every other surface, and the text on it is
+ * stated rather than inherited, so neither half can drift away from the other
+ * again.
+ */
+html[data-theme="dark"] .tsk-article,
+html[data-theme="dark"] .tsk-article .tsk-article-body {
+  background: var(--tsk-card) !important;
+  border-color: var(--tsk-line) !important;
+}
+html[data-theme="dark"] .tsk-article-body h3 { color: var(--tsk-ink) !important; }
+html[data-theme="dark"] .tsk-article-body time { color: var(--tsk-dim) !important; }
