@@ -12,7 +12,10 @@ export function ArticleCard({ article }: { article: HomeArticle }) {
       href="/news"
       className="group overflow-hidden rounded-2xl border bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md"
     >
-      <div className="aspect-[4/3] overflow-hidden bg-slate-100">
+      <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+        <span className="absolute left-3 top-3 z-10 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-bold text-emerald-800">
+          {article.category || 'บทความ'}
+        </span>
         {article.image ? (
           // รูปจาก CMS อาจเป็น CDN/data URL ใด ๆ — ใช้ img ธรรมดาตามสัญญาเดิมของหลังบ้าน
           // (แบบเดียวกับ PromoRail ของ framework เดิม ไม่ขยาย next/image remotePatterns)
@@ -31,11 +34,6 @@ export function ArticleCard({ article }: { article: HomeArticle }) {
         )}
       </div>
       <div className="p-4">
-        {article.category ? (
-          <span className="mb-1.5 inline-block rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
-            {article.category}
-          </span>
-        ) : null}
         <h3 className="line-clamp-2 font-bold leading-6">{article.title}</h3>
         {article.excerpt ? (
           <p className="mt-1 line-clamp-2 text-sm text-slate-500">{article.excerpt}</p>

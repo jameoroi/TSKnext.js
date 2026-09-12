@@ -2,13 +2,16 @@
 
 import { useQuery } from '@tanstack/react-query';
 import {
+  Boxes,
   ChevronDown,
   ChevronRight,
   FileText,
   Heart,
   Menu,
+  Scale,
   Search,
   ShoppingCart,
+  Sparkles,
   UserRound,
   X,
 } from 'lucide-react';
@@ -387,6 +390,14 @@ export function Header() {
     runSearch();
   }
 
+  function askAi() {
+    const term = query.trim();
+    if (!term) return;
+    rememberSearch(term);
+    setSearchOpen(false);
+    window.dispatchEvent(new CustomEvent('tsk-ai-search', { detail: { query: term } }));
+  }
+
   function applySuggestion(term: string) {
     setQuery(term);
     runSearch(term);
@@ -394,6 +405,23 @@ export function Header() {
 
   const searchPanel = searchOpen ? (
     <div className="absolute inset-x-0 top-[calc(100%+8px)] z-[80] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+      {query.trim() ? (
+        <button
+          type="button"
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={askAi}
+          className="flex w-full items-center gap-3 border-b bg-violet-50 px-4 py-3 text-left hover:bg-violet-100"
+        >
+          <span className="grid size-9 place-items-center rounded-xl bg-violet-600 text-white">
+            <Sparkles className="size-4" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <strong className="block truncate text-sm text-violet-950">ถาม AI เรื่อง “{query.trim()}”</strong>
+            <small className="text-violet-700">ให้ AI ช่วยเลือกและอธิบายสินค้าจากข้อมูลร้าน</small>
+          </span>
+          <b className="text-xs text-violet-700">ลองใช้ AI →</b>
+        </button>
+      ) : null}
       {query.trim().length >= 2 ? (
         <div className="max-h-[370px] overflow-y-auto p-2">
           {searchBusy ? (
@@ -571,10 +599,42 @@ export function Header() {
           >
             <Search size={18} />
           </button>
+          <button
+            type="button"
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={askAi}
+            disabled={!query.trim()}
+            aria-label="ถาม AI"
+            className="absolute right-11 top-1/2 inline-flex h-9 -translate-y-1/2 items-center gap-1 rounded-full bg-violet-50 px-3 text-xs font-bold text-violet-700 hover:bg-violet-100 disabled:opacity-40"
+          >
+            <Sparkles className="size-3.5" />
+            AI
+          </button>
           {searchPanel}
         </form>
         <div className="ml-auto flex items-center gap-1">
           <ThemeToggle />
+          <Link
+            href="/kits"
+            className="relative hidden items-center gap-2 rounded-xl px-2.5 py-2 text-xs font-bold text-violet-700 hover:bg-violet-50 2xl:flex"
+            aria-label="จัดซื้อ"
+          >
+            <Boxes size={19} />
+            <span>จัดซื้อ</span>
+          </Link>
+          <Link
+            href="/compare"
+            className="relative hidden items-center gap-2 rounded-xl px-2.5 py-2 text-xs font-bold hover:bg-slate-100 lg:flex"
+            aria-label="เปรียบเทียบ"
+          >
+            <Scale size={19} />
+            <span className="hidden 2xl:inline">เปรียบเทียบ</span>
+            {compare.ids.length ? (
+              <span className="absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-sky-600 px-1 text-[10px] font-bold text-white">
+                {compare.ids.length}
+              </span>
+            ) : null}
+          </Link>
           <Link
             href="/wishlist"
             className="relative hidden items-center gap-2 rounded-xl px-2.5 py-2 text-xs font-bold hover:bg-slate-100 lg:flex"
@@ -644,9 +704,6 @@ export function Header() {
             <NavLink href="/products" active={pathname === '/products'}>
               สินค้า
             </NavLink>
-            <NavLink href="/brands" active={pathname === '/brands'}>
-              แบรนด์
-            </NavLink>
             <Suspense
               fallback={
                 <NavLink href="/products?status=สินค้าลดราคา" hot active={false}>
@@ -656,11 +713,14 @@ export function Header() {
             >
               <PromoLink />
             </Suspense>
+            <NavLink href="/brands" active={pathname === '/brands'}>
+              แบรนด์
+            </NavLink>
             <NavLink href="/news" active={pathname === '/news'}>
               บทความ
             </NavLink>
-            <NavLink href="/contact" active={false}>
-              บริการของเรา
+            <NavLink href="/partners" active={pathname === '/partners'}>
+              ตัวแทน
             </NavLink>
             <NavLink href="/about" active={pathname === '/about'}>
               เกี่ยวกับเรา
@@ -713,6 +773,9 @@ export function Header() {
             >
               โปรโมชั่น
             </Link>
+            <Link onClick={() => setMenuOpen(false)} href="/kits" className="text-violet-700">
+              ✨ จัดซื้อ
+            </Link>
             <Link onClick={() => setMenuOpen(false)} href="/wishlist">
               ♡ รายการโปรด ({wishlist.count})
             </Link>
@@ -754,6 +817,19 @@ export function Header() {
               📄 ขอใบเสนอราคา
             </Link>
           </nav>
+          {query.trim() ? (
+            <button
+              type="button"
+              onClick={() => {
+                askAi();
+                setMenuOpen(false);
+              }}
+              className="mt-4 inline-flex items-center gap-2 rounded-xl bg-violet-50 px-4 py-2.5 text-sm font-bold text-violet-700"
+            >
+              <Sparkles className="size-4" />
+              ถาม AI เรื่อง “{query.trim()}”
+            </button>
+          ) : null}
         </div>
       ) : null}
     </header>

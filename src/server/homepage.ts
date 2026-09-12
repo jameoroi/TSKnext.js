@@ -90,6 +90,7 @@ export type HomepageData = {
   promoBanners: Array<Record<string, unknown>>;
   categories: HomeCategory[];
   featured: Product[];
+  fresh: Product[];
   flash: { items: FlashSaleItem[]; endsAt: string };
   articles: HomeArticle[];
   brands: HomeBrand[];
@@ -173,11 +174,12 @@ function mapFlashSale(product: Product): FlashSaleItem | null {
 }
 
 export async function getHomepageData(): Promise<HomepageData> {
-  const [site, categoryRows, brandRows, featuredRes, saleRes, articlePayload] = await Promise.all([
+  const [site, categoryRows, brandRows, featuredRes, freshRes, saleRes, articlePayload] = await Promise.all([
     getSiteSettings(),
     getCategories(),
     getBrands(),
     getProducts({ featured: 1, per_page: 10 }),
+    getProducts({ page: 1, per_page: 12 }),
     getProducts({ status: 'สินค้าลดราคา', per_page: 60 }),
     safePublicLegacy<{ items?: unknown }>('content.list', { kind: 'article' }, { items: [] }),
   ]);
@@ -199,6 +201,7 @@ export async function getHomepageData(): Promise<HomepageData> {
 
   const active = (list: Product[]) => list.filter((p) => p?.state !== 'inactive');
   const featured = active(featuredRes.products).slice(0, DYNAMIC_SECTIONS.FEATURED_PRODUCTS.slots);
+  const fresh = active(freshRes.products).slice(0, DYNAMIC_SECTIONS.FEATURED_PRODUCTS.slots);
 
   const flashItems = active(saleRes.products)
     .map(mapFlashSale)
@@ -224,6 +227,7 @@ export async function getHomepageData(): Promise<HomepageData> {
     promoBanners: promoBanners.slice(0, DYNAMIC_SECTIONS.PROMOTION_BANNERS.slots),
     categories,
     featured,
+    fresh,
     flash: { items: flashItems, endsAt: text(site.flash_sale_ends_at) },
     articles,
     brands,

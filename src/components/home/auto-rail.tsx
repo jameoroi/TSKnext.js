@@ -1,5 +1,6 @@
 'use client';
 
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Children, type PointerEvent, type ReactNode, useEffect, useRef, useState } from 'react';
 
 type Props = {
@@ -7,6 +8,7 @@ type Props = {
   itemClassName: string;
   label: string;
   speed?: number;
+  arrows?: boolean;
 };
 
 /**
@@ -14,7 +16,7 @@ type Props = {
  * - เล่นเองด้วย rAF drift (หยุดเมื่อ hover/focus/ลาก/แตะ, เคารพ reduced-motion)
  * - เนื้อหาซ้ำ 2 ชุดเพื่อวนซ้ำไร้รอยต่อ (เหมือน ProductRail ของ framework เดิม)
  */
-export function AutoRail({ children, itemClassName, label, speed = 36 }: Props) {
+export function AutoRail({ children, itemClassName, label, speed = 36, arrows = false }: Props) {
   const ref = useRef<HTMLElement | null>(null);
   const [paused, setPaused] = useState(false);
   const pausedRef = useRef(false);
@@ -50,6 +52,12 @@ export function AutoRail({ children, itemClassName, label, speed = 36 }: Props) 
     if (!drag.current.down) return;
     drag.current.down = false;
     window.setTimeout(() => setPaused(false), 2000);
+  }
+
+  function move(direction: -1 | 1) {
+    const node = ref.current;
+    if (!node) return;
+    node.scrollBy({ left: direction * Math.max(260, node.clientWidth * 0.75), behavior: 'smooth' });
   }
 
   function onPointerDown(event: PointerEvent<HTMLElement>) {
@@ -100,6 +108,26 @@ export function AutoRail({ children, itemClassName, label, speed = 36 }: Props) 
           </div>
         ))}
       </section>
+      {arrows && items.length > 1 && (
+        <>
+          <button
+            type="button"
+            onClick={() => move(-1)}
+            aria-label="ก่อนหน้า"
+            className="absolute left-1 top-1/2 z-10 hidden size-9 -translate-y-1/2 place-items-center rounded-full border border-slate-200 bg-white shadow-md md:grid"
+          >
+            <ChevronLeft className="size-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => move(1)}
+            aria-label="ถัดไป"
+            className="absolute right-1 top-1/2 z-10 hidden size-9 -translate-y-1/2 place-items-center rounded-full border border-slate-200 bg-white shadow-md md:grid"
+          >
+            <ChevronRight className="size-4" />
+          </button>
+        </>
+      )}
     </div>
   );
 }

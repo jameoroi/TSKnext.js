@@ -23,7 +23,7 @@ export function CategoryRail({ categories }: { categories: Row[] }) {
         {categories.map((category) => {
           const key = String(category.key || category.id || category.name || '');
           const src = String(category.image || category.image_url || category.img || '');
-          const en = String(category.en || '');
+          const name = String(category.name || key);
           return (
             <Link
               key={key}
@@ -31,24 +31,22 @@ export function CategoryRail({ categories }: { categories: Row[] }) {
               className="cat-card reveal group min-w-[42%] snap-start rounded-2xl border border-slate-200 bg-white p-4 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-md sm:min-w-[27%] md:min-w-[19%] lg:min-w-[14.5%]"
             >
               {src ? (
-                <div className="relative mx-auto mb-3 aspect-square max-w-24">
+                <div className="relative mx-auto mb-3 aspect-square w-full">
                   <Image
                     src={src}
-                    alt={String(category.name || key)}
+                    alt={name}
                     fill
-                    className="object-contain"
+                    loading="lazy"
+                    className="object-cover"
                     unoptimized={src.startsWith('data:')}
                   />
                 </div>
               ) : (
-                <div className="mx-auto mb-3 grid size-16 place-items-center rounded-full bg-emerald-50 text-2xl">
-                  🛠️
+                <div className="mx-auto mb-3 grid aspect-square w-full place-items-center bg-slate-100 text-xl font-black text-slate-400">
+                  {name.trim().charAt(0) || '•'}
                 </div>
               )}
-              {en ? (
-                <p className="text-[10px] font-black uppercase tracking-[.18em] text-emerald-700">{en}</p>
-              ) : null}
-              <strong className="line-clamp-2 text-sm">{String(category.name || key)}</strong>
+              <strong className="line-clamp-2 min-h-10 text-sm">{name}</strong>
             </Link>
           );
         })}
