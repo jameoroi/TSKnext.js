@@ -7,9 +7,15 @@ type RedisRestResponse = { result?: unknown; error?: string };
 
 let restBackoffUntil = 0;
 
+function envValue(name: string) {
+  return String(process.env[name] || '')
+    .trim()
+    .replace(/^['"]|['"]$/g, '');
+}
+
 function redisRestConfig(): RedisRestConfig | null {
-  const explicitUrl = String(process.env.REDIS_REST_URL || process.env.UPSTASH_REDIS_REST_URL || '').trim();
-  const explicitToken = String(process.env.REDIS_REST_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || '').trim();
+  const explicitUrl = envValue('REDIS_REST_URL') || envValue('UPSTASH_REDIS_REST_URL');
+  const explicitToken = envValue('REDIS_REST_TOKEN') || envValue('UPSTASH_REDIS_REST_TOKEN');
   if (/^https:\/\//i.test(explicitUrl) && explicitToken) {
     return { url: explicitUrl.replace(/\/+$/, ''), token: explicitToken };
   }
@@ -18,7 +24,7 @@ function redisRestConfig(): RedisRestConfig | null {
   // Upstash REST aliases from process.env. Upstash's TLS endpoint and REST
   // endpoint share the same host, so safely derive the REST transport from a
   // rediss:// URL instead of opening a TCP connection in the Worker.
-  const tcpUrl = String(process.env.REDIS_URL || '').trim();
+  const tcpUrl = envValue('REDIS_URL');
   if (!/^rediss?:\/\//i.test(tcpUrl)) return null;
   try {
     const parsed = new URL(tcpUrl);
@@ -81,12 +87,42 @@ export function redisRestConfigured() {
   return Boolean(redisRestConfig());
 }
 
+/**
+ * Safe operational metadata for the health endpoint. It reports only whether
+ * a variable exists and whether it can form a REST candidate; it never
+ * returns a URL, hostname, username, password, or token.
+ */
+export function redisConfigStatus() {
+  const tcpUrl = envValue('REDIS_URL');
+  const explicitUrl = envValue('REDIS_REST_URL') || envValue('UPSTASH_REDIS_REST_URL');
+  const explicitToken = envValue('REDIS_REST_TOKEN') || envValue('UPSTASH_REDIS_REST_TOKEN');
+  let scheme: 'redis' | 'rediss' | 'other' | 'none' = 'none';
+  let upstashHost = false;
+  if (tcpUrl) {
+    try {
+      const parsed = new URL(tcpUrl);
+      scheme = parsed.protocol === 'redis:' ? 'redis' : parsed.protocol === 'rediss:' ? 'rediss' : 'other';
+      upstashHost = parsed.hostname.endsWith('.upstash.io');
+    } catch {
+      scheme = 'other';
+    }
+  }
+  return {
+    explicitRestUrl: Boolean(explicitUrl),
+    explicitRestToken: Boolean(explicitToken),
+    redisUrl: Boolean(tcpUrl),
+    redisUrlScheme: scheme,
+    redisUrlUpstashHost: upstashHost,
+    restCandidate: Boolean(redisRestConfig()),
+  };
+}
+
 export function redisConfigured() {
-  return redisRestConfigured() || Boolean(String(process.env.REDIS_URL || '').trim());
+  return redisRestConfigured() || Boolean(envValue('REDIS_URL'));
 }
 
 export function getRedis() {
-  const url = process.env.REDIS_URL;
+  const url = envValue('REDIS_URL');
   // ioredis uses raw TCP and is for the Node worker/runtime only. Cloudflare
   // Workers use the REST transport above when REDIS_REST_* is configured.
   if (!url || /^https:\/\//i.test(url)) return null;
