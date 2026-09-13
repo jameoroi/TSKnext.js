@@ -3,13 +3,7 @@ import { redisConfigStatus, redisHealth } from '@/lib/redis';
 import { searchClient } from '@/lib/search';
 import { databaseConfigured } from '@/server/db/client';
 
-
-
-
 export const dynamic = 'force-dynamic';
-
-
-
 
 export async function GET() {
   const redis = await redisHealth();
@@ -41,4 +35,11 @@ export async function GET() {
       redis,
       redisConfig: redisConfigStatus(),
       build:
-
+        process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 12) ||
+        process.env.CF_PAGES_COMMIT_SHA?.slice(0, 12) ||
+        'local',
+      time: new Date().toISOString(),
+    },
+    { status: services.database || services.commerceApi ? 200 : 503 },
+  );
+}
