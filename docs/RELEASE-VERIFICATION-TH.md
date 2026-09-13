@@ -4,7 +4,7 @@
 
 ## Source completeness
 
-- 55 application routes
+- 57 application routes
 - 15 Next Route Handler endpoints
 - 187 commerce actions
 - Storefront / Customer / Admin / Agent / Supplier / Owner surfaces
