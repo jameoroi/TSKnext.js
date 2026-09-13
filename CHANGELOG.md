@@ -2,6 +2,8 @@
 
 ## 6.0.0
 
+- fix(admin): integrate reports into admin navigation (376c9e0)
+- docs(changelog): update generated changelog (41c6ba9)
 - docs(changelog): update generated changelog (5e5e4e2)
 - docs(changelog): update generated changelog (1895c61)
 - docs(changelog): update generated changelog (7bb0355)
