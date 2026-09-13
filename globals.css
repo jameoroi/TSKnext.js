@@ -2,6 +2,7 @@
 @import "../styles/legacy/tsk-design-system.css";
 @import "../styles/legacy/tsk-theme.css";
 @import "../styles/legacy/storefront-motion.css";
+@import "../styles/report-dashboard.css";
 
 :root {
   --background: #f7f8f6;
