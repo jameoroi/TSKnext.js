@@ -15,8 +15,8 @@ const expectedPages = [
   '/admin/operations', '/admin/orders', '/admin/products', '/admin/products-export', '/admin/products-import', '/admin/purchase-order',
   '/admin/report', '/admin/reports', '/admin/settings', '/admin/settlements', '/admin/suppliers', '/admin/team', '/agent', '/agent/settings',
   '/agent/store', '/brands', '/cart', '/checkout', '/compare', '/contact', '/kits', '/login', '/news', '/operations/network', '/owner',
-  '/partner-register', '/partners', '/privacy', '/product', '/products', '/products/:id', '/returns', '/store', '/supplier', '/terms',
-  '/track-order', '/verify-payment', '/videos', '/wishlist',
+  '/partner-register', '/partners', '/privacy', '/product', '/products', '/products/:id', '/quotation', '/report', '/returns', '/store',
+  '/supplier', '/terms', '/track-order', '/verify-payment', '/videos', '/wishlist',
 ];
 const expectedApis = [
   '/api/[...path]', '/api/ai/chat', '/api/auth/[...nextauth]', '/api/auth/legacy-bridge', '/api/cron/maintenance',
@@ -62,7 +62,7 @@ function routeFromApi(file) {
 const files = walk(root);
 const pageRoutes = new Set(files.filter((f) => f.endsWith(`${path.sep}page.tsx`) || f.endsWith('/page.tsx')).map(routeFromPage).filter(Boolean));
 const apiRoutes = new Set(files.filter((f) => f.includes(`${path.sep}src${path.sep}app${path.sep}api${path.sep}`) && f.endsWith(`${path.sep}route.ts`)).map(routeFromApi).filter(Boolean));
-pass('55 application routes', pageRoutes.size === 55, `${pageRoutes.size}`);
+pass('57 application routes', pageRoutes.size === 57, `${pageRoutes.size}`);
 for (const route of expectedPages) pass(`Page ${route}`, pageRoutes.has(route));
 pass('15 API routes', apiRoutes.size === 15, `${apiRoutes.size}`);
 for (const route of expectedApis) pass(`API ${route}`, apiRoutes.has(route));
