@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { redisHealth } from '@/lib/redis';
+import { redisConfigStatus, redisHealth } from '@/lib/redis';
 import { searchClient } from '@/lib/search';
 import { databaseConfigured } from '@/server/db/client';
 
@@ -32,6 +32,7 @@ export async function GET() {
       next: '16.3.4',
       services,
       redis,
+      redisConfig: redisConfigStatus(),
       build:
         process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 12) ||
         process.env.CF_PAGES_COMMIT_SHA?.slice(0, 12) ||
