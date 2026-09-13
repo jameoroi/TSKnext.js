@@ -86,6 +86,7 @@ export type FlashSaleItem = {
 };
 
 export type HomepageData = {
+  entryPopup: Record<string, unknown> | null;
   banners: Array<Record<string, unknown>>;
   promoBanners: Array<Record<string, unknown>>;
   categories: HomeCategory[];
@@ -97,6 +98,7 @@ export type HomepageData = {
 
 export function emptyHomepageData(): HomepageData {
   return {
+    entryPopup: null,
     banners: [],
     promoBanners: [],
     categories: [],
@@ -224,6 +226,13 @@ export async function getHomepageData(): Promise<HomepageData> {
     .filter((item): item is FlashSaleItem => item !== null)
     .sort((a, b) => b.discountPercent - a.discountPercent)
     .slice(0, DYNAMIC_SECTIONS.FLASH_SALE.slots);
+  const fallbackFlashItems = flashItems.length
+    ? flashItems
+    : active(featuredRes.products)
+        .map(mapFlashSale)
+        .filter((item): item is FlashSaleItem => item !== null)
+        .sort((a, b) => b.discountPercent - a.discountPercent)
+        .slice(0, DYNAMIC_SECTIONS.FLASH_SALE.slots);
 
   const rawArticles = Array.isArray(articlePayload?.items) ? (articlePayload.items as unknown[]) : [];
   const articles = rawArticles
@@ -239,11 +248,15 @@ export async function getHomepageData(): Promise<HomepageData> {
     .slice(0, DYNAMIC_SECTIONS.BRAND_SECTION.slots);
 
   return {
+    entryPopup:
+      site.entry_popup && typeof site.entry_popup === 'object'
+        ? (site.entry_popup as Record<string, unknown>)
+        : null,
     banners,
     promoBanners: promoBanners.slice(0, DYNAMIC_SECTIONS.PROMOTION_BANNERS.slots),
     categories,
     featured,
-    flash: { items: flashItems, endsAt: text(site.flash_sale_ends_at) },
+    flash: { items: fallbackFlashItems, endsAt: text(site.flash_sale_ends_at) },
     articles,
     brands,
   };

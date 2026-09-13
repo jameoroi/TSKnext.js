@@ -1,7 +1,7 @@
-import { Queue } from 'bullmq';
+import { Queue } from 'bullmq/dist/esm/classes/queue.js';
 import { getRedis } from '@/lib/redis';
 
-export type JobName = 'email.order' | 'search.product.sync' | 'image.optimize' | 'maintenance.backup';
+export type JobName = 'email.order' | 'search.product.sync' | 'image.optimize' | 'maintenance.backup' | 'maintenance.restore';
 
 let queue: Queue | null | undefined;
 
