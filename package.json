@@ -29,7 +29,8 @@
     "preview:cloudflare": "opennextjs-cloudflare build && wrangler dev",
     "deploy:cloudflare": "opennextjs-cloudflare build && wrangler deploy",
     "audit:release": "node scripts/release-audit.mjs",
-    "audit:source": "node scripts/source-audit.mjs"
+    "audit:source": "node scripts/source-audit.mjs",
+    "migration:audit": "node scripts/migration-audit.mjs"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.0",

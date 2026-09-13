@@ -1,6 +1,6 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.2.3/schema.json",
-  "files": { "ignoreUnknown": true, "includes": ["**", "!src/legacy-reference/**", "!public/legacy-assets/**", "!docs/legacy/**"] },
+  "$schema": "https://biomejs.dev/schemas/2.5.13/schema.json",
+  "files": { "ignoreUnknown": true, "includes": ["**", "!**/node_modules/**", "!**/.next/**", "!**/.open-next/**", "!**/coverage/**", "!src/legacy-reference/**", "!public/legacy-assets/**", "!docs/legacy/**"] },
   "formatter": { "enabled": true, "indentStyle": "space", "indentWidth": 2, "lineWidth": 110 },
   "linter": { "enabled": true, "rules": { "recommended": true } },
   "javascript": { "formatter": { "quoteStyle": "single", "semicolons": "always", "trailingCommas": "all" } }
