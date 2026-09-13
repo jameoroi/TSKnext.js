@@ -31,7 +31,7 @@ const requiredApis = [
 for (const route of requiredApis) pass(`API ${route}`, exists(route));
 
 const packageNeeds = [
-  'react','typescript','tailwindcss','radix-ui','motion','lucide-react','@tanstack/react-query','zustand',
+  'react','typescript','tailwindcss','radix-ui','@radix-ui/react-dialog','@mui/material','motion','lucide-react','@tanstack/react-query','zustand',
   'react-hook-form','zod','next-auth','drizzle-orm','postgres','ioredis','bullmq','meilisearch','openai','ai',
   'echarts','posthog-js','@sentry/nextjs','@opentelemetry/api','pino','resend','@react-email/components',
   '@aws-sdk/client-s3','sharp','@playwright/test','vitest','@testing-library/react','msw','@biomejs/biome',
