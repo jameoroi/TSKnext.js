@@ -3,6 +3,15 @@
   background: #f3f8ff;
   color: #17243d;
 }
+.report-workspace--embedded {
+  min-height: 0;
+  border-radius: 18px;
+  overflow: hidden;
+}
+.report-workspace--embedded .report-dashboard {
+  max-width: none;
+  padding-inline: 16px;
+}
 .report-dashboard {
   max-width: 1660px;
   margin: auto;
