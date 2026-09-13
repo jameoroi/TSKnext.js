@@ -52,7 +52,7 @@ const NAV: NavGroup[] = [
     group: 'ภาพรวม',
     items: [
       { href: '/admin', icon: LayoutDashboard, label: 'แดชบอร์ด' },
-      { href: '/admin/reports', icon: ChartNoAxesCombined, label: 'รายงานยอดขาย' },
+      { href: '/report', icon: ChartNoAxesCombined, label: 'รายงานยอดขาย' },
     ],
   },
   {
@@ -224,7 +224,7 @@ export function AdminShell({
   }, [loadBadges]);
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-950">
+    <div className="admin-shell min-h-screen bg-slate-100 text-slate-950">
       {/* ท็อปบาร์มือถือ — เดสก์ท็อปใช้ sidebar ถาวร */}
       <div className="sticky top-0 z-40 flex items-center justify-between gap-3 border-b border-emerald-900 bg-emerald-950/95 px-4 py-3 text-white backdrop-blur lg:hidden">
         <Link href="/admin" className="flex items-center gap-2" onClick={() => setNavOpen(false)}>
@@ -249,33 +249,33 @@ export function AdminShell({
           className="fixed inset-0 z-40 bg-slate-950/50 backdrop-blur-[2px] lg:hidden"
         />
       )}
-      <div className="grid min-h-screen lg:grid-cols-[280px_1fr]">
+      <div className="grid min-h-screen lg:grid-cols-[232px_1fr]">
         <aside
-          className={`border-r bg-emerald-950 p-4 text-white max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:z-50 max-lg:w-[290px] max-lg:shadow-2xl max-lg:transition-transform max-lg:duration-200 ${navOpen ? 'max-lg:translate-x-0' : 'max-lg:-translate-x-full'} lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto`}
+          className={`border-r bg-emerald-950 p-3 text-white max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:z-50 max-lg:w-[290px] max-lg:shadow-2xl max-lg:transition-transform max-lg:duration-200 ${navOpen ? 'max-lg:translate-x-0' : 'max-lg:-translate-x-full'} lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto`}
         >
           <Link
             href="/admin"
             onClick={() => setNavOpen(false)}
-            className="mb-5 hidden rounded-2xl border border-white/10 bg-white/5 p-4 transition hover:bg-white/10 lg:block"
+            className="mb-3 hidden rounded-xl border border-white/10 bg-white/5 p-3 transition hover:bg-white/10 lg:block"
           >
             <div className="text-xs font-bold tracking-[.18em] text-emerald-200">THAISERKIT</div>
             <div className="mt-1 text-xl font-bold">Control Center</div>
             <div className="mt-1 text-xs text-white/55">ร้าน · คลัง · ตัวแทน · รายงาน</div>
           </Link>
 
-          <nav className="space-y-2" aria-label="เมนูผู้ดูแลระบบ">
+          <nav className="space-y-1.5" aria-label="เมนูผู้ดูแลระบบ">
             {groups.map((section) => {
               const total = groupCount(section.group);
               const opened = isOpen(section.group);
               return (
                 <section
                   key={section.group}
-                  className="rounded-2xl border border-white/10 bg-white/[.035] p-1.5"
+                  className="rounded-xl border border-white/10 bg-white/[.035] p-1"
                 >
                   <button
                     type="button"
                     onClick={() => toggleGroup(section.group)}
-                    className="flex w-full items-center justify-between rounded-xl px-2.5 py-2 text-left text-xs font-black uppercase tracking-[.08em] text-emerald-100/80 hover:bg-white/5"
+                    className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-[11px] font-black uppercase tracking-[.08em] text-emerald-100/80 hover:bg-white/5"
                     aria-expanded={opened}
                   >
                     <span>{section.group}</span>
@@ -289,7 +289,7 @@ export function AdminShell({
                     </span>
                   </button>
                   {opened && (
-                    <div className="mt-1 grid gap-1">
+                    <div className="mt-0.5 grid gap-0.5">
                       {section.items.map(({ href, icon: Icon, label, badge }) => {
                         const active = isActive(href);
                         const count = badge ? countFor(badge) : 0;
@@ -298,7 +298,7 @@ export function AdminShell({
                             key={href}
                             href={href}
                             onClick={() => setNavOpen(false)}
-                            className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm transition ${active ? 'bg-white font-bold text-emerald-950 shadow' : 'text-white/75 hover:bg-white/10 hover:text-white'}`}
+                            className={`flex items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] transition ${active ? 'bg-white font-bold text-emerald-950 shadow' : 'text-white/75 hover:bg-white/10 hover:text-white'}`}
                           >
                             <Icon size={17} />
                             <span className="min-w-0 flex-1 truncate">{label}</span>
@@ -321,7 +321,7 @@ export function AdminShell({
         </aside>
 
         <main className="min-w-0">
-          <header className="sticky top-0 z-30 flex min-h-16 items-center justify-between border-b bg-white/90 px-4 backdrop-blur md:px-7">
+          <header className="sticky top-0 z-30 flex min-h-14 items-center justify-between border-b bg-white/90 px-4 backdrop-blur md:px-5">
             <div>
               <p className="text-xs text-slate-500">Admin workspace · {owner ? 'Super Admin' : 'Admin'}</p>
               <strong>{username || 'ผู้ดูแลระบบ'}</strong>
@@ -335,7 +335,7 @@ export function AdminShell({
             </div>
           </header>
           <BackendStatus />
-          <div className="p-4 md:p-7">{children}</div>
+          <div className="p-3 md:p-5">{children}</div>
         </main>
       </div>
     </div>
