@@ -1,7 +1,7 @@
 import { Search } from 'lucide-react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { PageHero } from '@/components/content/page-hero';
+import { BrandLogo } from '@/components/home/brand-logo';
 import { Input } from '@/components/ui/input';
 import { getBrands } from '@/server/catalog';
 
@@ -13,7 +13,13 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
   const q = String(raw || '')
     .trim()
     .toLowerCase();
-  const all = await getBrands();
+  let all: Array<Record<string, unknown>> = [];
+  try {
+    const result = await getBrands();
+    all = Array.isArray(result) ? result : [];
+  } catch (error) {
+    console.warn('[brands] public brand list unavailable', error instanceof Error ? error.message : error);
+  }
   const brands = (Array.isArray(all) ? all : []).filter(
     (b: Record<string, unknown>) =>
       !q ||
@@ -69,25 +75,9 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
                   className="grid min-h-24 place-items-center p-2 text-center transition hover:opacity-80"
                   aria-label={name}
                 >
-                  {src ? (
-                    <span className="relative block h-14 w-full">
-                      <strong className="absolute inset-0 grid place-items-center px-2 text-center text-sm leading-5">
-                        {name}
-                      </strong>
-                      <Image
-                        src={src}
-                        alt=""
-                        fill
-                        className="object-contain"
-                        unoptimized={src.startsWith('data:')}
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = 'none';
-                        }}
-                      />
-                    </span>
-                  ) : (
-                    <strong className="text-sm">{name}</strong>
-                  )}
+                  <span className="grid h-14 w-full place-items-center px-2 text-center">
+                    <BrandLogo src={src} name={name} className="max-h-14 max-w-full object-contain" />
+                  </span>
                 </Link>
               );
             })}
