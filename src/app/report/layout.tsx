@@ -1,14 +1,7 @@
-import { AdminShell } from '@/components/admin/admin-shell';
 import { requireRole } from '@/server/auth/guards';
+import './report-dashboard.css';
 
 export default async function ReportLayout({ children }: { children: React.ReactNode }) {
-  const session = await requireRole('admin', '/admin');
-  return (
-    <AdminShell
-      username={String((session as unknown as Record<string, unknown>).admin_username || 'admin')}
-      owner={(session as unknown as Record<string, unknown>).admin_role === 'super_admin'}
-    >
-      {children}
-    </AdminShell>
-  );
+  await requireRole('admin', '/admin');
+  return <div className="report-workspace">{children}</div>;
 }

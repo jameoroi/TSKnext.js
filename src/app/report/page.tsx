@@ -1,9 +1,8 @@
 import type { Metadata } from 'next';
-import { AdminPageHeader } from '@/components/admin/page-header';
 import { ReportDashboard } from '@/components/admin/report-dashboard';
 import { serverLegacyRequest } from '@/server/legacy-api';
 
-export const metadata: Metadata = { title: 'สรุปข้อมูลเว็บไซต์ | THAISERKIT SUPPLY' };
+export const metadata: Metadata = { title: 'รายงานภาพรวม | THAISERKIT SUPPLY' };
 
 export const dynamic = 'force-dynamic';
 
@@ -37,17 +36,11 @@ export default async function ReportPage() {
     errors.push(`admin.analytics.report: ${error instanceof Error ? error.message : 'unknown_error'}`);
   }
   return (
-    <>
-      <AdminPageHeader
-        title="สรุปข้อมูลเว็บไซต์"
-        description="ภาพรวมผู้เข้าชม ยอดขาย สินค้าขายดี เส้นทางลูกค้า และ Insight จากระบบ AI"
-      />
-      <ReportDashboard
-        initialRange={{ from, to }}
-        initialSales={sales}
-        initialAnalytics={analytics}
-        initialError={errors.join(' | ')}
-      />
-    </>
+    <ReportDashboard
+      initialRange={{ from, to }}
+      initialSales={sales}
+      initialAnalytics={analytics}
+      initialError={errors.join(' | ')}
+    />
   );
 }
