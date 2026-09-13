@@ -19,7 +19,7 @@ import { SaleCountdown } from '@/components/home/sale-countdown';
 import { SectionTitle } from '@/components/home/section-title';
 import { ServiceBenefits } from '@/components/home/service-benefits';
 import { getSiteSettings } from '@/server/catalog';
-import { DYNAMIC_SECTIONS, getHomepageData } from '@/server/homepage';
+import { DYNAMIC_SECTIONS, emptyHomepageData, getHomepageData } from '@/server/homepage';
 
 /**
  * HOMEPAGE — THAISERKIT SUPPLY (E-commerce Homepage)
@@ -43,7 +43,9 @@ import { DYNAMIC_SECTIONS, getHomepageData } from '@/server/homepage';
  * ============================================================================
  */
 export default async function HomePage() {
-  const [site, home] = await Promise.all([getSiteSettings(), getHomepageData()]);
+  const [siteResult, homeResult] = await Promise.allSettled([getSiteSettings(), getHomepageData()]);
+  const site = siteResult.status === 'fulfilled' ? siteResult.value : {};
+  const home = homeResult.status === 'fulfilled' ? homeResult.value : emptyHomepageData();
 
   const categorySlots = DYNAMIC_SECTIONS.CATEGORY_SECTION.slots;
   const featuredSlots = DYNAMIC_SECTIONS.FEATURED_PRODUCTS.slots;
