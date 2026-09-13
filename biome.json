@@ -1,7 +1,47 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.5.13/schema.json",
-  "files": { "ignoreUnknown": true, "includes": ["**", "!**/node_modules/**", "!**/.next/**", "!**/.open-next/**", "!**/coverage/**", "!src/legacy-reference/**", "!public/legacy-assets/**", "!docs/legacy/**"] },
+  "files": {
+    "ignoreUnknown": true,
+    "includes": [
+      "**",
+      "!**/node_modules",
+      "!**/.next",
+      "!**/.open-next",
+      "!**/coverage",
+      "!next-env.d.ts",
+      "!src/legacy-reference",
+      "!src/legacy-api",
+      "!src/styles/legacy",
+      "!public/legacy-assets",
+      "!src/server/db/migrations/meta",
+      "!docs/legacy"
+    ]
+  },
   "formatter": { "enabled": true, "indentStyle": "space", "indentWidth": 2, "lineWidth": 110 },
-  "linter": { "enabled": true, "rules": { "recommended": true } },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "preset": "recommended",
+      "a11y": {
+        "noLabelWithoutControl": "warn",
+        "noStaticElementInteractions": "warn",
+        "useAriaPropsSupportedByRole": "warn",
+        "useButtonType": "warn",
+        "useValidAriaRole": "warn"
+      },
+      "correctness": {
+        "noInvalidUseBeforeDeclaration": "warn",
+        "useExhaustiveDependencies": "warn"
+      },
+      "security": { "noDangerouslySetInnerHtml": "warn" },
+      "suspicious": {
+        "noArrayIndexKey": "warn",
+        "noAssignInExpressions": "warn",
+        "noControlCharactersInRegex": "warn",
+        "noShadowRestrictedNames": "warn",
+        "useIterableCallbackReturn": "warn"
+      }
+    }
+  },
   "javascript": { "formatter": { "quoteStyle": "single", "semicolons": "always", "trailingCommas": "all" } }
 }

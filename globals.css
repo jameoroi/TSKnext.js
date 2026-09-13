@@ -1,0 +1,282 @@
+@import "tailwindcss";
+@import "../styles/legacy/tsk-design-system.css";
+@import "../styles/legacy/tsk-theme.css";
+@import "../styles/legacy/storefront-motion.css";
+
+:root {
+  --background: #f7f8f6;
+  --foreground: #10251d;
+  --brand: #123a2c;
+  --brand-deep: #0b2e22;
+  --accent: #e56b9f;
+  --gold: #c79a55;
+}
+* {
+  box-sizing: border-box;
+}
+/* ขอบ default ทุกจุดเป็น slate-200 — Tailwind v4 ไม่มีสีขอบตั้งต้น (จะเป็น currentColor/ดำ)
+   กฎนี้กันขอบดำทั้งเว็บ จุดไหนต้องการสีอื่นก็ระบุ border-{color} ทับได้ตามปกติ */
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--color-slate-200);
+  }
+}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+::selection {
+  background: #cde8d8;
+  color: #0b2e22;
+}
+.container-shell {
+  width: min(1280px, calc(100% - 2rem));
+  margin-inline: auto;
+}
+.surface-grid {
+  background-image: radial-gradient(circle at 1px 1px, rgba(18, 58, 44, 0.08) 1px, transparent 0);
+  background-size: 20px 20px;
+}
+
+/* Shared storefront visual language used by the customer-facing pages. */
+.storefront-page {
+  background:
+    linear-gradient(180deg, rgba(247, 250, 248, 0.98), rgba(241, 246, 243, 0.98)),
+    radial-gradient(circle at 15% 0%, rgba(185, 235, 218, 0.22), transparent 34rem);
+}
+.page-width {
+  width: min(1220px, calc(100% - 2rem));
+  margin-inline: auto;
+}
+.page-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #64748b;
+  font-size: 0.82rem;
+}
+.page-breadcrumb a:hover {
+  color: #065f46;
+}
+.page-panel {
+  border: 1px solid rgba(203, 213, 225, 0.72);
+  border-radius: 1.15rem;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 8px 28px rgba(15, 63, 48, 0.06);
+}
+.site-page-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 17rem;
+  background: linear-gradient(105deg, #063e30 0%, #075a43 52%, #0b2e22 100%);
+}
+.site-page-hero::after {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, rgba(2, 30, 22, 0.88), rgba(2, 30, 22, 0.38) 57%, rgba(2, 30, 22, 0.72));
+  content: "";
+}
+.site-page-hero__media {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+.site-page-hero__inner {
+  width: min(1220px, calc(100% - 2rem));
+  margin-inline: auto;
+  padding: 2.75rem 0 3rem;
+}
+.site-page-hero__title {
+  max-width: 52rem;
+  font-size: clamp(2rem, 4vw, 3.75rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+}
+.site-page-hero__subtitle {
+  max-width: 48rem;
+  margin-top: 0.9rem;
+  color: rgba(240, 253, 250, 0.82);
+  font-size: clamp(0.95rem, 1.5vw, 1.12rem);
+  line-height: 1.8;
+}
+.catalog-card {
+  border: 1px solid rgba(203, 213, 225, 0.78);
+  border-radius: 0.95rem;
+  background: #fff;
+  box-shadow: 0 6px 20px rgba(15, 63, 48, 0.05);
+}
+.catalog-card:hover {
+  border-color: rgba(5, 150, 105, 0.4);
+  box-shadow: 0 14px 30px rgba(15, 63, 48, 0.1);
+}
+.section-rule-title {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+  padding-bottom: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .page-width {
+    width: min(100% - 1.25rem, 1220px);
+  }
+  .site-page-hero {
+    min-height: 13rem;
+  }
+  .site-page-hero__inner {
+    width: min(100% - 1.25rem, 1220px);
+    padding: 2rem 0 2.25rem;
+  }
+  .site-page-hero__title {
+    font-size: 2rem;
+  }
+}
+
+/* ---- Hover motion system (desktop pointers; touch unaffected) ---- */
+.nav-link {
+  position: relative;
+}
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 6px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.nav-link:hover::after {
+  transform: scaleX(1);
+}
+.nav-link.is-active::after {
+  transform: scaleX(1);
+}
+
+@keyframes mega-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.mega-in {
+  animation: mega-in 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+  transform-origin: top left;
+}
+.mega-link {
+  transition:
+    transform 0.18s ease,
+    color 0.18s ease;
+}
+.mega-link:hover {
+  transform: translateX(3px);
+}
+.mega-cat svg {
+  transition: transform 0.2s ease;
+}
+.mega-cat:hover svg {
+  transform: scale(1.15);
+}
+
+/* Card hover: gentle lift + image zoom, smooth everywhere */
+.lift {
+  transition:
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+}
+.lift:hover {
+  transform: translateY(-4px);
+}
+.zoom-img {
+  overflow: hidden;
+}
+.zoom-img img {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.zoom-img:hover img {
+  transform: scale(1.05);
+}
+
+/* Footer + content link lists: visible hover feedback */
+.flink a {
+  transition:
+    color 0.18s ease,
+    padding-left 0.18s ease;
+}
+.flink a:hover {
+  color: #fff;
+  padding-left: 4px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* Seamless brand marquee: track holds 2 copies, loops -50% */
+.marquee-track {
+  animation: marquee var(--marquee-speed, 32s) linear infinite;
+}
+.marquee:hover .marquee-track,
+.marquee:focus-within .marquee-track {
+  animation-play-state: paused;
+}
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mega-in {
+    animation: none;
+  }
+  .marquee-track {
+    animation: none;
+  }
+  .marquee {
+    overflow-x: auto;
+  }
+  .nav-link::after {
+    transition: none;
+  }
+  .mega-link,
+  .mega-cat svg,
+  .lift,
+  .zoom-img img {
+    transition: none;
+  }
+  .lift:hover {
+    transform: none;
+  }
+  .zoom-img:hover img {
+    transform: none;
+  }
+}
