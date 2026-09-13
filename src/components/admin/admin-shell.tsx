@@ -52,7 +52,7 @@ const NAV: NavGroup[] = [
     group: 'ภาพรวม',
     items: [
       { href: '/admin', icon: LayoutDashboard, label: 'แดชบอร์ด' },
-      { href: '/report', icon: ChartNoAxesCombined, label: 'รายงานยอดขาย' },
+      { href: '/admin/reports', icon: ChartNoAxesCombined, label: 'รายงานยอดขาย' },
     ],
   },
   {
