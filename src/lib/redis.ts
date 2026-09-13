@@ -8,12 +8,27 @@ type RedisRestResponse = { result?: unknown; error?: string };
 let restBackoffUntil = 0;
 
 function redisRestConfig(): RedisRestConfig | null {
-  const configuredUrl = String(
-    process.env.REDIS_REST_URL || process.env.UPSTASH_REDIS_REST_URL || process.env.REDIS_URL || '',
-  ).trim();
-  const token = String(process.env.REDIS_REST_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || '').trim();
-  if (!/^https:\/\//i.test(configuredUrl) || !token) return null;
-  return { url: configuredUrl.replace(/\/+$/, ''), token };
+  const explicitUrl = String(process.env.REDIS_REST_URL || process.env.UPSTASH_REDIS_REST_URL || '').trim();
+  const explicitToken = String(process.env.REDIS_REST_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || '').trim();
+  if (/^https:\/\//i.test(explicitUrl) && explicitToken) {
+    return { url: explicitUrl.replace(/\/+$/, ''), token: explicitToken };
+  }
+
+  // Some Cloudflare Worker deployments expose REDIS_URL but omit the separate
+  // Upstash REST aliases from process.env. Upstash's TLS endpoint and REST
+  // endpoint share the same host, so safely derive the REST transport from a
+  // rediss:// URL instead of opening a TCP connection in the Worker.
+  const tcpUrl = String(process.env.REDIS_URL || '').trim();
+  if (!/^rediss?:\/\//i.test(tcpUrl)) return null;
+  try {
+    const parsed = new URL(tcpUrl);
+    if (!parsed.hostname.endsWith('.upstash.io')) return null;
+    const token = explicitToken || decodeURIComponent(parsed.password);
+    if (!token) return null;
+    return { url: `https://${parsed.hostname}`, token };
+  } catch {
+    return null;
+  }
 }
 
 function activeRestConfig() {
