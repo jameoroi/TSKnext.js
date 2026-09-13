@@ -2,6 +2,7 @@
 
 ## 6.0.0
 
+- docs(changelog): update generated changelog (5e5e4e2)
 - docs(changelog): update generated changelog (1895c61)
 - docs(changelog): update generated changelog (7bb0355)
 - docs(changelog): update generated changelog (498da96)
