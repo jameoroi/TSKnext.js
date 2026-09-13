@@ -4,6 +4,7 @@ import { Eye, Heart, Scale, ShoppingCart } from 'lucide-react';
 import { motion } from 'motion/react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useCartStore } from '@/features/cart/store';
 import { useQuickViewStore } from '@/features/catalog/quick-view';
@@ -37,6 +38,8 @@ export function ProductCard({
   cta?: boolean;
   stockBar?: boolean;
 }) {
+  const initialImage = productImage(product);
+  const [imageSrc, setImageSrc] = useState(initialImage);
   const add = useCartStore((s) => s.add);
   const wishlist = useWishlist();
   const compare = useCompareStore();
@@ -79,12 +82,13 @@ export function ProductCard({
       <div className="relative aspect-square overflow-hidden bg-slate-50">
         <Link href={productHref(product)} aria-label={product.name}>
           <Image
-            src={productImage(product)}
+            src={imageSrc}
             alt={product.name}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
             className="object-contain p-4 transition duration-300 group-hover:scale-[1.03]"
-            unoptimized={productImage(product).startsWith('data:')}
+            unoptimized={imageSrc.startsWith('data:')}
+            onError={() => setImageSrc('/legacy-assets/logo.png')}
           />
         </Link>
         {statusBadge ? (
@@ -106,7 +110,7 @@ export function ProductCard({
             TEST
           </span>
         )}
-        <div className="absolute right-3 top-3 flex flex-col gap-2 transition">
+        <div className="absolute right-3 top-3 flex flex-col gap-2 opacity-0 transition group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100">
           <button
             type="button"
             onClick={() => quickView.open(product)}
@@ -175,7 +179,9 @@ export function ProductCard({
         </div>
         <div className="flex items-end justify-between gap-2">
           <div className="min-w-0">
-            <strong className="text-lg text-rose-700">{money(Number(product.price))}</strong>
+            <strong className={`text-lg ${discount > 0 ? 'text-rose-700' : 'text-emerald-950'}`}>
+              {money(Number(product.price))}
+            </strong>
             {old > product.price && (
               <del className="ml-2 whitespace-nowrap text-xs text-slate-400">{money(old)}</del>
             )}
