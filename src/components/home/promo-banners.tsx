@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
 import { AutoRail } from './auto-rail';
 import { PromoBannerPlaceholder } from './placeholders';
 
@@ -32,7 +33,7 @@ export function PromoBanners({ banners }: { banners: Banner[] }) {
       <AutoRail label="แบนเนอร์โปรโมชั่น" itemClassName="min-w-[82%] snap-start sm:min-w-[47%] lg:min-w-[32%]">
         {slots.map(({ row, slot }) => (
           <div key={String(row?.id || `promo-slot-${slot}`)}>
-            {row ? <PromoBannerItem row={row} fallback={`/legacy-assets/banners/${slot + 1}.png`} /> : <PromoBannerPlaceholder slot={slot} />}
+            {row ? <PromoBannerItem row={row} /> : <PromoBannerPlaceholder slot={slot} />}
           </div>
         ))}
       </AutoRail>
@@ -40,14 +41,28 @@ export function PromoBanners({ banners }: { banners: Banner[] }) {
   );
 }
 
-function PromoBannerItem({ row, fallback }: { row: Banner; fallback: string }) {
+function PromoBannerItem({ row }: { row: Banner }) {
   const image = imageOf(row);
   const label = labelOf(row);
   const href = hrefOf(row);
+  const [failed, setFailed] = useState(false);
   const body = (
     <span className="block aspect-[16/8] overflow-hidden rounded-3xl border bg-white shadow-sm">
-      {/* biome-ignore lint/performance/noImgElement: CMS stores arbitrary CDN/data URLs (same as PromoRail) */}
-      <img src={image} alt={label} loading="lazy" decoding="async" className="h-full w-full object-cover" onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = fallback; }} />
+      {failed ? (
+        <span className="grid h-full place-items-center bg-emerald-950 px-4 text-center text-xs font-bold text-white">
+          แบนเนอร์โหลดไม่สำเร็จ กรุณาเปลี่ยนรูปจากหลังบ้าน
+        </span>
+      ) : (
+        // biome-ignore lint/performance/noImgElement: CMS stores arbitrary CDN/data URLs
+        <img
+          src={image}
+          alt={label}
+          loading="lazy"
+          decoding="async"
+          className="h-full w-full object-cover"
+          onError={() => setFailed(true)}
+        />
+      )}
     </span>
   );
   if (!href) return body;
