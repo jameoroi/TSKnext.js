@@ -1,1 +1,5 @@
-import { redirect } from 'next/navigation';export default function Page(){redirect('/admin/reports')}
+import { redirect } from 'next/navigation';
+
+export default function AdminReportPage() {
+  redirect('/report');
+}
