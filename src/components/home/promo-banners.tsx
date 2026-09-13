@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { AutoRail } from './auto-rail';
 import { PromoBannerPlaceholder } from './placeholders';
 
 type Banner = Record<string, unknown>;
@@ -26,29 +27,25 @@ export function PromoBanners({ banners }: { banners: Banner[] }) {
   }));
   return (
     <section className="mx-auto max-w-7xl px-4 pt-6 lg:px-6" aria-label="แบนเนอร์โปรโมชั่น">
-      {/* แถวเดียวตลอด: มือถือปัดซ้ายขวา (snap) เดสก์ท็อป 3 ช่องพอดีแถว */}
-      <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 [scrollbar-width:none] lg:grid lg:grid-cols-3 lg:overflow-visible lg:pb-0 [&::-webkit-scrollbar]:hidden">
+      <AutoRail label="แบนเนอร์โปรโมชั่น" itemClassName="min-w-[82%] snap-start sm:min-w-[47%] lg:min-w-[32%]">
         {slots.map(({ row, slot }) => (
-          <div
-            key={String(row?.id || `promo-slot-${slot}`)}
-            className="min-w-[82%] snap-center sm:min-w-[47%] lg:min-w-0"
-          >
-            {row ? <PromoBannerItem row={row} /> : <PromoBannerPlaceholder slot={slot} />}
+          <div key={String(row?.id || `promo-slot-${slot}`)}>
+            {row ? <PromoBannerItem row={row} fallback={`/legacy-assets/banners/${slot + 1}.png`} /> : <PromoBannerPlaceholder slot={slot} />}
           </div>
         ))}
-      </div>
+      </AutoRail>
     </section>
   );
 }
 
-function PromoBannerItem({ row }: { row: Banner }) {
+function PromoBannerItem({ row, fallback }: { row: Banner; fallback: string }) {
   const image = imageOf(row);
   const label = labelOf(row);
   const href = hrefOf(row);
   const body = (
     <span className="block aspect-[16/8] overflow-hidden rounded-3xl border bg-white shadow-sm">
       {/* biome-ignore lint/performance/noImgElement: CMS stores arbitrary CDN/data URLs (same as PromoRail) */}
-      <img src={image} alt={label} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+      <img src={image} alt={label} loading="lazy" decoding="async" className="h-full w-full object-cover" onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = fallback; }} />
     </span>
   );
   if (!href) return body;
