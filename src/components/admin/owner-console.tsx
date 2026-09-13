@@ -36,6 +36,7 @@ export function OwnerConsole({ initialMetrics, initialIntegrity, initialProducti
   const [error, setError] = useState('');
   const [restoreFile, setRestoreFile] = useState<File | null>(null);
   const [restoreConfirm, setRestoreConfirm] = useState('');
+  const [databaseBackupKey, setDatabaseBackupKey] = useState('');
 
   async function refresh() {
     setBusy('refresh'); setError('');
@@ -116,6 +117,21 @@ export function OwnerConsole({ initialMetrics, initialIntegrity, initialProducti
     } finally { setBusy(''); }
   }
 
+  async function queueDatabaseOperation(operation: 'backup' | 'restore') {
+    if (operation === 'restore' && !databaseBackupKey.trim()) return;
+    if (operation === 'restore' && !window.confirm('ยืนยันให้ worker restore PostgreSQL จาก object key นี้หรือไม่? งานนี้เขียนทับฐานข้อมูลปลายทาง')) return;
+    setBusy(`database-${operation}`); setError(''); setNotice('กำลังส่งงานให้ Node/BullMQ worker…');
+    try {
+      const response = await fetch('/api/admin/database-backup', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ operation, key: databaseBackupKey.trim() || undefined, csrf }) });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.ok) throw new Error(String(result.error || `http_${response.status}`));
+      setNotice(`${operation === 'backup' ? 'Backup PostgreSQL' : 'Restore PostgreSQL'} ถูกส่งเข้า queue แล้ว · job ${String(result.id || 'รอตรวจ worker')}`);
+      if (operation === 'restore') setDatabaseBackupKey('');
+    } catch (err) {
+      setError(`ส่งงาน database ${operation} ไม่สำเร็จ: ${message(err)}`); setNotice('');
+    } finally { setBusy(''); }
+  }
+
   const checks = production.checks && typeof production.checks === 'object' ? Object.entries(production.checks) : [];
   const integrityStatus = String(integrity.status || 'unknown');
 
@@ -123,6 +139,8 @@ export function OwnerConsole({ initialMetrics, initialIntegrity, initialProducti
     <div className="flex flex-wrap gap-2"><button type="button" disabled={Boolean(busy)} onClick={() => void refresh()} className="inline-flex items-center gap-2 rounded-xl border bg-white px-4 py-2 text-sm font-bold"><RefreshCcw size={16} className={busy === 'refresh' ? 'animate-spin' : ''}/>รีเฟรชสถานะ</button><button type="button" disabled={Boolean(busy)} onClick={() => void exportBackup()} className="inline-flex items-center gap-2 rounded-xl bg-emerald-950 px-4 py-2 text-sm font-bold text-white"><Download size={16}/>{busy === 'backup' ? 'กำลัง Backup…' : 'Backup ทั้งระบบ'}</button></div>
     {notice && <p className="rounded-xl bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">{notice}</p>}
     {error && <p className="rounded-xl bg-rose-50 p-3 text-sm font-semibold text-rose-700" role="alert">{error}</p>}
+
+    <section className="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-5 shadow-sm"><div className="flex items-start gap-3"><DatabaseBackup className="mt-1 shrink-0 text-emerald-800" size={22}/><div className="min-w-0 flex-1"><h2 className="font-black text-emerald-950">PostgreSQL backup / restore</h2><p className="mt-1 text-xs leading-5 text-emerald-950/70">งานนี้ทำผ่าน Node/BullMQ worker และเก็บ dump ใน S3/R2 ตาม env `BACKUP_S3_*` ไม่รัน `pg_dump` ใน Cloudflare Worker และไม่เปิดเผย credential ใน browser</p><div className="mt-4 flex flex-col gap-2 sm:flex-row"><button type="button" disabled={Boolean(busy)} onClick={() => void queueDatabaseOperation('backup')} className="rounded-xl bg-emerald-800 px-4 py-2 text-sm font-black text-white disabled:opacity-40">{busy === 'database-backup' ? 'กำลังส่งงาน…' : 'สั่ง Backup PostgreSQL'}</button><input value={databaseBackupKey} onChange={(event) => setDatabaseBackupKey(event.target.value)} placeholder="object key เช่น postgres/2026...dump" className="min-w-0 flex-1 rounded-xl border bg-white px-3 py-2 text-sm"/><button type="button" disabled={Boolean(busy) || !databaseBackupKey.trim()} onClick={() => void queueDatabaseOperation('restore')} className="rounded-xl bg-rose-700 px-4 py-2 text-sm font-black text-white disabled:opacity-40">{busy === 'database-restore' ? 'กำลังส่งงาน…' : 'สั่ง Restore จาก key'}</button></div></div></div></section>
 
     <MetricGrid metrics={metrics}/>
 
