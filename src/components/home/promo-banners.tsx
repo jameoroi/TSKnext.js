@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { AutoRail } from './auto-rail';
 import { PromoBannerPlaceholder } from './placeholders';
