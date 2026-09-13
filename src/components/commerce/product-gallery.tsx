@@ -1,15 +1,15 @@
 'use client';
 
+
 import Image from 'next/image';
 import { useMemo, useState } from 'react';
-import type { Product } from '@/features/catalog/types';
+import { productImageCandidates, type Product } from '@/features/catalog/types';
+
 
 function uniqueImages(product: Product) {
-  const values = [product.img, product.imageUrl, (product as any).image_url, (product as any).image, ...(Array.isArray(product.images) ? product.images : [])]
-    .map((value) => String(value || '').trim())
-    .filter(Boolean);
-  return [...new Set(values)];
+  return productImageCandidates(product);
 }
+
 
 export function ProductGallery({ product }: { product: Product }) {
   const images = useMemo(() => uniqueImages(product), [product]);
@@ -21,3 +21,4 @@ export function ProductGallery({ product }: { product: Product }) {
     {images.length > 1 && <div className="mt-3 flex gap-2 overflow-x-auto pb-1">{images.map((image, index) => <button key={`${image}-${index}`} type="button" onClick={() => setActive(image)} className={`relative size-20 shrink-0 overflow-hidden rounded-xl border bg-white ${active === image ? 'ring-2 ring-emerald-700 ring-offset-1' : ''}`} aria-label={`ดูรูปที่ ${index + 1}`}><Image src={image} alt={`${product.name} ${index + 1}`} fill sizes="80px" className="object-contain p-1" unoptimized={image.startsWith('data:')}/></button>)}</div>}
   </div>;
 }
+
