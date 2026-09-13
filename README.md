@@ -27,7 +27,7 @@ pnpm test:e2e
 pnpm build
 ```
 
-`audit:source` ตรวจ surface ของระบบปัจจุบัน: 55 application routes, 15 API routes, 187 commerce actions, modules สำคัญ, Next-only source และเอกสารปัจจุบัน
+`audit:source` ตรวจ surface ของระบบปัจจุบัน: 57 application routes, 15 API routes, 187 commerce actions, modules สำคัญ, Next-only source และเอกสารปัจจุบัน
 
 ## เริ่มใช้งาน
 
