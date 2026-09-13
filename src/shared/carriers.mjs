@@ -69,3 +69,29 @@ export function needsPaste(carrierValue) {
 export function carrierName(value) {
   return findCarrier(value)?.name || String(value || '').trim();
 }
+
+/**
+ * Query the merchant's configured Kerry/KEX account endpoint.
+ *
+ * Kerry's merchant contracts expose different base URLs and payload shapes,
+ * so the URL is deliberately an environment value rather than an invented
+ * public endpoint. The adapter is real once KERRY_TRACKING_API_URL and its
+ * credential are supplied; missing configuration returns a visible TODO state.
+ */
+export async function lookupKerryTracking(trackingNumber, options = {}) {
+  const number = String(trackingNumber || '').trim();
+  const endpoint = String(process.env.KERRY_TRACKING_API_URL || '').trim();
+  const apiKey = String(process.env.KERRY_TRACKING_API_KEY || '').trim();
+  if (!number) return { ok: false, error: 'tracking_number_required' };
+  if (!endpoint || !apiKey) return { ok: false, error: 'kerry_api_not_configured', todo: 'KERRY_TRACKING_API_URL and KERRY_TRACKING_API_KEY are required' };
+
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json', accept: 'application/json' },
+    body: JSON.stringify({ tracking_number: number }),
+    signal: options.signal,
+  });
+  const data = await response.json().catch(() => null);
+  if (!response.ok) return { ok: false, error: `kerry_api_${response.status}`, data };
+  return { ok: true, carrier: 'kerry', trackingNumber: number, data };
+}
