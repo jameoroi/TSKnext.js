@@ -3391,7 +3391,7 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
     const rl=await rateLimit(req,'admin-login-v2',8,15*60,username); if(!rl.ok) return tooMany(rl);
     // Values pasted into a dashboard often carry an accidental trailing
     // newline. Accept boundary whitespace only; the secret is never exposed.
-    const au=String(process.env.ADMIN_USERNAME||'').trim(), ap=String(process.env.ADMIN_PASSWORD||'').trim();
+    const au=String(process.env.ADMIN_USERNAME||'').trim().replace(/^['\"]|['\"]$/g,''), ap=String(process.env.ADMIN_PASSWORD||'').trim().replace(/^['\"]|['\"]$/g,'');
     if(!au||!ap) return json({ok:false,error:'admin_not_configured'},503);
     if(ap.length<14) return json({ok:false,error:'admin_password_too_weak'},503);
     const ownerMatches=!!(username&&au&&crypto.timingSafeEqual(Buffer.from(sha(username)),Buffer.from(sha(au))));
@@ -6421,8 +6421,29 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
   if(action==='reviews.list'){
     const pid=clean(b.product_id||url.searchParams.get('product_id'),80); const ds=dataStore(); const ids=await getJSON(ds,`reviews-by-product:${pid}`)||[]; const reviews=[]; for(const id of ids.slice(-200).reverse()){const r=await getJSON(ds,`review:${id}`);if(r&&r.status==='approved')reviews.push(r);} const avg=reviews.length?reviews.reduce((a,x)=>a+Number(x.rating||0),0)/reviews.length:0; return json({ok:true,reviews,average:Number(avg.toFixed(2)),count:reviews.length});
   }
+  if(action==='customer.review.media.presign'){
+    if(ss.data?.type!=='customer') return json({ok:false,error:'login_required'},401);
+    if(!requireCsrf(b,ss)) return json({ok:false,error:'invalid_csrf'},403);
+    const rl=await rateLimit(req,'review-media',20,60*60,ss.data.customer.id); if(!rl.ok) return tooMany(rl);
+    if(!mediaConfigured()) return json({ok:false,error:'media_storage_not_configured'},503);
+    const productId=clean(b.product_id,80),mime=clean(b.mime_type,120).toLowerCase(),filename=clean(b.filename,180)||'review-image.webp';
+    const size=Math.max(0,Number(b.size_bytes||0));
+    if(!productId||!['image/png','image/jpeg','image/webp','image/gif','image/avif'].includes(mime)||size<=0||size>5*1024*1024) return json({ok:false,error:'invalid_review_media'},422);
+    const product=await getJSON(dataStore(),`product:${productId}`); if(!product) return json({ok:false,error:'not_found'},404);
+    const out=await presignUpload({filename,mime_type:mime,owner_type:'review',owner_id:productId,created_by:ss.data.customer.id});
+    return json({ok:true,...out});
+  }
+  if(action==='customer.review.media.commit'){
+    if(ss.data?.type!=='customer') return json({ok:false,error:'login_required'},401);
+    if(!requireCsrf(b,ss)) return json({ok:false,error:'invalid_csrf'},403);
+    const productId=clean(b.product_id,80),key=clean(b.key,600),mime=clean(b.mime_type,120).toLowerCase(),size=Math.max(0,Number(b.size_bytes||0));
+    if(!productId||!key.startsWith('review/')||!['image/png','image/jpeg','image/webp','image/gif','image/avif'].includes(mime)||size<=0||size>5*1024*1024) return json({ok:false,error:'invalid_review_media'},422);
+    const product=await getJSON(dataStore(),`product:${productId}`); if(!product) return json({ok:false,error:'not_found'},404);
+    const out=await commitMedia({key,mime_type:mime,size_bytes:size,width:Math.max(0,Number(b.width||0))||null,height:Math.max(0,Number(b.height||0))||null,owner_type:'review',owner_id:productId,created_by:ss.data.customer.id});
+    return json(out);
+  }
   if(action==='reviews.create'){
-    if(ss.data?.type!=='customer') return json({ok:false,error:'login_required'},401); if(!requireCsrf(b,ss)) return json({ok:false,error:'invalid_csrf'},403); const rl=await rateLimit(req,'review',8,60*60,ss.data.customer.id);if(!rl.ok)return tooMany(rl); const ds=dataStore(); const pid=clean(b.product_id,80), rating=Math.max(1,Math.min(5,Math.floor(Number(b.rating||0)))),comment=clean(b.comment,2000); if(!pid||!comment)return json({ok:false,error:'invalid_input'},422); const p=await getJSON(ds,`product:${pid}`);if(!p)return json({ok:false,error:'not_found'},404); const orderIds=await getJSON(ds,`orders-by-customer:${ss.data.customer.id}`)||[]; let verified=false; for(const oid of orderIds){const o=await getJSON(ds,`order:${oid}`);if(o&&['paid','processing','packing','shipped','completed'].includes(o.status)&&(o.items||[]).some(x=>x.id===pid)){verified=true;break;}} const id=crypto.randomUUID(); const r={id,product_id:pid,customer_id:ss.data.customer.id,customer_name:clean(ss.data.customer.name,100),rating,comment,verified_purchase:verified,status:'pending',created_at:new Date().toISOString()}; await ds.setJSON(`review:${id}`,r); const idx=await getJSON(ds,`reviews-by-product:${pid}`)||[];idx.push(id);await ds.setJSON(`reviews-by-product:${pid}`,idx);const all=await getJSON(ds,'review-index')||[];all.push(id);await ds.setJSON('review-index',all);return json({ok:true,review:r,message:'pending_moderation'});
+    if(ss.data?.type!=='customer') return json({ok:false,error:'login_required'},401); if(!requireCsrf(b,ss)) return json({ok:false,error:'invalid_csrf'},403); const rl=await rateLimit(req,'review',8,60*60,ss.data.customer.id);if(!rl.ok)return tooMany(rl); const ds=dataStore(); const pid=clean(b.product_id,80), rating=Math.max(1,Math.min(5,Math.floor(Number(b.rating||0)))),comment=clean(b.comment,2000); const rawImages=Array.isArray(b.images)?b.images:(Array.isArray(b.image_urls)?b.image_urls:[]); const images=rawImages.map(x=>clean(typeof x==='string'?x:x?.url,1200)).filter(x=>/^https?:\/\//i.test(x)||x.startsWith('/media/')).slice(0,5); if(!pid||!comment)return json({ok:false,error:'invalid_input'},422); const p=await getJSON(ds,`product:${pid}`);if(!p)return json({ok:false,error:'not_found'},404); const orderIds=await getJSON(ds,`orders-by-customer:${ss.data.customer.id}`)||[]; let verified=false; for(const oid of orderIds){const o=await getJSON(ds,`order:${oid}`);if(o&&['paid','processing','packing','shipped','completed'].includes(o.status)&&(o.items||[]).some(x=>x.id===pid)){verified=true;break;}} const id=crypto.randomUUID(); const r={id,product_id:pid,customer_id:ss.data.customer.id,customer_name:clean(ss.data.customer.name,100),rating,comment,images,verified_purchase:verified,status:'pending',created_at:new Date().toISOString()}; await ds.setJSON(`review:${id}`,r); const idx=await getJSON(ds,`reviews-by-product:${pid}`)||[];idx.push(id);await ds.setJSON(`reviews-by-product:${pid}`,idx);const all=await getJSON(ds,'review-index')||[];all.push(id);await ds.setJSON('review-index',all);return json({ok:true,review:r,message:'pending_moderation'});
   }
   if(action==='admin.reviews.list'){
     if(!isAdmin(ss))return json({ok:false,error:'unauthorized'},401);const ds=dataStore();const idx=await getJSON(ds,'review-index')||[];const reviews=[];for(const id of idx.slice(-500).reverse()){const r=await getJSON(ds,`review:${id}`);if(r)reviews.push(r);}return json({ok:true,reviews});
