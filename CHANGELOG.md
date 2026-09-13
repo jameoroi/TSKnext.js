@@ -2,4 +2,4 @@
 
 ## 6.0.0
 
-- No conventional commits found
+- docs(changelog): update generated changelog (c8786bb)
