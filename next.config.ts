@@ -1,3 +1,4 @@
+import path from 'node:path';
 import type { NextConfig } from 'next';
 import { SECURITY_HEADERS } from './src/shared/security-headers.mjs';
 
@@ -21,6 +22,22 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     optimizePackageImports: ['lucide-react', 'motion', 'echarts'],
+  },
+  // pnpm's isolated dependency links can point Webpack at a partially
+  // materialized package when a local install is interrupted. Resolve the
+  // runtime entrypoints from the root dependency links, which are also the
+  // paths used by the standalone production build. This does not change the
+  // package versions or runtime behavior.
+  webpack(config) {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'zod$': path.resolve(process.cwd(), 'node_modules/zod/index.js'),
+      'zod/v3$': path.resolve(process.cwd(), 'node_modules/zod/v3/index.js'),
+      'zod/v4$': path.resolve(process.cwd(), 'node_modules/zod/v4/index.js'),
+      'bullmq/dist/esm/classes/queue.js': path.resolve(process.cwd(), 'node_modules/bullmq/dist/esm/classes/queue.js'),
+      'bullmq/dist/esm/classes/worker.js': path.resolve(process.cwd(), 'node_modules/bullmq/dist/esm/classes/worker.js'),
+    };
+    return config;
   },
   async headers() {
     return [
