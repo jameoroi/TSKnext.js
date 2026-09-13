@@ -2,6 +2,7 @@ import 'server-only';
 
 import { headers } from 'next/headers';
 import legacyApi from '@/legacy-api/api.js';
+import { cacheGetJson, cacheSetJson } from '@/lib/redis';
 
 function normalizeOrigin(proto: string, host: string) {
   const scheme = proto === 'http' ? 'http' : 'https';
@@ -81,8 +82,14 @@ export async function safePublicLegacy<T>(
     const ttl = action.startsWith('products.') ? HEAVY_TTL_MS : TTL_MS;
     const hit = mem.get(key);
     if (hit && Date.now() - hit.at < ttl) return hit.data as T;
+    const remoteHit = await cacheGetJson<T>(`tsk:public:${key}`);
+    if (remoteHit !== null) {
+      mem.set(key, { at: Date.now(), data: remoteHit });
+      return remoteHit;
+    }
     const out = await cachedPublicRequest<T>(origin, action, params);
     mem.set(key, { at: Date.now(), data: out });
+    void cacheSetJson(`tsk:public:${key}`, out, Math.ceil(ttl / 1000));
     if (mem.size > MAX_ENTRIES) {
       const oldest = mem.keys().next();
       if (!oldest.done) mem.delete(oldest.value);

@@ -43,7 +43,7 @@ export const DYNAMIC_SECTIONS = {
   CATEGORY_SECTION: { source_future: 'Supabase: categories', slots: 8 },
   FEATURED_PRODUCTS: { source_future: 'Supabase: products', slots: 5 },
   FLASH_SALE: { source_future: 'Supabase: products / promotions', slots: 4 },
-  ARTICLE_SECTION: { source_future: 'Supabase: articles', slots: 5 },
+  ARTICLE_SECTION: { source_future: 'Supabase: articles', slots: 4 },
   BRAND_SECTION: { source_future: 'Supabase: brands', slots: 8 },
 } as const;
 
@@ -90,11 +90,22 @@ export type HomepageData = {
   promoBanners: Array<Record<string, unknown>>;
   categories: HomeCategory[];
   featured: Product[];
-  fresh: Product[];
   flash: { items: FlashSaleItem[]; endsAt: string };
   articles: HomeArticle[];
   brands: HomeBrand[];
 };
+
+export function emptyHomepageData(): HomepageData {
+  return {
+    banners: [],
+    promoBanners: [],
+    categories: [],
+    featured: [],
+    flash: { items: [], endsAt: '' },
+    articles: [],
+    brands: [],
+  };
+}
 
 function text(value: unknown): string {
   return String(value ?? '').trim();
@@ -174,15 +185,21 @@ function mapFlashSale(product: Product): FlashSaleItem | null {
 }
 
 export async function getHomepageData(): Promise<HomepageData> {
-  const [site, categoryRows, brandRows, featuredRes, freshRes, saleRes, articlePayload] = await Promise.all([
-    getSiteSettings(),
-    getCategories(),
-    getBrands(),
-    getProducts({ featured: 1, per_page: 10 }),
-    getProducts({ page: 1, per_page: 12 }),
-    getProducts({ status: 'สินค้าลดราคา', per_page: 60 }),
-    safePublicLegacy<{ items?: unknown }>('content.list', { kind: 'article' }, { items: [] }),
-  ]);
+  const [siteResult, categoryResult, brandResult, featuredResult, saleResult, articleResult] =
+    await Promise.allSettled([
+      getSiteSettings(),
+      getCategories(),
+      getBrands(),
+      getProducts({ featured: 1, per_page: 10 }),
+      getProducts({ status: 'สินค้าลดราคา', per_page: 60 }),
+      safePublicLegacy<{ items?: unknown }>('content.list', { kind: 'article' }, { items: [] }),
+    ]);
+  const site = siteResult.status === 'fulfilled' ? siteResult.value : {};
+  const categoryRows = categoryResult.status === 'fulfilled' ? categoryResult.value : [];
+  const brandRows = brandResult.status === 'fulfilled' ? brandResult.value : [];
+  const featuredRes = featuredResult.status === 'fulfilled' ? featuredResult.value : { products: [] };
+  const saleRes = saleResult.status === 'fulfilled' ? saleResult.value : { products: [] };
+  const articlePayload = articleResult.status === 'fulfilled' ? articleResult.value : { items: [] };
 
   const banners = Array.isArray(site.banners)
     ? site.banners.filter((row): row is Record<string, unknown> => Boolean(row && typeof row === 'object'))
@@ -201,7 +218,6 @@ export async function getHomepageData(): Promise<HomepageData> {
 
   const active = (list: Product[]) => list.filter((p) => p?.state !== 'inactive');
   const featured = active(featuredRes.products).slice(0, DYNAMIC_SECTIONS.FEATURED_PRODUCTS.slots);
-  const fresh = active(freshRes.products).slice(0, DYNAMIC_SECTIONS.FEATURED_PRODUCTS.slots);
 
   const flashItems = active(saleRes.products)
     .map(mapFlashSale)
@@ -227,7 +243,6 @@ export async function getHomepageData(): Promise<HomepageData> {
     promoBanners: promoBanners.slice(0, DYNAMIC_SECTIONS.PROMOTION_BANNERS.slots),
     categories,
     featured,
-    fresh,
     flash: { items: flashItems, endsAt: text(site.flash_sale_ends_at) },
     articles,
     brands,
