@@ -18,7 +18,6 @@ import { PromoBanners } from '@/components/home/promo-banners';
 import { SaleCountdown } from '@/components/home/sale-countdown';
 import { SectionTitle } from '@/components/home/section-title';
 import { ServiceBenefits } from '@/components/home/service-benefits';
-import { getSiteSettings } from '@/server/catalog';
 import { DYNAMIC_SECTIONS, emptyHomepageData, getHomepageData } from '@/server/homepage';
 
 /**
@@ -43,9 +42,8 @@ import { DYNAMIC_SECTIONS, emptyHomepageData, getHomepageData } from '@/server/h
  * ============================================================================
  */
 export default async function HomePage() {
-  const [siteResult, homeResult] = await Promise.allSettled([getSiteSettings(), getHomepageData()]);
-  const site = siteResult.status === 'fulfilled' ? siteResult.value : {};
-  const home = homeResult.status === 'fulfilled' ? homeResult.value : emptyHomepageData();
+  const homeResult = await Promise.allSettled([getHomepageData()]);
+  const home = homeResult[0].status === 'fulfilled' ? homeResult[0].value : emptyHomepageData();
 
   const categorySlots = DYNAMIC_SECTIONS.CATEGORY_SECTION.slots;
   const featuredSlots = DYNAMIC_SECTIONS.FEATURED_PRODUCTS.slots;
@@ -60,7 +58,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <EntryPopup popup={(site.entry_popup ?? null) as ComponentProps<typeof EntryPopup>['popup']} />
+      <EntryPopup popup={home.entryPopup as ComponentProps<typeof EntryPopup>['popup']} />
 
       {/* 2. HERO — STATIC_UI / CMS_READY (Supabase: banners) */}
       <Hero banners={home.banners} />
