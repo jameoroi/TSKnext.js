@@ -50,11 +50,11 @@ export function StorefrontChrome() {
       <Dock href="/account" icon={<UserRound size={19}/>} label="บัญชี"/>
     </nav>
 
-    {compare.ids.length > 0 && <aside className={`fixed right-4 z-50 flex items-center gap-3 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-bold text-white shadow-xl ${showRecent ? 'bottom-40 md:bottom-24' : 'bottom-20 md:bottom-5'}`} aria-label="รายการเปรียบเทียบ">
+    {compare.ids.length > 0 && <aside className={`fixed right-4 z-50 flex items-center gap-3 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-bold text-white shadow-xl ${showRecent ? 'bottom-[17rem] md:bottom-48' : 'bottom-[11.5rem] md:bottom-28'}`} aria-label="รายการเปรียบเทียบ">
       <Scale size={17}/><span>เปรียบเทียบ {compare.ids.length}/4</span><Link href="/compare" className="rounded-lg bg-white px-3 py-1.5 text-xs text-slate-950">ดูรายการ</Link><button type="button" onClick={compare.clear} className="text-white/70 hover:text-white" aria-label="ล้างรายการเปรียบเทียบ"><X size={17}/></button>
     </aside>}
 
-    {showRecent && <aside className="fixed inset-x-3 bottom-20 z-40 mx-auto flex max-w-3xl items-center gap-2 rounded-2xl border bg-white p-2.5 shadow-xl md:bottom-5">
+    {showRecent && <aside className="fixed inset-x-3 bottom-[12rem] z-40 mx-auto flex max-w-3xl items-center gap-2 rounded-2xl border bg-white p-2.5 shadow-xl md:bottom-28">
       <Link href={`/products/${encodeURIComponent(String(recent.id))}`} className="flex min-w-0 flex-1 items-center gap-3"><img src={String(recent.img || recent.imageUrl || recent.image_url || '/legacy-assets/logo.png')} alt="" className="size-11 shrink-0 rounded-xl bg-slate-50 object-contain p-1"/><span className="min-w-0"><small className="block text-[10px] font-bold uppercase tracking-wide text-emerald-700">สินค้าที่เพิ่งดู</small><b className="block truncate text-sm">{String(recent.name || '')}</b></span><strong className="ml-auto shrink-0 text-sm text-emerald-950">฿{Number(recent.price || 0).toLocaleString('th-TH')}</strong></Link><button type="button" onClick={() => addToCart({ id: String(recent.id), name: String(recent.name || ''), price: Number(recent.price || 0), brand: String(recent.brand || ''), img: String(recent.img || recent.imageUrl || recent.image_url || '') } as any, 1)} className="hidden shrink-0 rounded-xl bg-emerald-900 px-3 py-2 text-xs font-bold text-white hover:bg-emerald-800 sm:inline-flex">สั่งซื้อ</button><button type="button" onClick={() => setRecentDismissed(true)} className="grid size-8 shrink-0 place-items-center rounded-full hover:bg-slate-100" aria-label="ปิด"><X size={16}/></button>
     </aside>}
 
