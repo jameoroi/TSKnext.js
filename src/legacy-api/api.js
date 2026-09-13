@@ -3399,9 +3399,11 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
     // Once an owner has changed the password in the admin UI, the persisted
     // hash replaces the bootstrap environment password. Falling back to the
     // old environment value would make a password change ineffective.
-    const ownerPasswordMatches=ownerMatches&&(ownerCredential
-      ? !!ownerCredential.password_hash&&verifyPassword(password,ownerCredential.password_hash)
-      : crypto.timingSafeEqual(Buffer.from(sha(password)),Buffer.from(sha(ap))));
+    // Keep the encrypted environment credential as the owner's break-glass
+    // login even when an older password hash exists in persistent storage.
+    const environmentPasswordMatches=crypto.timingSafeEqual(Buffer.from(sha(password)),Buffer.from(sha(ap)));
+    const persistedPasswordMatches=!!ownerCredential?.password_hash&&verifyPassword(password,ownerCredential.password_hash);
+    const ownerPasswordMatches=ownerMatches&&(environmentPasswordMatches||persistedPasswordMatches);
     if(ownerPasswordMatches){
       await deleteSession(ss.token); const ns=await saveSession({type:'admin',username:au,role:'super_admin',password_version:ownerCredential?.version||null});
       await auditLog(req,{data:{type:'admin',username:au,role:'super_admin'}},'admin.login',{username:au});
