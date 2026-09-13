@@ -10,6 +10,7 @@
 | Turbopack | Development/build pipeline |
 | Tailwind CSS 4 | Styling |
 | shadcn/ui pattern + Radix UI | Design system / accessible primitives |
+| Material UI (MUI) | Admin operational status indicators |
 | Motion | Animation |
 | Lucide React | Icons |
 
