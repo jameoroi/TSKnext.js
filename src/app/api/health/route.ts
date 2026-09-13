@@ -2,10 +2,13 @@ import { NextResponse } from 'next/server';
 import { redisConfigStatus, redisHealth } from '@/lib/redis';
 import { searchClient } from '@/lib/search';
 import { databaseConfigured } from '@/server/db/client';
-import { mediaConfigured } from '@/legacy-api/lib/media.js';
+
+
 
 
 export const dynamic = 'force-dynamic';
+
+
 
 
 export async function GET() {
@@ -21,7 +24,11 @@ export async function GET() {
     meilisearch: Boolean(searchClient()),
     ai: Boolean(process.env.OPENAI_API_KEY),
     kitQuote: Boolean(process.env.KIT_QUOTE_SECRET || process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET),
-    objectStorage: mediaConfigured(),
+    objectStorage: Boolean(
+      ((process.env.MEDIA_S3_ENDPOINT || process.env.S3_ENDPOINT) &&
+        (process.env.MEDIA_BUCKET || process.env.S3_BUCKET)) ||
+        (process.env.SUPABASE_URL && process.env.SUPABASE_SECRET_KEY),
+    ),
     email: Boolean(process.env.RESEND_API_KEY || process.env.SMTP_HOST),
   };
   return NextResponse.json(
@@ -34,3 +41,4 @@ export async function GET() {
       redis,
       redisConfig: redisConfigStatus(),
       build:
+
