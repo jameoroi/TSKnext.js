@@ -8,8 +8,10 @@ type RedisRestResponse = { result?: unknown; error?: string };
 let restBackoffUntil = 0;
 
 function redisRestConfig(): RedisRestConfig | null {
-  const configuredUrl = String(process.env.REDIS_REST_URL || process.env.REDIS_URL || '').trim();
-  const token = String(process.env.REDIS_REST_TOKEN || '').trim();
+  const configuredUrl = String(
+    process.env.REDIS_REST_URL || process.env.UPSTASH_REDIS_REST_URL || process.env.REDIS_URL || '',
+  ).trim();
+  const token = String(process.env.REDIS_REST_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || '').trim();
   if (!/^https:\/\//i.test(configuredUrl) || !token) return null;
   return { url: configuredUrl.replace(/\/+$/, ''), token };
 }
