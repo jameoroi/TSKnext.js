@@ -1,0 +1,44 @@
+name: Production smoke test
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: [Deploy, Cloudflare Deploy]
+    types: [completed]
+
+concurrency:
+  group: production-smoke
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    env:
+      SMOKE_BASE_URL: ${{ secrets.PRODUCTION_URL }}
+      SMOKE_ADMIN_USERNAME: ${{ secrets.SMOKE_ADMIN_USERNAME }}
+      SMOKE_ADMIN_PASSWORD: ${{ secrets.SMOKE_ADMIN_PASSWORD }}
+      SMOKE_TURNSTILE_TOKEN: ${{ secrets.SMOKE_TURNSTILE_TOKEN }}
+      SMOKE_ALLOW_MUTATIONS: ${{ vars.SMOKE_ALLOW_MUTATIONS }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 11.16.0 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: pnpm
+      - name: Check smoke configuration
+        shell: bash
+        run: |
+          if [ -z "$SMOKE_BASE_URL" ]; then
+            echo "PRODUCTION_URL is not configured; smoke test is not run."
+            exit 0
+          fi
+          if [ "$SMOKE_ALLOW_MUTATIONS" != "1" ]; then
+            echo "SMOKE_ALLOW_MUTATIONS is not 1; refusing destructive smoke test."
+            exit 1
+          fi
+      - name: Run full commerce smoke flow
+        if: ${{ env.SMOKE_BASE_URL != '' }}
+        run: node scripts/smoke-test.mjs
