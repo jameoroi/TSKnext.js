@@ -17,7 +17,7 @@ test('service worker cannot be pinned by intermediary caches', async ({ request 
   expect(response.ok()).toBeTruthy();
   expect(response.headers()['cache-control']).toContain('no-cache');
   expect(response.headers()['service-worker-allowed']).toBe('/');
-  expect(await response.text()).toContain('tsk-next-sw-v2');
+  expect(await response.text()).toContain('tsk-next-sw-v3');
 });
 
 test('web app manifest is served as a manifest', async ({ request }) => {

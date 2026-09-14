@@ -633,6 +633,20 @@ export function Header() {
             <Boxes size={19} />
             <span>จัดเซ็ตอุปกรณ์</span>
           </Link>
+          {/* Mobile-only kits shortcut. The drawer holds the full kits link,
+            but nothing outside it is visible below lg — and the drawer needs
+            client JS to open. This icon keeps the set builder one tap away on
+            phones with zero JS dependency. Hidden while the drawer is open so
+            the accessible name never matches twice. */}
+          {!menuOpen ? (
+            <Link
+              href="/kits"
+              className="relative flex items-center rounded-xl px-2 py-2 text-violet-700 hover:bg-violet-50 lg:hidden"
+              aria-label="จัดเซ็ตอุปกรณ์"
+            >
+              <Boxes size={20} />
+            </Link>
+          ) : null}
           <Link
             href="/compare"
             className="relative hidden items-center gap-2 rounded-xl px-2.5 py-2 text-xs font-bold hover:bg-slate-100 lg:flex"
@@ -726,6 +740,9 @@ export function Header() {
             </Suspense>
             <NavLink href="/brands" active={pathname === '/brands'}>
               แบรนด์
+            </NavLink>
+            <NavLink href="/kits" active={pathname === '/kits'}>
+              จัดเซ็ตอุปกรณ์
             </NavLink>
             <NavLink href="/news" active={pathname === '/news'}>
               บทความ
