@@ -20,9 +20,10 @@ export default async function AdminDashboard() {
     apiErrors.push(`catalog: ${error instanceof Error ? error.message : 'unknown_error'}`);
   }
 
+  const commerceViaSupabase = Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SECRET_KEY);
   const services = [
-    ['PostgreSQL', databaseConfigured(), Database],
-    ['Commerce API', Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SECRET_KEY), ServerCog],
+    [commerceViaSupabase ? 'PostgreSQL (optional)' : 'PostgreSQL', databaseConfigured(), Database],
+    [commerceViaSupabase ? 'Commerce API (Supabase)' : 'Commerce API', commerceViaSupabase, ServerCog],
     ['Meilisearch', Boolean(process.env.MEILISEARCH_HOST), Search],
     ['OpenAI', Boolean(process.env.OPENAI_API_KEY), Sparkles],
   ] as const;

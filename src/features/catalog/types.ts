@@ -55,5 +55,6 @@ export const productImageCandidates = (product: Product) => {
 export const productImage = (product: Product) =>
   productImageCandidates(product)[0] || '/legacy-assets/logo.png';
 export const productOldPrice = (product: Product) => Number(product.oldPrice ?? product.old_price ?? 0) || 0;
+const CANONICAL_STORE_ORIGIN = 'https://jayxtsk.shop';
 export const productHref = (product: Product) =>
-  `/products/${encodeURIComponent(String(product.slug || product.id))}`;
+  `${CANONICAL_STORE_ORIGIN}/products/${encodeURIComponent(String(product.slug || product.id))}`;

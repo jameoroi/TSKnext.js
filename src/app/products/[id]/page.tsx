@@ -40,6 +40,14 @@ function absoluteUrl(origin: string, value: unknown) {
   }
 }
 
+function isWorkerOrigin(origin: string) {
+  try {
+    return /\.workers\.dev$/i.test(new URL(origin).hostname);
+  } catch {
+    return false;
+  }
+}
+
 function liveVariants(product: Product) {
   return (Array.isArray((product as any).variants) ? (product as any).variants : []).filter(
     (row: any) => row?.state !== 'hidden' && row?.state !== 'discontinued',
@@ -102,6 +110,11 @@ export default async function ProductPage({ params }: Props) {
     permanentRedirect(`/products/${encodeURIComponent(payload.moved_to)}`);
   const product = payload.product;
   if (!product) notFound();
+
+  // A preview/worker hostname is useful for deployment diagnostics, not a
+  // customer-facing storefront URL. Existing bookmarks from that hostname
+  // are moved to the custom domain after the product has been resolved.
+  if (isWorkerOrigin(origin)) permanentRedirect(productHref(product));
 
   const [recommendations, session] = await Promise.all([
     safeLegacy<any>('products.recommend', { id: product.id, limit: 8 }, { recommendations: [] }),

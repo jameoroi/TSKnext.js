@@ -65,8 +65,16 @@ export function BackendStatus() {
 
   const state = useMemo(() => {
     const services = health?.services || {};
-    const critical = ['database', 'commerceApi', 'kitQuote'];
-    const criticalDown = critical.filter((key) => !serviceOk(services[key]));
+    const criticalDown: string[] = [];
+    // Supabase is a supported production commerce backend. PostgreSQL is
+    // required only when the deployment explicitly selected the relational
+    // storage path; otherwise showing it as Critical falsely says that a
+    // working Supabase catalogue is offline.
+    const commerceReady = serviceOk(services.commerceApi);
+    const storage = String(services.commerceStorage || '').toLowerCase();
+    if (!commerceReady) criticalDown.push('commerceApi');
+    if (storage === 'postgres' && !serviceOk(services.database)) criticalDown.push('database');
+    if (!serviceOk(services.kitQuote)) criticalDown.push('kitQuote');
     const optionalDown = ['redis', 'meilisearch', 'ai', 'objectStorage', 'email'].filter(
       (key) => !serviceOk(services[key]),
     );

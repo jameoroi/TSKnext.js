@@ -203,10 +203,27 @@ export async function getProduct(idOrSlug: string) {
       }
     }
   }
+  const fallback = { product: null } as {
+    product: Product | null;
+    error?: string;
+    moved_to?: string;
+  };
+  // Keep the two public forms separate. This avoids asking the compatibility
+  // API to interpret a long human slug as both an id and a slug, and gives the
+  // edge/cache layer a stable key for each form. The API accepts both, but the
+  // server-rendered detail page must not turn a valid slug into a 404 just
+  // because an imported row is not present in the legacy id index.
+  const looksLikeSourceId = /^source-[a-f0-9]{32}$/i.test(idOrSlug);
+  const primary = await safePublicLegacy<{ product?: Product | null; error?: string; moved_to?: string }>(
+    'products.get',
+    looksLikeSourceId ? { id: idOrSlug } : { slug: idOrSlug },
+    fallback,
+  );
+  if (primary.product || primary.error === 'moved') return primary;
   return safePublicLegacy<{ product?: Product | null; error?: string; moved_to?: string }>(
     'products.get',
-    { id: idOrSlug, slug: idOrSlug },
-    { product: null },
+    looksLikeSourceId ? { slug: idOrSlug } : { id: idOrSlug },
+    fallback,
   );
 }
 
