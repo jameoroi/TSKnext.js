@@ -7,6 +7,7 @@
 ## กติกาหลัก
 
 - Next.js เป็นตัว orchestrate route, server rendering, API route และ production build
+- Turbopack ใช้เป็น dev bundler ผ่าน `pnpm dev`; Cloudflare production ใช้ Webpack ผ่าน OpenNext เพราะ Turbopack เป็นเครื่องมือ build ไม่ใช่ runtime ที่ส่งไปกับหน้าเว็บ
 - React เป็นตัวประกอบ UI; Tailwind/CSS เป็นตัวกำหนด layout และ visual system
 - Radix ใช้กับ primitive ที่ต้องการ accessibility สูง; MUI ใช้กับงาน data-heavy ของ portal/admin
 - TanStack Query รับผิดชอบ server state/cache; Zustand รับผิดชอบ client state ที่แชร์ข้าม component
@@ -28,7 +29,7 @@
 | UI | `tailwindcss`, `@tailwindcss/postcss` | Utility CSS และ token build | globals.css, legacy theme |
 | UI | `@mui/material` | ตาราง/ฟอร์ม/คอมโพเนนต์ admin ที่ซับซ้อน | Emotion, React |
 | UI | `@emotion/cache`, `@emotion/react`, `@emotion/styled` | Style engine ของ MUI และ theme cache | MUI, React |
-| UI | `@radix-ui/react-dialog`, `radix-ui` | Accessible primitive และ dialog | React, CSS |
+| UI | `@radix-ui/react-dialog`, `radix-ui` | Accessible primitive และ dialog; ใช้งานจริงใน auth/quick-view พร้อม `data-radix-ui` สำหรับตรวจสอบ DOM | React, CSS |
 | UI | `lucide-react` | Icon system | React, Tailwind |
 | UI | `motion` | Motion/transition | React, reduced-motion CSS |
 | UI | `class-variance-authority`, `clsx`, `tailwind-merge` | ประกอบ class และ variant | Tailwind components |
@@ -72,6 +73,7 @@
 | Database tool | `drizzle-kit` | Generate/migrate/schema tooling |
 | Next edge | `@opennextjs/cloudflare` | OpenNext adapter สำหรับ Cloudflare |
 | Edge tool | `wrangler` | Cloudflare local preview/deploy |
+| Dev bundler | `Turbopack` (Next.js `--turbopack`) | Fast incremental dev bundling ผ่าน `pnpm dev`; ไม่ใช่ runtime dependency ของ production | Next.js dev server |
 
 ## จุดต่อระบบที่ห้ามข้ามชั้น
 

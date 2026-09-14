@@ -1,9 +1,9 @@
 'use client';
 
-import * as Dialog from '@radix-ui/react-dialog';
 import { Eye, ShoppingCart, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Dialog } from 'radix-ui';
 import { useCartStore } from '@/features/cart/store';
 import { useQuickViewStore } from '@/features/catalog/quick-view';
 import { productHref, productImage, productOldPrice } from '@/features/catalog/types';
@@ -62,7 +62,10 @@ export function QuickViewModal() {
     >
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-[100] bg-slate-950/55 backdrop-blur-[2px] data-[state=open]:animate-in" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-[101] max-h-[92dvh] w-[min(920px,calc(100vw-24px))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-3xl border bg-white shadow-2xl outline-none">
+        <Dialog.Content
+          data-radix-ui="dialog"
+          className="fixed left-1/2 top-1/2 z-[101] max-h-[92dvh] w-[min(920px,calc(100vw-24px))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-3xl border bg-white shadow-2xl outline-none"
+        >
           <Dialog.Title className="sr-only">ดูสินค้าแบบย่อ: {product.name}</Dialog.Title>
           <Dialog.Description className="sr-only">
             ดูราคา สถานะสินค้า และเพิ่มลงตะกร้าโดยไม่ออกจากหน้าปัจจุบัน

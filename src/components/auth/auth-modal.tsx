@@ -1,7 +1,7 @@
 'use client';
 
-import * as Dialog from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
+import { Dialog } from 'radix-ui';
 import { useAuthModalStore } from '@/features/auth/modal-store';
 import { LoginForm } from './login-form';
 
@@ -16,7 +16,10 @@ export function AuthModal() {
     >
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-[105] bg-emerald-950/60 backdrop-blur-sm" />
-        <Dialog.Content className="fixed bottom-0 left-1/2 z-[106] max-h-[92dvh] w-full max-w-[470px] -translate-x-1/2 overflow-y-auto rounded-t-3xl bg-white p-5 shadow-2xl outline-none sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2 sm:rounded-3xl sm:p-7">
+        <Dialog.Content
+          data-radix-ui="dialog"
+          className="fixed bottom-0 left-1/2 z-[106] max-h-[92dvh] w-full max-w-[470px] -translate-x-1/2 overflow-y-auto rounded-t-3xl bg-white p-5 shadow-2xl outline-none sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2 sm:rounded-3xl sm:p-7"
+        >
           <Dialog.Close
             className="absolute right-4 top-4 grid size-9 place-items-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200"
             aria-label="ปิด"
