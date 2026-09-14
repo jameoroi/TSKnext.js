@@ -12,8 +12,8 @@
     { "pattern": "www.jayxtsk.shop", "custom_domain": true }
   ],
   "vars": {
-    "APP_ORIGIN": "https://thaiserxtra.jame-orori.workers.dev",
-    "NEXT_PUBLIC_APP_ORIGIN": "https://thaiserxtra.jame-orori.workers.dev"
+    "APP_ORIGIN": "https://jayxtsk.shop",
+    "NEXT_PUBLIC_APP_ORIGIN": "https://jayxtsk.shop"
   },
   "observability": { "enabled": true }
 }

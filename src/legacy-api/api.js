@@ -832,6 +832,40 @@ async function queryProductsSupabase({category='',brandId='',brandName='',brandN
   }catch(error){console.warn('supabase catalog query failed; using compatibility fallback',error?.message||error);return null;}
 }
 
+/**
+ * Fetch one product by its public id or slug from the same Supabase catalogue
+ * used by products.list. Imported products are not guaranteed to exist in the
+ * legacy KV index, so products.get must not rely on that index for detail URLs.
+ * Keep this as two exact filters (rather than a hand-built `or` expression)
+ * so a route parameter can never become PostgREST filter syntax.
+ */
+async function findProductSupabase({id='',slug=''}={}){
+  const base=String(process.env.SUPABASE_URL||'').replace(/\/$/,'');
+  const secret=process.env.SUPABASE_SECRET_KEY;
+  if(!base||!secret)return null;
+  const find=async(field,value)=>{
+    const wanted=String(value||'').trim();
+    if(!wanted)return null;
+    const params=new URLSearchParams({
+      select:'value',namespace:`eq.${dataNamespace()}`,key:'like.product:*',limit:'1',
+    });
+    params.set(`value->>${field}`,`eq.${wanted}`);
+    const response=await fetch(`${base}/rest/v1/app_kv?${params}`,{
+      headers:{apikey:secret,authorization:`Bearer ${secret}`},
+      signal:AbortSignal.timeout(8000),
+    });
+    if(!response.ok)throw new Error(`supabase_product_${field}_${response.status}`);
+    const rows=await response.json();
+    return rows?.[0]?.value||null;
+  };
+  try{
+    return (await find('id',id)) || (await find('slug',slug));
+  }catch(error){
+    console.warn('supabase product detail lookup failed',error?.message||error);
+    return null;
+  }
+}
+
 
 /**
  * How many sellable products each category actually holds.
@@ -5136,6 +5170,9 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
     }
     if(!p && slug && postgresEnabled()){ try{const result=await database().pool.query(`SELECT value FROM app_kv WHERE namespace=$1 AND key LIKE 'product:%' AND value->>'slug'=$2 LIMIT 1`,[dataNamespace(),slug]);p=result.rows[0]?.value||null;}catch{} }
     if(!p && slug){ for(const cand of await listJSONByPrefix(ds,'product:','product-index')){ if(cand?.slug===slug){ p=cand; break; } } }
+    // The public listing can be backed by Supabase even when the legacy KV
+    // index is incomplete. Resolve both forms here so every card link opens.
+    if(!p && (id||slug)) p=await findProductSupabase({id,slug});
     // Whatever path found it, the index knows next time.
     if(p&&p.slug&&p.slug===slug){ try{ await syncSlugIndex(ds,String(p.id),p.slug); }catch{} }
     /*
