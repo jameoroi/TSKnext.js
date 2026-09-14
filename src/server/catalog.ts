@@ -242,7 +242,10 @@ export async function getProduct(idOrSlug: string) {
   // 404 while /api?action=products.get can still resolve it.
   const publicLookup = await (async () => {
     try {
-      const origin = await requestOrigin();
+      const configuredOrigin = String(
+        process.env.NEXT_PUBLIC_APP_ORIGIN || process.env.APP_ORIGIN || '',
+      ).replace(/\/$/, '');
+      const origin = /^https?:\/\//.test(configuredOrigin) ? configuredOrigin : await requestOrigin();
       const query = new URLSearchParams({ action: 'products.get' });
       query.set(looksLikeSourceId ? 'id' : 'slug', idOrSlug);
       const response = await fetch(`${origin}/api?${query.toString()}`, {
