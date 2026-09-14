@@ -75,7 +75,7 @@ export default async function AboutPage() {
             >
               <div>
                 <p className="text-sm font-black text-slate-500">STORE_IMAGE</p>
-                <p className="mt-1 text-xs text-slate-400">รูปหน้าร้านจะแสดงที่นี่เมื่อมีข้อมูลจากระบบหลังบ้าน</p>
+                <p className="mt-1 text-xs text-slate-600">รูปหน้าร้านจะแสดงที่นี่เมื่อมีข้อมูลจากระบบหลังบ้าน</p>
               </div>
             </div>
           )}

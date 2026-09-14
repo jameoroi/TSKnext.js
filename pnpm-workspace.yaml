@@ -10,4 +10,11 @@ allowBuilds:
 overrides:
   undici@5: '>=6.27.0'
   '@opentelemetry/propagator-jaeger': '>=2.9.0'
+  '@opentelemetry/core': '>=2.8.0'
   protobufjs: '>=8.4.1'
+
+peerDependencyRules:
+  allowedVersions:
+    'next-auth>nodemailer': '>=10'
+    '@auth/core>nodemailer': '>=10'
+    'openai>zod': '>=4'

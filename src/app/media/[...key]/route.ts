@@ -9,6 +9,28 @@ function encodedPath(key: string) {
     .join('/');
 }
 
+async function fromR2(key: string) {
+  try {
+    const { getCloudflareContext } = await import('@opennextjs/cloudflare');
+    const env = getCloudflareContext().env as {
+      PRODUCT_MEDIA?: {
+        get: (key: string) => Promise<{
+          arrayBuffer: () => Promise<ArrayBuffer>;
+          httpMetadata?: { contentType?: string };
+        } | null>;
+      };
+    };
+    const object = await env.PRODUCT_MEDIA?.get(key);
+    if (!object) return null;
+    return new Response(await object.arrayBuffer(), {
+      headers: { 'content-type': object.httpMetadata?.contentType || 'application/octet-stream' },
+    });
+  } catch {
+    // The Node/Vercel runtime has no Cloudflare request context.
+    return null;
+  }
+}
+
 async function fromSupabase(key: string) {
   const base = String(process.env.SUPABASE_URL || '').replace(/\/$/, '');
   const secret = String(process.env.SUPABASE_SECRET_KEY || '');
@@ -39,8 +61,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ key
     process.env.MEDIA_S3_SECRET_ACCESS_KEY || process.env.S3_SECRET_ACCESS_KEY || '',
   );
 
-  let upstream: Response | null = null;
-  if (endpoint && bucket && accessKeyId && secretAccessKey) {
+  let upstream: Response | null = await fromR2(key);
+  if (!upstream && endpoint && bucket && accessKeyId && secretAccessKey) {
     const signed = await presignS3Url({
       endpoint,
       bucket,
@@ -56,7 +78,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ key
         ).toLowerCase() !== 'false',
     });
     upstream = await fetch(signed, { redirect: 'follow' });
-  } else {
+  } else if (!upstream) {
     upstream = await fromSupabase(key);
   }
 

@@ -57,7 +57,7 @@ export function StorefrontChrome() {
   return (
     <>
       <nav
-        className="fixed inset-x-0 bottom-0 z-40 grid h-16 grid-cols-5 border-t bg-white/95 shadow-[0_-8px_30px_rgba(15,23,42,.08)] backdrop-blur md:hidden"
+        className="storefront-dock fixed inset-x-0 bottom-0 z-40 grid h-16 grid-cols-5 border-t bg-white/95 shadow-[0_-8px_30px_rgba(15,23,42,.08)] backdrop-blur md:hidden"
         aria-label="เมนูลัด"
       >
         <Dock href="/" icon={<Home size={19} />} label="หน้าหลัก" />

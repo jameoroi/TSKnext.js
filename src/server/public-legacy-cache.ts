@@ -2,6 +2,7 @@ import 'server-only';
 
 import { headers } from 'next/headers';
 import legacyApi from '@/legacy-api/api.js';
+import { storageBackend } from '@/legacy-api/lib/storage.js';
 import { cacheGetJson, cacheSetJson } from '@/lib/redis';
 
 function normalizeOrigin(proto: string, host: string) {
@@ -45,6 +46,17 @@ const HEAVY_TTL_MS = 180_000;
 const MAX_ENTRIES = 500;
 const mem = new Map<string, { at: number; data: unknown }>();
 
+/*
+ * These reads are backed by the commerce store.  Calling the compatibility
+ * endpoint when no store exists only creates an internal 500, a warning storm,
+ * and extra work for every page render.  Return the caller's explicit empty
+ * value immediately; once Postgres/Supabase is configured this guard becomes a
+ * no-op and the same cached transport is used.
+ */
+function requiresCommerceStorage(action: string) {
+  return /^(site|categories|brands|products|content)\./.test(action);
+}
+
 function cacheKey(origin: string, action: string, params: Record<string, unknown>) {
   return `${origin}|${action}|${JSON.stringify(params)}`;
 }
@@ -76,6 +88,7 @@ export async function safePublicLegacy<T>(
   params: Record<string, unknown> = {},
   fallback: T,
 ): Promise<T> {
+  if (requiresCommerceStorage(action) && storageBackend() === 'not-configured') return fallback;
   try {
     const origin = await requestOrigin();
     const key = cacheKey(origin, action, params);

@@ -217,7 +217,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
               ))}
             </div>
           ) : emptyCategory ? (
-            <div className="rounded-2xl border bg-white p-12 text-center">
+            <div className="catalog-empty-state rounded-2xl border bg-white p-12 text-center">
               <h2 className="text-xl font-bold">ยังไม่มีสินค้าในหมวด “{activeCategory?.name}” ตอนนี้</h2>
               <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">
                 ทางร้านกำลังทยอยเพิ่มสินค้าในหมวดนี้ ระหว่างนี้ลองดูหมวดอื่นได้เลย
@@ -230,7 +230,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
               </Link>
             </div>
           ) : (
-            <div className="rounded-2xl border bg-white p-12 text-center">
+            <div className="catalog-empty-state rounded-2xl border bg-white p-12 text-center">
               <h2 className="text-xl font-bold">ไม่พบสินค้าที่ตรงกับตัวกรองของคุณ</h2>
               <p className="mt-2 text-sm text-slate-500">ลองเปลี่ยนคำค้นหรือล้างตัวกรองแล้วค้นใหม่</p>
               <div className="mt-6">

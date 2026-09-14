@@ -190,13 +190,13 @@ function routeFromPage(file) {
     .filter(Boolean)
     .filter((x) => !(x.startsWith('(') && x.endsWith(')')))
     .map((x) => (x.startsWith('[') && x.endsWith(']') ? `:${x.slice(1, -1)}` : x));
-  return '/' + parts.join('/');
+  return `/${parts.join('/')}`;
 }
 function routeFromApi(file) {
   let rel = path.relative(path.join(root, 'src/app'), file).replaceAll('\\', '/');
   if (!rel.endsWith('/route.ts')) return null;
   rel = rel.slice(0, -'/route.ts'.length);
-  return '/' + rel;
+  return `/${rel}`;
 }
 
 const files = walk(root);
@@ -311,6 +311,8 @@ for (const check of checks)
 console.log(`\n${checks.filter((x) => x.ok).length}/${checks.length} checks passed`);
 if (problems.length) {
   console.error('\nSource audit failed:');
-  problems.forEach((p) => console.error(`- ${p}`));
+  problems.forEach((p) => {
+    console.error(`- ${p}`);
+  });
   process.exit(1);
 }

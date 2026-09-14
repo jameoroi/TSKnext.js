@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/auth';
 import { establishOauthCustomerSession } from '@/legacy-api/api.js';
 
 function safePath(value: string | null, fallback = '/account') {
@@ -17,6 +16,11 @@ function loginErrorUrl(request: Request, code: string, redirect: string) {
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const redirect = safePath(url.searchParams.get('redirect'));
+  if (process.env.NODE_ENV === 'production' && String(process.env.AUTH_SECRET || '').length < 32) {
+    return NextResponse.redirect(loginErrorUrl(request, 'auth_not_configured', redirect));
+  }
+
+  const { auth } = await import('@/auth');
   const session = await auth();
   const user = session?.user;
   const provider = String(user?.authProvider || '');

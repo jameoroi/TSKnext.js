@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { LockKeyhole, Mail, ShieldCheck, Store, UserPlus, UserRound } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getProviders, signIn } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -15,12 +15,14 @@ import { Input } from '@/components/ui/input';
 import { LegacyApiError, legacyRequest } from '@/lib/legacy-api.client';
 
 export type AuthTab = 'customer' | 'register' | 'admin' | 'agent' | 'supplier';
+export type SocialProvider = 'google' | 'facebook' | 'line';
 
 type LoginFormProps = {
   compact?: boolean;
   initialTab?: AuthTab;
   redirectTo?: string;
   onSuccess?: () => void;
+  socialProviders?: SocialProvider[];
 };
 
 const loginSchema = z.object({
@@ -91,7 +93,13 @@ function authError(error: unknown) {
   return map[code] || (code ? `ดำเนินการไม่สำเร็จ (${code})` : 'เชื่อมต่อระบบไม่สำเร็จ กรุณาลองใหม่');
 }
 
-export function LoginForm({ compact = false, initialTab, redirectTo = '', onSuccess }: LoginFormProps = {}) {
+export function LoginForm({
+  compact = false,
+  initialTab,
+  redirectTo = '',
+  onSuccess,
+  socialProviders = [],
+}: LoginFormProps = {}) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const requested = searchParams.get('role') || searchParams.get('next') || 'customer';
@@ -106,7 +114,6 @@ export function LoginForm({ compact = false, initialTab, redirectTo = '', onSucc
   const [success, setSuccess] = useState('');
   const [turnstileToken, setTurnstileToken] = useState('');
   const [rateSeconds, setRateSeconds] = useState(0);
-  const [socialProviders, setSocialProviders] = useState<Array<'google' | 'facebook' | 'line'>>([]);
   const [socialBusy, setSocialBusy] = useState<string>('');
 
   const login = useForm<LoginValue>({
@@ -121,21 +128,6 @@ export function LoginForm({ compact = false, initialTab, redirectTo = '', onSucc
   useEffect(() => {
     if (initialTab) setTab(initialTab);
   }, [initialTab]);
-  useEffect(() => {
-    let alive = true;
-    void getProviders()
-      .then((providers) => {
-        if (!alive) return;
-        const enabled = (['google', 'facebook', 'line'] as const).filter((provider) =>
-          Boolean(providers?.[provider]),
-        );
-        setSocialProviders([...enabled]);
-      })
-      .catch(() => {});
-    return () => {
-      alive = false;
-    };
-  }, []);
   useEffect(() => {
     const code = searchParams.get('oauth_error');
     if (!code) return;

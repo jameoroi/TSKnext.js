@@ -278,3 +278,87 @@ html[data-theme="dark"] .tsk-article .tsk-article-body {
 }
 html[data-theme="dark"] .tsk-article-body h3 { color: var(--tsk-ink) !important; }
 html[data-theme="dark"] .tsk-article-body time { color: var(--tsk-dim) !important; }
+
+/* Modern Tailwind storefront surfaces.  The legacy selectors above cannot
+ * reach App Router utility classes such as `bg-white`, so keep one bridge
+ * beside the theme tokens instead of duplicating dark rules in every page. */
+html[data-theme="dark"] main .bg-white,
+html[data-theme="dark"] main .catalog-card,
+html[data-theme="dark"] main .prod-card,
+html[data-theme="dark"] main [data-testid$="-placeholder"] {
+  background-color: var(--tsk-card) !important;
+  color: var(--tsk-ink) !important;
+  border-color: var(--tsk-line) !important;
+}
+
+html[data-theme="dark"] main .bg-slate-50 { background-color: #1b2922 !important; }
+html[data-theme="dark"] main .bg-slate-100 { background-color: #22332a !important; }
+html[data-theme="dark"] main .bg-slate-200 { background-color: #2d4338 !important; }
+
+html[data-theme="dark"] main .text-slate-950,
+html[data-theme="dark"] main .text-slate-900,
+html[data-theme="dark"] main .text-slate-800,
+html[data-theme="dark"] main .text-slate-700,
+html[data-theme="dark"] main .text-slate-600,
+html[data-theme="dark"] main .text-slate-500,
+html[data-theme="dark"] main .text-slate-400 {
+  color: var(--tsk-ink-2) !important;
+}
+
+html[data-theme="dark"] main .text-emerald-950,
+html[data-theme="dark"] main .text-emerald-900,
+html[data-theme="dark"] main .text-emerald-800,
+html[data-theme="dark"] main .text-emerald-700 {
+  color: #a7f3d0 !important;
+}
+
+html[data-theme="dark"] main .text-rose-700,
+html[data-theme="dark"] main .text-orange-700 {
+  color: #fecdd3 !important;
+}
+
+html[data-theme="dark"] .storefront-dock {
+  background-color: var(--tsk-card) !important;
+  color: var(--tsk-ink) !important;
+  border-color: var(--tsk-line) !important;
+}
+
+html[data-theme="dark"] .storefront-dock a { color: var(--tsk-ink-2) !important; }
+html[data-theme="dark"] .storefront-dock a:hover { color: #a7f3d0 !important; }
+
+html[data-theme="dark"] [role="dialog"].bg-white {
+  background: var(--tsk-card);
+  color: var(--tsk-ink);
+  border-color: var(--tsk-line);
+}
+
+html[data-theme="dark"] [role="dialog"] .bg-slate-50,
+html[data-theme="dark"] [role="dialog"] .bg-slate-100,
+html[data-theme="dark"] [role="dialog"] .bg-slate-200 {
+  background: var(--tsk-card-2);
+}
+
+html[data-theme="dark"] [role="dialog"] .text-slate-950,
+html[data-theme="dark"] [role="dialog"] .text-slate-900,
+html[data-theme="dark"] [role="dialog"] .text-slate-800,
+html[data-theme="dark"] [role="dialog"] .text-slate-700,
+html[data-theme="dark"] [role="dialog"] .text-slate-600,
+html[data-theme="dark"] [role="dialog"] .text-slate-500,
+html[data-theme="dark"] [role="dialog"] .text-slate-400 {
+  color: var(--tsk-ink-2);
+}
+
+html[data-theme="dark"] [role="dialog"] .text-emerald-950,
+html[data-theme="dark"] [role="dialog"] .text-emerald-900,
+html[data-theme="dark"] [role="dialog"] .text-emerald-800,
+html[data-theme="dark"] [role="dialog"] .text-emerald-700 {
+  color: #a7f3d0 !important;
+}
+
+html[data-theme="dark"] [role="dialog"] input.bg-white,
+html[data-theme="dark"] [role="dialog"] textarea.bg-white,
+html[data-theme="dark"] [role="dialog"] select.bg-white {
+  background: var(--tsk-card-2) !important;
+  color: var(--tsk-ink) !important;
+  border-color: #3a4f45 !important;
+}
