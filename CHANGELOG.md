@@ -2,6 +2,8 @@
 
 ## 6.0.0
 
+- fix(e2e): referral stub matches the real client contract (GET query) (e999e01)
+- docs(changelog): update generated changelog (0fce925)
 - fix(e2e): make kit entry SSR-visible, pin sw version, keep failure traces (c89598e)
 - docs(changelog): update generated changelog (d8531dc)
 - fix(ci): remove 2 dead legacy modules blocking legacy import audit (99f492f)
