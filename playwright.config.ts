@@ -6,10 +6,15 @@ export default defineConfig({
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
   use: { baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:3000', trace: 'retain-on-failure' },
   webServer: {
-    command: 'pnpm dev',
+    // Production build, not `next dev`: the dev server never hydrates in this
+    // repo's configuration (verified locally: zero React fibers, zero
+    // DevTools renderers, zero page errors on every page — while SSR serves
+    // fine), so every interaction test fails there regardless of app code.
+    // Testing the production artifact is also what shoppers actually get.
+    command: 'pnpm build && pnpm start',
     url: 'http://127.0.0.1:3000',
     reuseExistingServer: !process.env.CI,
-    timeout: 120000,
+    timeout: 420000,
   },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
