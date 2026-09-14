@@ -1,0 +1,42 @@
+name: Deploy to Cloudflare Workers
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        required: false
+        default: production
+        type: choice
+        options: [production]
+concurrency:
+  group: deploy-cloudflare-production
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 11.16.0 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: pnpm
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm migration:audit
+      - run: pnpm audit:source
+      - run: pnpm audit:release
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm build:cloudflare
+        env:
+          # Build-time only. Runtime secrets stay in wrangler secret store.
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
+          packageManager: pnpm
