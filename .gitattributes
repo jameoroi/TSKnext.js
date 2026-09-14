@@ -1,0 +1,5 @@
+# Normalize line endings: LF everywhere, so Biome/Prettier-style format gates
+# behave the same on Windows, macOS and Linux checkouts (and CI).
+# `text=auto` leaves git to detect the 51 tracked binaries (png/ico/...) —
+# detected binaries are never touched.
+* text=auto eol=lf

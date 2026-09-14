@@ -38,7 +38,9 @@ type CompareState = {
 };
 
 function normalizeCategory(value: unknown) {
-  return String(value || '').trim().toLowerCase();
+  return String(value || '')
+    .trim()
+    .toLowerCase();
 }
 
 function normalizeItem(value: unknown): CompareItem | null {
@@ -51,7 +53,10 @@ function normalizeItem(value: unknown): CompareItem | null {
     name: String(row.name || id).trim() || id,
     brand: row.brand ? String(row.brand) : undefined,
     price: Number(row.price) || 0,
-    img: row.img || row.image_url || row.imageUrl || row.image ? String(row.img || row.image_url || row.imageUrl || row.image) : undefined,
+    img:
+      row.img || row.image_url || row.imageUrl || row.image
+        ? String(row.img || row.image_url || row.imageUrl || row.image)
+        : undefined,
     category: normalizeCategory(row.category ?? row.category_key ?? row.categoryKey),
   };
 }
@@ -68,32 +73,46 @@ function toItem(product: Product | string): CompareItem | null {
     brand: product.brand,
     price: product.price,
     img: product.img || product.imageUrl || product.images?.[0],
-    category: product.category ?? (product as Record<string, unknown>).category_key ?? (product as Record<string, unknown>).categoryKey,
+    category:
+      product.category ??
+      (product as Record<string, unknown>).category_key ??
+      (product as Record<string, unknown>).categoryKey,
   });
 }
 
 function unique(items: CompareItem[]) {
   const seen = new Set<string>();
-  return items.filter((item) => {
-    if (seen.has(item.id)) return false;
-    seen.add(item.id);
-    return true;
-  }).slice(0, COMPARE_LIMIT);
+  return items
+    .filter((item) => {
+      if (seen.has(item.id)) return false;
+      seen.add(item.id);
+      return true;
+    })
+    .slice(0, COMPARE_LIMIT);
 }
 
 function readStored(): CompareItem[] {
   if (typeof window === 'undefined') return [];
   try {
     const legacy = JSON.parse(window.localStorage.getItem(LEGACY_STORAGE_KEY) || '[]');
-    if (Array.isArray(legacy)) return unique(legacy.map(normalizeItem).filter((row): row is CompareItem => Boolean(row)));
+    if (Array.isArray(legacy))
+      return unique(legacy.map(normalizeItem).filter((row): row is CompareItem => Boolean(row)));
   } catch {}
 
   // One migration pass for early Next builds that persisted only ids under
   // `tsk_next_compare`. We keep the old key untouched so rollback stays safe.
   try {
     const previous = JSON.parse(window.localStorage.getItem(NEXT_OLD_STORAGE_KEY) || 'null');
-    const ids = Array.isArray(previous?.state?.ids) ? previous.state.ids : Array.isArray(previous?.ids) ? previous.ids : [];
-    return unique(ids.map((id: unknown) => normalizeItem({ id, name: id, price: 0, category: '' })).filter((row: CompareItem | null): row is CompareItem => Boolean(row)));
+    const ids = Array.isArray(previous?.state?.ids)
+      ? previous.state.ids
+      : Array.isArray(previous?.ids)
+        ? previous.ids
+        : [];
+    return unique(
+      ids
+        .map((id: unknown) => normalizeItem({ id, name: id, price: 0, category: '' }))
+        .filter((row: CompareItem | null): row is CompareItem => Boolean(row)),
+    );
   } catch {
     return [];
   }
@@ -177,5 +196,7 @@ export const useCompareStore = create<CompareState>((set, get) => ({
 }));
 
 export function compareShareLink(ids: string[]) {
-  return ids.length ? `/compare?ids=${ids.slice(0, COMPARE_LIMIT).map(encodeURIComponent).join(',')}` : '/compare';
+  return ids.length
+    ? `/compare?ids=${ids.slice(0, COMPARE_LIMIT).map(encodeURIComponent).join(',')}`
+    : '/compare';
 }

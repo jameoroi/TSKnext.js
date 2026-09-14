@@ -1,5 +1,5 @@
-import { aiUsageLogs } from '@/server/db/schema';
 import { withDb } from '@/server/db/client';
+import { aiUsageLogs } from '@/server/db/schema';
 
 type Usage = {
   inputTokens?: number;

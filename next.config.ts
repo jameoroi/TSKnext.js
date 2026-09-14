@@ -16,9 +16,13 @@ const nextConfig: NextConfig = {
   cacheComponents: false,
   images: {
     formats: ['image/avif', 'image/webp'],
-    remotePatterns: [
-      { protocol: 'https', hostname: '**' },
-    ],
+    // Deliberately open until the media-mirroring backfill completes:
+    // supplier CSV rows and legacy records hotlink arbitrary image hosts,
+    // and narrowing this to an allow-list would 400 every unmirrored photo.
+    // Precondition for tightening: mirror 100% of product/category/content
+    // images into our own bucket (see mirrorRemoteImage), then restrict to
+    // [MEDIA_PUBLIC_BASE_URL, *.r2.dev, *.supabase.co, localhost].
+    remotePatterns: [{ protocol: 'https', hostname: '**' }],
   },
   experimental: {
     optimizePackageImports: ['lucide-react', 'motion', 'echarts'],
@@ -31,11 +35,17 @@ const nextConfig: NextConfig = {
   webpack(config) {
     config.resolve.alias = {
       ...config.resolve.alias,
-      'zod$': path.resolve(process.cwd(), 'node_modules/zod/index.js'),
+      zod$: path.resolve(process.cwd(), 'node_modules/zod/index.js'),
       'zod/v3$': path.resolve(process.cwd(), 'node_modules/zod/v3/index.js'),
       'zod/v4$': path.resolve(process.cwd(), 'node_modules/zod/v4/index.js'),
-      'bullmq/dist/esm/classes/queue.js': path.resolve(process.cwd(), 'node_modules/bullmq/dist/esm/classes/queue.js'),
-      'bullmq/dist/esm/classes/worker.js': path.resolve(process.cwd(), 'node_modules/bullmq/dist/esm/classes/worker.js'),
+      'bullmq/dist/esm/classes/queue.js': path.resolve(
+        process.cwd(),
+        'node_modules/bullmq/dist/esm/classes/queue.js',
+      ),
+      'bullmq/dist/esm/classes/worker.js': path.resolve(
+        process.cwd(),
+        'node_modules/bullmq/dist/esm/classes/worker.js',
+      ),
     };
     return config;
   },

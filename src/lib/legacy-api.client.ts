@@ -91,12 +91,19 @@ export async function legacyRequest<T>(
       );
       lastError = error;
 
-      const canRetry = method === 'GET' && RETRYABLE_GET_STATUS.has(response.status) && attempt + 1 < attempts;
+      const canRetry =
+        method === 'GET' && RETRYABLE_GET_STATUS.has(response.status) && attempt + 1 < attempts;
       if (!canRetry) throw error;
       await sleep(wait || Math.min(2000, 400 * 2 ** attempt));
     } catch (error) {
       if (error instanceof LegacyApiError) {
-        if (lastError === error && method === 'GET' && RETRYABLE_GET_STATUS.has(error.status) && attempt + 1 < attempts) continue;
+        if (
+          lastError === error &&
+          method === 'GET' &&
+          RETRYABLE_GET_STATUS.has(error.status) &&
+          attempt + 1 < attempts
+        )
+          continue;
         throw error;
       }
       // One bounded retry for an interrupted anonymous/read request. POST is

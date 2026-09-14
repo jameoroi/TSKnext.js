@@ -23,8 +23,13 @@ function connect() {
 
 export async function withDb<T>(run: (db: Db) => Promise<T>): Promise<T> {
   const { client, db } = connect();
-  try { return await run(db); }
-  finally { await client.end({ timeout: 5 }).catch(() => undefined); }
+  try {
+    return await run(db);
+  } finally {
+    await client.end({ timeout: 5 }).catch(() => undefined);
+  }
 }
 
-export function openDb() { return connect(); }
+export function openDb() {
+  return connect();
+}

@@ -1,10 +1,13 @@
 {
-  "name":"THAISERKIT SUPPLY",
-  "short_name":"THAISERKIT",
-  "start_url":"/index.html",
-  "display":"standalone",
-  "background_color":"#0B2E22",
-  "theme_color":"#0B2E22",
-  "lang":"th",
-  "icons":[{"src":"/assets/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},{"src":"/assets/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]
+  "name": "THAISERKIT SUPPLY",
+  "short_name": "THAISERKIT",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#0B2E22",
+  "theme_color": "#0B2E22",
+  "lang": "th",
+  "icons": [
+    { "src": "/assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
 }

@@ -11,7 +11,14 @@ export interface CatalogProduct {
   stock?: number;
   state?: string;
   status?: string[];
-  variants?: Array<{ id?: string; label?: string; sku?: string; price?: number; stock?: number; state?: string }>;
+  variants?: Array<{
+    id?: string;
+    label?: string;
+    sku?: string;
+    price?: number;
+    stock?: number;
+    state?: string;
+  }>;
 }
 
 export interface CatalogBrand {

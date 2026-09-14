@@ -87,11 +87,23 @@ function splitSelectorList(head) {
   let quote = '';
   let current = '';
   for (const char of head) {
-    if (quote) { current += char; if (char === quote) quote = ''; continue; }
-    if (char === '"' || char === "'") { quote = char; current += char; continue; }
+    if (quote) {
+      current += char;
+      if (char === quote) quote = '';
+      continue;
+    }
+    if (char === '"' || char === "'") {
+      quote = char;
+      current += char;
+      continue;
+    }
     if (char === '(' || char === '[') depth++;
     if (char === ')' || char === ']') depth--;
-    if (char === ',' && depth === 0) { parts.push(current); current = ''; continue; }
+    if (char === ',' && depth === 0) {
+      parts.push(current);
+      current = '';
+      continue;
+    }
     current += char;
   }
   parts.push(current);
@@ -114,15 +126,17 @@ function splitSelectorList(head) {
  * modal's styling.
  */
 function stripComments(css) {
-  return String(css)
-    .replace(/\/\*(?!!)[\s\S]*?\*\//g, '')
-    // `@import url("other.css?v=NN");` opens two of these sheets. It is a
-    // statement, not a block, so a brace-counting parser reads it as the start
-    // of the next selector and swallows the rule that follows. The build strips
-    // these too (stripLegacyCssImports in nuxt.config.ts), because the query
-    // string makes Vite emit a runtime request that 500s — so removing them
-    // here matches what actually ships.
-    .replace(/@import\s+[^;]+;/gi, '');
+  return (
+    String(css)
+      .replace(/\/\*(?!!)[\s\S]*?\*\//g, '')
+      // `@import url("other.css?v=NN");` opens two of these sheets. It is a
+      // statement, not a block, so a brace-counting parser reads it as the start
+      // of the next selector and swallows the rule that follows. The build strips
+      // these too (stripLegacyCssImports in nuxt.config.ts), because the query
+      // string makes Vite emit a runtime request that 500s — so removing them
+      // here matches what actually ships.
+      .replace(/@import\s+[^;]+;/gi, '')
+  );
 }
 
 /** Shared by the purge and by the cascade analysis, so both see one input. */
@@ -137,7 +151,7 @@ export function purgeCss(source, universe) {
   let index = 0;
   let head = '';
   // Depth of at-rules whose bodies must be copied verbatim.
-  let verbatim = 0;
+  const verbatim = 0;
 
   while (index < css.length) {
     const char = css[index];
@@ -159,7 +173,11 @@ export function purgeCss(source, universe) {
         // `@keyframes`, `@font-face` and `@property` name things that selectors
         // never mention; copy them untouched. Conditional groups (`@media`,
         // `@supports`, `@layer`) hold ordinary rules, so recurse into them.
-        if (/^@(?:keyframes|-\w+-keyframes|font-face|property|counter-style|font-feature-values)\b/i.test(selector)) {
+        if (
+          /^@(?:keyframes|-\w+-keyframes|font-face|property|counter-style|font-feature-values)\b/i.test(
+            selector,
+          )
+        ) {
           out += `${selector}{${body}}`;
         } else {
           const inner = purgeCss(body, universe);
@@ -174,7 +192,9 @@ export function purgeCss(source, universe) {
 
       // A rule that defines design tokens stays whatever its selector says.
       const definesTokens = /(^|[;{\s])--[\w-]+\s*:/.test(body);
-      const live = splitSelectorList(selector).filter((part) => definesTokens || selectorIsLive(part, universe));
+      const live = splitSelectorList(selector).filter(
+        (part) => definesTokens || selectorIsLive(part, universe),
+      );
       if (live.length) out += `${live.join(',')}{${body}}`;
       else dropped += selector.length + body.length + 2;
 
@@ -182,7 +202,11 @@ export function purgeCss(source, universe) {
       continue;
     }
 
-    if (char === '}') { head = ''; index++; continue; }
+    if (char === '}') {
+      head = '';
+      index++;
+      continue;
+    }
     head += char;
     index++;
   }
@@ -219,8 +243,13 @@ export function cascadeWinners(sheets) {
         }
         const body = css.slice(index + 1, end - 1);
         if (selector.startsWith('@')) {
-          if (/^@(?:media|supports|layer|container)\b/i.test(selector)) collect(body, `${media}&&${selector.replace(/\s+/g, ' ')}`, sheet);
-          else winners.set(`${media}|${selector.replace(/\s+/g, ' ')}|@`, { sheet, value: body.replace(/\s+/g, ' ').trim() });
+          if (/^@(?:media|supports|layer|container)\b/i.test(selector))
+            collect(body, `${media}&&${selector.replace(/\s+/g, ' ')}`, sheet);
+          else
+            winners.set(`${media}|${selector.replace(/\s+/g, ' ')}|@`, {
+              sheet,
+              value: body.replace(/\s+/g, ' ').trim(),
+            });
         } else {
           for (const part of splitSelectorList(selector)) {
             const key = part.replace(/\s+/g, ' ').trim();
@@ -244,7 +273,11 @@ export function cascadeWinners(sheets) {
         index = end;
         continue;
       }
-      if (char === '}') { head = ''; index++; continue; }
+      if (char === '}') {
+        head = '';
+        index++;
+        continue;
+      }
       head += char;
       index++;
     }

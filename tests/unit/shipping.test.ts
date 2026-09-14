@@ -1,1 +1,13 @@
-import { describe,expect,it } from 'vitest';import { orderTotals } from '@/shared/shipping.mjs';describe('shipping totals',()=>{it('never returns a negative total',()=>{const t=orderTotals(0);expect(t.total).toBeGreaterThanOrEqual(0)});it('adds shipping for a small basket',()=>{const t=orderTotals(100);expect(t.total).toBeGreaterThanOrEqual(100)})});
+import { describe, expect, it } from 'vitest';
+import { orderTotals } from '@/shared/shipping.mjs';
+
+describe('shipping totals', () => {
+  it('never returns a negative total', () => {
+    const t = orderTotals(0);
+    expect(t.total).toBeGreaterThanOrEqual(0);
+  });
+  it('adds shipping for a small basket', () => {
+    const t = orderTotals(100);
+    expect(t.total).toBeGreaterThanOrEqual(100);
+  });
+});

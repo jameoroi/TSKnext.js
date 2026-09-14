@@ -89,6 +89,17 @@ function PromoLink() {
 
 type CatRow = { key: string; name: string; icon?: string | null };
 
+type CategoriesResponse = { categories?: CatRow[] };
+type SessionResponse = {
+  admin?: unknown;
+  admin_username?: unknown;
+  customer?: { name?: unknown } | null;
+  agent?: unknown;
+  agent_profile?: { store_name?: unknown } | null;
+  supplier?: unknown;
+};
+type SiteSettingsResponse = { settings?: { announcement?: unknown; logo_url?: unknown } };
+
 function CatMenu({
   categories,
   open,
@@ -104,10 +115,10 @@ function CatMenu({
   onActiveChange: (key: string) => void;
   closeTimer: React.MutableRefObject<number | null>;
 }) {
-  const rows = categories.map((c: any) => ({
-    key: String(c.key || c.id || c.name || ''),
+  const rows = categories.map((c: CatRow) => ({
+    key: String(c.key || c.name || ''),
     name: String(c.name || c.key || ''),
-    icon: (c.icon as string | null) || null,
+    icon: c.icon ?? null,
   }));
   const current = rows.find((r) => r.key === activeKey) || rows[0];
   const subs = current ? subcategoriesForKey(current.key) : [];
@@ -271,19 +282,19 @@ export function Header() {
   const catCloseTimer = useRef<number | null>(null);
   const session = useQuery({
     queryKey: ['session'],
-    queryFn: () => legacyRequest<any>('session'),
+    queryFn: () => legacyRequest<SessionResponse>('session'),
     staleTime: 60_000,
     retry: 1,
   });
   const categoriesQuery = useQuery({
     queryKey: ['header.categories'],
-    queryFn: () => legacyRequest<any>('categories.list'),
+    queryFn: () => legacyRequest<CategoriesResponse>('categories.list'),
     staleTime: 5 * 60_000,
     retry: 1,
   });
   const siteQuery = useQuery({
     queryKey: ['site.settings', 'compact'],
-    queryFn: () => legacyRequest<any>('site.settings', { compact: 1 }),
+    queryFn: () => legacyRequest<SiteSettingsResponse>('site.settings', { compact: 1 }),
     staleTime: 5 * 60_000,
     retry: 1,
   });
@@ -366,11 +377,11 @@ export function Header() {
   }, [query]);
 
   const account = useMemo(() => {
-    const data = session.data || {};
-    if (data.admin) return { href: '/admin', label: data.admin_username || 'แอดมิน' };
+    const data: SessionResponse = session.data ?? {};
+    if (data.admin) return { href: '/admin', label: String(data.admin_username || 'แอดมิน') };
     if (data.customer)
       return { href: '/account', label: String(data.customer.name || 'บัญชีของฉัน').split(' ')[0] };
-    if (data.agent) return { href: '/agent', label: data.agent_profile?.store_name || 'ตัวแทน' };
+    if (data.agent) return { href: '/agent', label: String(data.agent_profile?.store_name || 'ตัวแทน') };
     if (data.supplier) return { href: '/supplier', label: 'Supplier' };
     return null;
   }, [session.data]);
@@ -617,10 +628,10 @@ export function Header() {
           <Link
             href="/kits"
             className="relative hidden items-center gap-2 rounded-xl px-2.5 py-2 text-xs font-bold text-violet-700 hover:bg-violet-50 2xl:flex"
-            aria-label="จัดซื้อ"
+            aria-label="จัดเซ็ตอุปกรณ์"
           >
             <Boxes size={19} />
-            <span>จัดซื้อ</span>
+            <span>จัดเซ็ตอุปกรณ์</span>
           </Link>
           <Link
             href="/compare"
@@ -774,7 +785,7 @@ export function Header() {
               โปรโมชั่น
             </Link>
             <Link onClick={() => setMenuOpen(false)} href="/kits" className="text-violet-700">
-              ✨ จัดซื้อ
+              ✨ จัดเซ็ตอุปกรณ์
             </Link>
             <Link onClick={() => setMenuOpen(false)} href="/wishlist">
               ♡ รายการโปรด ({wishlist.count})

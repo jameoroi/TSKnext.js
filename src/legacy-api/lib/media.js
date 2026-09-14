@@ -159,7 +159,30 @@ export async function mirrorRemoteImage(sourceUrl, { owner_type='product', owner
   if(isOwnMedia(url)) return { ok:true, mirrored:false, url };
   if(!mediaConfigured()) throw new Error('media_storage_not_configured');
 
-  const response=await fetch(url,{redirect:'follow',signal:AbortSignal.timeout(timeoutMs),headers:{accept:'image/*'}});
+  let firstHost = '';
+  try { firstHost = new URL(url).hostname.toLowerCase(); } catch { return { ok: false, reason: 'bad_url', url }; }
+  if (!firstHost) return { ok: false, reason: 'bad_url', url };
+  // One same-host redirect at most. 'follow' would let any response in the
+  // chain move this credential-holding runtime (Supabase service key, R2
+  // secrets) to an attacker-chosen host — a classic SSRF hop via an open
+  // redirect on an otherwise innocent supplier CDN. Same-host http→https
+  // upgrades, the legitimate case, still work.
+  let target = url;
+  let response = await fetch(target, { redirect: 'manual', signal: AbortSignal.timeout(timeoutMs), headers: { accept: 'image/*' } });
+  if (response.status >= 300 && response.status < 400) {
+    let resolved = '';
+    let resolvedHost = '';
+    try {
+      const next = String(response.headers.get('location') || '');
+      resolved = next ? new URL(next, target).toString() : '';
+      resolvedHost = resolved ? new URL(resolved).hostname.toLowerCase() : '';
+    } catch { resolved = ''; resolvedHost = ''; }
+    if (!resolved || !/^https:\/\//i.test(resolved) || resolvedHost !== firstHost)
+      return { ok: false, reason: 'redirect_refused', url };
+    target = resolved;
+    response = await fetch(target, { redirect: 'manual', signal: AbortSignal.timeout(timeoutMs), headers: { accept: 'image/*' } });
+    if (response.status >= 300 && response.status < 400) return { ok: false, reason: 'redirect_refused', url };
+  }
   if(!response.ok) return { ok:false, reason:`http_${response.status}`, url };
   const declared=String(response.headers.get('content-type')||'').split(';')[0].trim().toLowerCase();
   if(!MIRROR_MIME[declared]) return { ok:false, reason:`unsupported_type_${declared||'none'}`, url };

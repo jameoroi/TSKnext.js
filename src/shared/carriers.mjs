@@ -41,14 +41,18 @@ export const CARRIERS = [
  * @returns {Carrier | null}
  */
 export function findCarrier(value) {
-  const raw = String(value || '').trim().toLowerCase();
+  const raw = String(value || '')
+    .trim()
+    .toLowerCase();
   if (!raw) return null;
   const byId = CARRIERS.find((carrier) => carrier.id === raw);
   if (byId) return byId;
-  return CARRIERS.find((carrier) => {
-    const name = carrier.name.toLowerCase();
-    return name === raw || raw.includes(carrier.id) || raw.includes(name) || name.includes(raw);
-  }) || null;
+  return (
+    CARRIERS.find((carrier) => {
+      const name = carrier.name.toLowerCase();
+      return name === raw || raw.includes(carrier.id) || raw.includes(name) || name.includes(raw);
+    }) || null
+  );
 }
 
 /** The best URL for this parcel: deep link where one exists, else the page. */
@@ -83,11 +87,20 @@ export async function lookupKerryTracking(trackingNumber, options = {}) {
   const endpoint = String(process.env.KERRY_TRACKING_API_URL || '').trim();
   const apiKey = String(process.env.KERRY_TRACKING_API_KEY || '').trim();
   if (!number) return { ok: false, error: 'tracking_number_required' };
-  if (!endpoint || !apiKey) return { ok: false, error: 'kerry_api_not_configured', todo: 'KERRY_TRACKING_API_URL and KERRY_TRACKING_API_KEY are required' };
+  if (!endpoint || !apiKey)
+    return {
+      ok: false,
+      error: 'kerry_api_not_configured',
+      todo: 'KERRY_TRACKING_API_URL and KERRY_TRACKING_API_KEY are required',
+    };
 
   const response = await fetch(endpoint, {
     method: 'POST',
-    headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json', accept: 'application/json' },
+    headers: {
+      authorization: `Bearer ${apiKey}`,
+      'content-type': 'application/json',
+      accept: 'application/json',
+    },
     body: JSON.stringify({ tracking_number: number }),
     signal: options.signal,
   });

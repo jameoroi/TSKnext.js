@@ -5,13 +5,14 @@ import { FALLBACK_TENANT, resolveTenant, tenantNamespaces, tenantRegistry } from
 import crypto from 'node:crypto';
 import { EVENT_TYPES, aggregateEvents } from './lib/analytics.js';
 import { generateInsights, chatFallback } from './lib/ai-insights.js';
-import { mediaConfigured, presignUpload, commitMedia, deleteMedia, listMedia, storeInlineImage, mediaKeyFromUrl } from './lib/media.js';
+import { mediaConfigured, presignUpload, commitMedia, deleteMedia, listMedia, storeInlineImage, mediaKeyFromUrl, isOwnMedia } from './lib/media.js';
 import { turnstileToken, verifyTurnstile } from './lib/turnstile.js';
 import { recentFailures, recordFailure } from './lib/error-log.js';
 import { edgeCacheMatch, edgeCachePut } from './lib/edge-cache.js';
 import { DEFAULT_AGENT_LEVELS, normalizeAgentLevels, agentLevelStanding, effectiveCommissionRate, cleanRate } from '../shared/agent-levels.mjs';
 import { HIDDEN_STATES } from '../shared/product-visibility.mjs';
 import { verifyKitQuote } from '../shared/kit-quote.mjs';
+import { isSlipAmountMatching } from '../shared/slip-amount.mjs';
 import { purgePages, SETTINGS_PAGES } from '../shared/page-purge.mjs';
 import { GROUPS as CSV_GROUPS, COLUMNS as CSV_COLUMNS, ALL_COLUMNS as CSV_ALL_COLUMNS, ANCHOR_COLUMNS as CSV_ANCHOR_COLUMNS, groupColumns as csvGroupColumns, productsToCsv, parseCsv, parseCell, cellChanged, renderCell as csvRenderCell } from './lib/product-csv.js';
 import {
@@ -1080,10 +1081,23 @@ const FAIL_CLOSED_SCOPES = new Set([
   'customer-register', 'partner-apply',
   'order-create', 'omise-charge', 'slip-upload', 'coupon-validate',
   'chat-send', 'contact', 'review', 'newsletter',
+  // Next.js route scopes below reuse this limiter (imported). They guard
+  // money and metered LLM calls, so they refuse rather than open up.
+  // NOTE: 'next-search' is deliberately NOT here: search is cheap and public,
+  // and a shopper being unable to search during a storage outage helps
+  // nobody — its quota still enforces whenever storage answers.
+  'kit-quote', 'kit-ai', 'ai-chat',
 ]);
 
 /**
  * Counts one request against a quota, atomically.
+ *
+ * Exported for the Next.js Route Handlers (kits/quote, kits/ai, ai/chat,
+ * search), which otherwise have no throttle at all. In a route there is no
+ * tenant AsyncLocalStorage context, so buckets land in the fallback auth
+ * namespace — counting stays correct because the caller passes the tenant id
+ * as part of `identity`, and sharing a bucket across tenants only ever makes
+ * the limit stricter, never looser.
  *
  * This read the counter, added one, and wrote it back, with nothing between
  * the read and the write. Requests sent in parallel all read the same value
@@ -1114,7 +1128,7 @@ async function requireHuman(req, b, action){
   return json({ok:false,error:result.error},403);
 }
 
-async function rateLimit(req, scope, maxHits, windowSeconds, identity=''){
+export async function rateLimit(req, scope, maxHits, windowSeconds, identity=''){
   const now=Math.floor(Date.now()/1000);
   const key=`ratelimit:${scope}:${sha(clientIp(req)+'|'+String(identity).toLowerCase())}`;
   const denied=(startedAt)=>({ok:false,retry_after:Math.max(1,windowSeconds-(now-Number(startedAt||now)))});
@@ -1502,6 +1516,7 @@ async function expireOldReservations(ds){
       if(!o||!o.stock_reserved||o.stock_deducted||!o.reservation_expires_at) continue;
       if(new Date(o.reservation_expires_at).getTime()>now) continue;
       await releaseReservationForOrder(ds,o); o.status='expired';
+      await releaseCouponForOrder(ds,o);
       o.status_history=[...(o.status_history||[]),{status:'expired',at:new Date().toISOString(),by:'system'}];
       await ds.setJSON(`order:${id}`,o);
     }
@@ -1761,9 +1776,29 @@ function orderTransitionAllowed(order,next){
 }
 async function consumeCouponForOrder(ds,order){
   if(!order?.coupon_code || order.coupon_consumed) return;
-  const cp=await findCoupon(ds,order.coupon_code); if(!cp) return;
+  // NOTE: findCoupon() is declared inside handleRequest and is NOT visible
+  // here (module scope) — calling it throws ReferenceError, which used to
+  // 500 every coupon-bearing slip verification AFTER stock was deducted.
+  // Read the row directly; key shape matches findCoupon: coupon:<UPPER>.
+  const cp=await getJSON(ds,`coupon:${clean(order.coupon_code,40).toUpperCase()}`); if(!cp) return;
+  // Re-check the limit at consume time: the usability check in order.create
+  // ran before the stock reservation, so two concurrent orders can both pass
+  // it. This narrows the race but is not a CAS — see TODO below.
+  // TODO: consume via atomic compare-and-set (onlyIfMatch on coupon key with
+  // retries, like mutateIndexAtomically/atomicProductMutation) so usage_limit
+  // is enforceable under concurrency.
+  if(Number(cp.usage_limit||0)>0 && Number(cp.used_count||0)>=Number(cp.usage_limit)) return;
   cp.used_count=Number(cp.used_count||0)+1;
   await ds.setJSON(`coupon:${cp.code}`,cp); order.coupon_consumed=true;
+}
+async function releaseCouponForOrder(ds,order){
+  if(!order?.coupon_code || !order.coupon_consumed) return;
+  try{
+    // Same module-scope constraint as consumeCouponForOrder above.
+    const cp=await getJSON(ds,`coupon:${clean(order.coupon_code,40).toUpperCase()}`);
+    if(cp){ cp.used_count=Math.max(0,Number(cp.used_count||0)-1); await ds.setJSON(`coupon:${cp.code}`,cp); }
+  }catch{}
+  order.coupon_consumed=false;
 }
 
 
@@ -3079,7 +3114,12 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
     const row=await getJSON(dataStore(),`content-${kind}:${id}`);
     if(!row||(row.published===false&&!isAdmin(ss)))return new Response(null,{status:404,headers:{'cache-control':'no-store'}});
     const image=String(row.image_url||'');
-    if(/^https:\/\//i.test(image))return Response.redirect(image,302);
+    // Same-origin redirector, not an open one: the address comes from an
+    // admin-written content row, and a compromised row must not turn this
+    // shop's own image endpoint into a phishing hop. Only our own storage
+    // addresses redirect; anything else falls through to the inline-image
+    // path below (and 404s when it is not one).
+    if(/^https:\/\//i.test(image)&&isOwnMedia(image))return Response.redirect(image,302);
     const match=image.match(/^data:image\/(png|jpeg|webp|gif);base64,([a-z0-9+/=]+)$/i);
     if(!match)return new Response(null,{status:404,headers:{'cache-control':'no-store'}});
     const bytes=Buffer.from(match[2],'base64');
@@ -3635,6 +3675,14 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
       customer:ss.data.customer.id,
       items:canonical.map(i=>[i.id,i.variant_id,i.qty]).sort(),
       total,method,coupon:couponCode,bundle:bundleSetId,bundle_discount:bundleDiscount,
+      // Retry window bucket, aligned with the KV claim TTL below. The key is
+      // persisted on the order AND enforced by a partial unique index in
+      // Postgres — without a time component, a legitimate repeat purchase of
+      // the same basket weeks later would collide with the first order and
+      // its projection would be rejected. Same window = retry (deduped);
+      // different window = new order. An explicit client key passes through
+      // untouched and stays the client's responsibility to keep unique.
+      window:Math.floor(Date.now()/ORDER_CLAIM_TTL_MS),
     })).slice(0,48);
     const claimKey=`order-claim:${idempotencyKey}`;
     const priorClaim=await getJSON(ds,claimKey);
@@ -3666,7 +3714,7 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
     const paymentReviewMode=isLine?'manual_admin':(isCod?'cod':(autoSlipConfigured?'automatic_slip':'manual_slip'));
     const paymentStatus=isLine?'pending_manual':(isBank?'pending_payment':'pending');
     const lockedAttribution=await currentAgentAttribution(req,ds); let agentRef=lockedAttribution?.agent_code||clean(b.agent_ref,60).toUpperCase(), agentId=null, agentCode='', agentStore='', agentFraudFlags=[]; if(agentRef){const aid=await getJSON(ds,`agent-code:${agentRef}`), ag=aid?await getJSON(ds,`agent:${aid}`):null;if(ag?.status==='approved'){const selfPhone=phone(ag.phone)&&phone(ag.phone)===phone(ph),selfEmail=ss.data?.type==='customer'&&String(ss.data.customer?.email||'').toLowerCase()===String(ag.email||'').toLowerCase();if(selfPhone||selfEmail){agentFraudFlags.push('self_referral');agentRef='';await auditLog(req,{data:{type:'system'}},'agent.referral.blocked',{agent_id:ag.id,reason:'self_referral',phone:phone(ph).slice(-4)});}else{agentId=ag.id;agentCode=ag.referral_code;agentStore=ag.store_name;}}}
-    const o={id,order_no,name,phone:ph,email,address,province,zip,tax_invoice_requested:taxInvoiceRequested,tax_invoice_status:taxInvoiceRequested?'requested':'not_requested',tax_invoice:taxInvoiceRequested?{type:'company',company_name:taxCompanyName,tax_id:taxId,branch:taxBranch,address:taxAddress,email:taxEmail}:null,agent_id:agentId,agent_code:agentCode,agent_store_name:agentStore,agent_fraud_flags:agentFraudFlags,payment_method:method,payment_review_mode:paymentReviewMode,payment_status:paymentStatus,total,subtotal,shipping:payableShipping,shipping_before_discount:shipping,shipping_discount:shippingDiscount,discount,coupon_discount:couponDiscountAmount,bundle_discount:bundleDiscount,bundle_set_id:bundleSetId,bundle_set_name:bundleSetName,coupon_code:couponCode||'',coupon_consumed:!!coupon&&!isBank,items:canonical,status:initialStatus,stock_reserved:true,stock_deducted:false,upload_token_hash:sha(upload_token),reservation_expires_at:reservationExpiry,terms_accepted_at:createdAt.toISOString(),customer_id:ss.data?.type==='customer'?ss.data.customer.id:null,created_at:createdAt.toISOString(),status_history:[{status:initialStatus,at:createdAt.toISOString(),by:'system'}]};
+    const o={id,order_no,name,phone:ph,email,address,province,zip,tax_invoice_requested:taxInvoiceRequested,tax_invoice_status:taxInvoiceRequested?'requested':'not_requested',tax_invoice:taxInvoiceRequested?{type:'company',company_name:taxCompanyName,tax_id:taxId,branch:taxBranch,address:taxAddress,email:taxEmail}:null,agent_id:agentId,agent_code:agentCode,agent_store_name:agentStore,agent_fraud_flags:agentFraudFlags,payment_method:method,payment_review_mode:paymentReviewMode,payment_status:paymentStatus,total,subtotal,shipping:payableShipping,shipping_before_discount:shipping,shipping_discount:shippingDiscount,discount,coupon_discount:couponDiscountAmount,bundle_discount:bundleDiscount,bundle_set_id:bundleSetId,bundle_set_name:bundleSetName,coupon_code:couponCode||'',coupon_consumed:!!coupon&&!isBank,idempotency_key:idempotencyKey,items:canonical,status:initialStatus,stock_reserved:true,stock_deducted:false,upload_token_hash:sha(upload_token),reservation_expires_at:reservationExpiry,terms_accepted_at:createdAt.toISOString(),customer_id:ss.data?.type==='customer'?ss.data.customer.id:null,created_at:createdAt.toISOString(),status_history:[{status:initialStatus,at:createdAt.toISOString(),by:'system'}]};
     try{
       await ds.setJSON(`order:${id}`,o);
     }catch(error){
@@ -3682,7 +3730,16 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
     if(o.customer_id){const key=`orders-by-customer:${o.customer_id}`;await appendToIndex(ds,key,id);}
     await appendToIndex(ds,'order-index',id);
     for(const productId of [...new Set(canonical.map(item=>item.id))]){const key=`orders-by-product:${productId}`;await appendToIndex(ds,key,id);}
-    if(coupon&&!isBank){coupon.used_count=Number(coupon.used_count||0)+1;await ds.setJSON(`coupon:${coupon.code}`,coupon);}
+    if(coupon&&!isBank){
+      // Re-read before consuming: the usability check above ran before the
+      // stock reservation. Still not atomic under concurrency (see TODO in
+      // consumeCouponForOrder) — last-writer-wins is possible for the final
+      // unit — but a stale coupon object can no longer overshoot the limit.
+      const fresh=await findCoupon(ds,coupon.code);
+      if(fresh && !(Number(fresh.usage_limit||0)>0 && Number(fresh.used_count||0)>=Number(fresh.usage_limit))){
+        fresh.used_count=Number(fresh.used_count||0)+1;await ds.setJSON(`coupon:${fresh.code}`,fresh);
+      }
+    }
     // Every order, not just LINE and COD. Bank transfer is the default method
     // here, and it was silent: the shop learned an order existed only if and
     // when the customer got around to uploading a slip. An order placed at
@@ -4157,8 +4214,27 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
     if(!id) return json({ok:false,error:'promptpay_not_configured'},422);
     if(![10,13,15].includes(id.length)) return json({ok:false,error:'promptpay_invalid_id'},422);
     const rawAmount = b.amount!==undefined ? b.amount : url.searchParams.get('amount');
-    const amount = rawAmount===undefined || rawAmount===null || rawAmount==='' ? undefined : Number(rawAmount);
+    let amount = rawAmount===undefined || rawAmount===null || rawAmount==='' ? undefined : Number(rawAmount);
     if(amount!==undefined && (!Number.isFinite(amount) || amount<=0)) return json({ok:false,error:'invalid_amount'},422);
+    // Bind the QR to the server-priced order total when the caller knows the
+    // order. Pre-order checkout still sends a client amount for display only;
+    // order.create recomputes the authoritative total and the slip verifier
+    // asserts it, so a forged amount can at most show a wrong QR, never pay.
+    const qrOrderNo=clean(b.order_no||url.searchParams.get('order_no'),40);
+    if(qrOrderNo){
+      try{
+        const qrOrder=await findOrderByNumber(dataStore(),qrOrderNo);
+        // The total is order PII: only the owning customer (or a caller with
+        // the order's upload token, e.g. a guest finishing payment) may bind
+        // a QR to the server-side total. Anyone else falls back to the
+        // client-supplied display amount — no disclosure, no override.
+        const ownsQr=qrOrder && ss.data?.type==='customer' && qrOrder.customer_id && ss.data.customer?.id===qrOrder.customer_id;
+        const qrToken=clean(b.upload_token,200);
+        // Same constant-time shape as the slip-upload token check below.
+        const validQrToken=qrToken && qrOrder?.upload_token_hash && crypto.timingSafeEqual(Buffer.from(sha(qrToken)),Buffer.from(String(qrOrder.upload_token_hash)));
+        if(qrOrder && (ownsQr||validQrToken) && Number.isFinite(Number(qrOrder.total)) && Number(qrOrder.total)>0) amount=Number(qrOrder.total);
+      }catch{}
+    }
     // Only the payload is built here. `promptpay-qr` is pure arithmetic and
     // runs anywhere; drawing the image is the fragile half. `qrcode`'s default
     // entry pulls in pngjs → node streams → util.inherits, which the Cloudflare
@@ -4171,11 +4247,11 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
       const {default:generatePayload}=await import('promptpay-qr');
       const payload = generatePayload(id, amount ? { amount } : {});
       if(!payload) throw new Error('empty promptpay payload');
-      return json({ok:true, payload, qr_data_url:'', promptpay_id:id, promptpay_name: settings.payment.promptpay_name, amount: amount||null });
+      return json({ok:true, payload, qr_data_url:'', promptpay_id:id, promptpay_name: settings.payment.promptpay_name, amount: amount||null, order_no: qrOrderNo||null });
     }catch(e){
       console.error('[TSK] PromptPay payload generation failed', e?.message||e);
       // Still hand back the account details so the checkout can be paid.
-      return json({ok:true, payload:'', qr_data_url:'', promptpay_id:id, promptpay_name: settings.payment.promptpay_name, amount: amount||null, qr_unavailable:true});
+      return json({ok:true, payload:'', qr_data_url:'', promptpay_id:id, promptpay_name: settings.payment.promptpay_name, amount: amount||null, order_no: qrOrderNo||null, qr_unavailable:true});
     }
   }
 
@@ -4197,7 +4273,15 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
     if(!/โอนเงิน|พร้อมเพย์/i.test(String(order.payment_method||''))) return json({ok:false,error:'slip_not_allowed_for_payment_method'},409);
     const slipId=crypto.randomUUID();
     const verification=await verifySlipAutomatically(image_data_url, order.total);
-    const autoVerified=verification.configured && verification.verified;
+    // The verifier echoes what IT read on the slip — assert it equals what WE
+    // charged. Without this, a genuine 10 THB slip pays a 5,000 THB order.
+    // Fail closed to manual review; the slip row keeps the raw result for audit.
+    const amountMatches=isSlipAmountMatching(verification.data?.amount, order.total);
+    if(verification.configured && verification.verified && !amountMatches){
+      verification.verified=false;
+      verification.error='amount_mismatch';
+    }
+    const autoVerified=verification.configured && verification.verified && amountMatches;
     const slip={ id:slipId, order_no, order_id:order.id, image_data_url, status:autoVerified?'verified_auto':'pending', note:clean(b.note,300), created_at:new Date().toISOString(), verification_provider:verification.provider, verification_result:verification.data||null, verification_error:verification.error||null };
     await ds.setJSON(`slip:${slipId}`, slip);
     await appendToIndex(ds,'slip-index',slipId);
@@ -4277,6 +4361,7 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
     if(status==='completed' && o.payment_status!=='paid' && !/COD|ปลายทาง/i.test(String(o.payment_method||''))) return json({ok:false,error:'payment_not_verified'},409);
     if((status==='cancelled'||status==='refunded') && o.stock_deducted) await restoreStockForOrder(ds, o, ss);
     if((status==='cancelled'||status==='refunded') && o.stock_reserved && !o.stock_deducted) await releaseReservationForOrder(ds, o);
+    if(status==='cancelled'||status==='refunded') await releaseCouponForOrder(ds, o);
     if(status==='paid' && !o.stock_deducted) await deductStockForOrder(ds, o, ss);
     o.status=status;
     if(o.tax_invoice_requested && ['paid','processing','packing','shipped','completed'].includes(status)) o.tax_invoice_status='ready';

@@ -15,10 +15,21 @@ export default async function EquipmentKitsPage() {
     getBrands(),
     getPublicEquipmentSets(12),
   ]);
-  const categories = Array.from(new Set(categoryRows.map((row) => String(row.name || row.key || '')).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'th'));
-  const brands = Array.from(new Set(brandRows.map((row) => String(row.name || row.id || '')).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'th'));
+  const categories = Array.from(
+    new Set(categoryRows.map((row) => String(row.name || row.key || '')).filter(Boolean)),
+  ).sort((a, b) => a.localeCompare(b, 'th'));
+  const brands = Array.from(
+    new Set(brandRows.map((row) => String(row.name || row.id || '')).filter(Boolean)),
+  ).sort((a, b) => a.localeCompare(b, 'th'));
 
-  return <main className="mx-auto max-w-7xl px-4 py-8 lg:px-6 lg:py-10">
-    <EquipmentKitBuilder products={catalog.products} categories={categories} brands={brands} presets={presets}/>
-  </main>;
+  return (
+    <main className="mx-auto max-w-7xl px-4 py-8 lg:px-6 lg:py-10">
+      <EquipmentKitBuilder
+        products={catalog.products}
+        categories={categories}
+        brands={brands}
+        presets={presets}
+      />
+    </main>
+  );
 }

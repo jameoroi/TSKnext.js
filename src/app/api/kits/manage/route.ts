@@ -1,4 +1,4 @@
-import { and, asc, desc, eq } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray } from 'drizzle-orm';
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { getLegacySession } from '@/server/auth/legacy-session';
@@ -16,7 +16,12 @@ const lineSchema = z.object({
 
 const setSchema = z.object({
   id: z.string().trim().min(1).max(100).optional(),
-  slug: z.string().trim().min(1).max(180).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+  slug: z
+    .string()
+    .trim()
+    .min(1)
+    .max(180)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
   name: z.string().trim().min(2).max(200),
   description: z.string().trim().max(3000).optional().default(''),
   status: z.enum(['draft', 'active', 'hidden']).default('draft'),
@@ -33,28 +38,77 @@ async function adminAllowed() {
   return Boolean(session.admin);
 }
 
+/**
+ * Same-origin check for cookie-authenticated JSON writes.
+ *
+ * The admin client posts JSON with credentials:include and carries no CSRF
+ * token on this route (adding one would break the existing console until it
+ * is re-taught). Classic form-based CSRF cannot reach a JSON-only endpoint,
+ * and SameSite=Lax cookies do not travel on cross-site POSTs — this check
+ * closes the remainder: a cross-origin fetch smuggling the admin's cookies
+ * must present a matching Origin (or Referer when Origin is absent).
+ * Non-browser clients send neither header and are unaffected.
+ */
+function sameOrigin(request: NextRequest) {
+  const expected = request.nextUrl.origin;
+  const origin = request.headers.get('origin');
+  if (origin) return origin === expected;
+  const referer = request.headers.get('referer');
+  if (referer) {
+    try {
+      return new URL(referer).origin === expected;
+    } catch {
+      return false;
+    }
+  }
+  return true;
+}
+
 function tenantOrResponse(request: NextRequest) {
   const result = resolveRequestTenant(request);
-  if (!result.ok) return { response: Response.json({ ok: false, error: result.error }, { status: 421 }) } as const;
+  if (!result.ok)
+    return { response: Response.json({ ok: false, error: result.error }, { status: 421 }) } as const;
   return { tenantId: result.tenant.id } as const;
 }
 
 export async function GET(request: NextRequest) {
   const tenant = tenantOrResponse(request);
   if ('response' in tenant) return tenant.response;
-  if (!databaseConfigured()) return Response.json({ ok: false, error: 'database_not_configured', sets: [] }, { status: 503 });
+  if (!databaseConfigured())
+    return Response.json({ ok: false, error: 'database_not_configured', sets: [] }, { status: 503 });
 
   const wantsAdmin = request.nextUrl.searchParams.get('admin') === '1';
-  if (wantsAdmin && !(await adminAllowed())) return Response.json({ ok: false, error: 'unauthorized' }, { status: 401 });
+  if (wantsAdmin && !(await adminAllowed()))
+    return Response.json({ ok: false, error: 'unauthorized' }, { status: 401 });
   const id = String(request.nextUrl.searchParams.get('id') || '').trim();
 
   const result = await withDb(async (db) => {
     const rows = id
-      ? await db.select().from(equipmentSets).where(and(eq(equipmentSets.tenantId, tenant.tenantId), eq(equipmentSets.id, id))).limit(1)
-      : await db.select().from(equipmentSets).where(wantsAdmin ? eq(equipmentSets.tenantId, tenant.tenantId) : and(eq(equipmentSets.tenantId, tenant.tenantId), eq(equipmentSets.status, 'active'))).orderBy(desc(equipmentSets.updatedAt));
+      ? await db
+          .select()
+          .from(equipmentSets)
+          .where(and(eq(equipmentSets.tenantId, tenant.tenantId), eq(equipmentSets.id, id)))
+          .limit(1)
+      : await db
+          .select()
+          .from(equipmentSets)
+          .where(
+            wantsAdmin
+              ? eq(equipmentSets.tenantId, tenant.tenantId)
+              : and(eq(equipmentSets.tenantId, tenant.tenantId), eq(equipmentSets.status, 'active')),
+          )
+          .orderBy(desc(equipmentSets.updatedAt));
     const setIds = rows.map((row) => row.id);
+    // Scope the line query to the requested sets. Loading the whole tenant's
+    // lines and filtering in JS costs with total bundle size, not the request.
     const items = setIds.length
-      ? await db.select().from(equipmentSetItems).where(eq(equipmentSetItems.tenantId, tenant.tenantId)).orderBy(asc(equipmentSetItems.setId), asc(equipmentSetItems.lineNo))
+      ? await db
+          .select()
+          .from(equipmentSetItems)
+          .where(
+            and(eq(equipmentSetItems.tenantId, tenant.tenantId), inArray(equipmentSetItems.setId, setIds)),
+          )
+          .orderBy(asc(equipmentSetItems.setId), asc(equipmentSetItems.lineNo))
       : [];
     return rows.map((row) => ({ ...row, items: items.filter((item) => item.setId === row.id) }));
   });
@@ -66,16 +120,26 @@ export async function POST(request: NextRequest) {
   const tenant = tenantOrResponse(request);
   if ('response' in tenant) return tenant.response;
   if (!(await adminAllowed())) return Response.json({ ok: false, error: 'unauthorized' }, { status: 401 });
-  if (!databaseConfigured()) return Response.json({ ok: false, error: 'database_not_configured' }, { status: 503 });
+  if (!sameOrigin(request)) return Response.json({ ok: false, error: 'invalid_origin' }, { status: 403 });
+  if (!databaseConfigured())
+    return Response.json({ ok: false, error: 'database_not_configured' }, { status: 503 });
   const parsed = setSchema.safeParse(await request.json().catch(() => null));
-  if (!parsed.success) return Response.json({ ok: false, error: 'invalid_input', issues: parsed.error.flatten() }, { status: 422 });
+  if (!parsed.success)
+    return Response.json(
+      { ok: false, error: 'invalid_input', issues: parsed.error.flatten() },
+      { status: 422 },
+    );
 
   const input = parsed.data;
   const id = input.id || crypto.randomUUID();
   try {
     await withDb(async (db) => {
       await db.transaction(async (tx) => {
-        const existing = await tx.select({ id: equipmentSets.id }).from(equipmentSets).where(and(eq(equipmentSets.tenantId, tenant.tenantId), eq(equipmentSets.id, id))).limit(1);
+        const existing = await tx
+          .select({ id: equipmentSets.id })
+          .from(equipmentSets)
+          .where(and(eq(equipmentSets.tenantId, tenant.tenantId), eq(equipmentSets.id, id)))
+          .limit(1);
         const values = {
           tenantId: tenant.tenantId,
           id,
@@ -90,20 +154,28 @@ export async function POST(request: NextRequest) {
           seoDescription: input.seoDescription || null,
           updatedAt: new Date(),
         };
-        if (existing.length) await tx.update(equipmentSets).set(values).where(and(eq(equipmentSets.tenantId, tenant.tenantId), eq(equipmentSets.id, id)));
+        if (existing.length)
+          await tx
+            .update(equipmentSets)
+            .set(values)
+            .where(and(eq(equipmentSets.tenantId, tenant.tenantId), eq(equipmentSets.id, id)));
         else await tx.insert(equipmentSets).values(values);
-        await tx.delete(equipmentSetItems).where(and(eq(equipmentSetItems.tenantId, tenant.tenantId), eq(equipmentSetItems.setId, id)));
+        await tx
+          .delete(equipmentSetItems)
+          .where(and(eq(equipmentSetItems.tenantId, tenant.tenantId), eq(equipmentSetItems.setId, id)));
         if (input.items.length) {
-          await tx.insert(equipmentSetItems).values(input.items.map((item, index) => ({
-            tenantId: tenant.tenantId,
-            setId: id,
-            lineNo: index + 1,
-            productId: item.productId,
-            variantId: item.variantId || null,
-            quantity: item.quantity,
-            required: item.required,
-            note: item.note || null,
-          })));
+          await tx.insert(equipmentSetItems).values(
+            input.items.map((item, index) => ({
+              tenantId: tenant.tenantId,
+              setId: id,
+              lineNo: index + 1,
+              productId: item.productId,
+              variantId: item.variantId || null,
+              quantity: item.quantity,
+              required: item.required,
+              note: item.note || null,
+            })),
+          );
         }
       });
     });
@@ -111,7 +183,10 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const message = error instanceof Error ? error.message : 'save_failed';
     const conflict = /equipment_sets_tenant_slug_idx|duplicate key/i.test(message);
-    return Response.json({ ok: false, error: conflict ? 'slug_exists' : 'save_failed', detail: message }, { status: conflict ? 409 : 500 });
+    return Response.json(
+      { ok: false, error: conflict ? 'slug_exists' : 'save_failed', detail: message },
+      { status: conflict ? 409 : 500 },
+    );
   }
 }
 
@@ -119,13 +194,19 @@ export async function DELETE(request: NextRequest) {
   const tenant = tenantOrResponse(request);
   if ('response' in tenant) return tenant.response;
   if (!(await adminAllowed())) return Response.json({ ok: false, error: 'unauthorized' }, { status: 401 });
-  if (!databaseConfigured()) return Response.json({ ok: false, error: 'database_not_configured' }, { status: 503 });
+  if (!sameOrigin(request)) return Response.json({ ok: false, error: 'invalid_origin' }, { status: 403 });
+  if (!databaseConfigured())
+    return Response.json({ ok: false, error: 'database_not_configured' }, { status: 503 });
   const id = String(request.nextUrl.searchParams.get('id') || '').trim();
   if (!id) return Response.json({ ok: false, error: 'id_required' }, { status: 422 });
   await withDb(async (db) => {
     await db.transaction(async (tx) => {
-      await tx.delete(equipmentSetItems).where(and(eq(equipmentSetItems.tenantId, tenant.tenantId), eq(equipmentSetItems.setId, id)));
-      await tx.delete(equipmentSets).where(and(eq(equipmentSets.tenantId, tenant.tenantId), eq(equipmentSets.id, id)));
+      await tx
+        .delete(equipmentSetItems)
+        .where(and(eq(equipmentSetItems.tenantId, tenant.tenantId), eq(equipmentSetItems.setId, id)));
+      await tx
+        .delete(equipmentSets)
+        .where(and(eq(equipmentSets.tenantId, tenant.tenantId), eq(equipmentSets.id, id)));
     });
   });
   return Response.json({ ok: true });

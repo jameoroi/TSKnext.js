@@ -8,12 +8,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useCartStore } from '@/features/cart/store';
 import { useQuickViewStore } from '@/features/catalog/quick-view';
-import {
-  type Product,
-  productHref,
-  productImageCandidates,
-  productOldPrice,
-} from '@/features/catalog/types';
+import { type Product, productHref, productImageCandidates, productOldPrice } from '@/features/catalog/types';
 import { useCompareStore } from '@/features/customer/local-store';
 import { useWishlist } from '@/features/customer/wishlist';
 import { showToast } from '@/features/ui/toast-store';
@@ -94,9 +89,7 @@ export function ProductCard({
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
             className="object-contain p-4 transition duration-300 group-hover:scale-[1.03]"
             unoptimized={imageSrc.startsWith('data:')}
-            onError={() =>
-              setImageIndex((current) => Math.min(current + 1, imageCandidates.length - 1))
-            }
+            onError={() => setImageIndex((current) => Math.min(current + 1, imageCandidates.length - 1))}
           />
         </Link>
         {statusBadge ? (

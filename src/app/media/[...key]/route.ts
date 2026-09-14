@@ -3,7 +3,10 @@ import { presignS3Url } from '@/legacy-api/lib/s3-presign.js';
 import { isMediaKey } from '@/shared/media-key.mjs';
 
 function encodedPath(key: string) {
-  return key.split('/').map((part) => encodeURIComponent(part)).join('/');
+  return key
+    .split('/')
+    .map((part) => encodeURIComponent(part))
+    .join('/');
 }
 
 async function fromSupabase(key: string) {
@@ -11,13 +14,16 @@ async function fromSupabase(key: string) {
   const secret = String(process.env.SUPABASE_SECRET_KEY || '');
   const bucket = String(process.env.SUPABASE_MEDIA_BUCKET || 'product-media');
   if (!base || !secret || !bucket) return null;
-  const upstream = await fetch(`${base}/storage/v1/object/${encodeURIComponent(bucket)}/${encodedPath(key)}`, {
-    headers: {
-      apikey: secret,
-      authorization: `Bearer ${secret}`,
+  const upstream = await fetch(
+    `${base}/storage/v1/object/${encodeURIComponent(bucket)}/${encodedPath(key)}`,
+    {
+      headers: {
+        apikey: secret,
+        authorization: `Bearer ${secret}`,
+      },
+      redirect: 'follow',
     },
-    redirect: 'follow',
-  });
+  );
   return upstream;
 }
 
@@ -45,15 +51,17 @@ export async function GET(_request: Request, { params }: { params: Promise<{ key
       secretAccessKey,
       expiresIn: 300,
       forcePathStyle:
-        String(process.env.MEDIA_S3_FORCE_PATH_STYLE || process.env.S3_FORCE_PATH_STYLE || '1').toLowerCase() !==
-        'false',
+        String(
+          process.env.MEDIA_S3_FORCE_PATH_STYLE || process.env.S3_FORCE_PATH_STYLE || '1',
+        ).toLowerCase() !== 'false',
     });
     upstream = await fetch(signed, { redirect: 'follow' });
   } else {
     upstream = await fromSupabase(key);
   }
 
-  if (!upstream) return NextResponse.json({ ok: false, error: 'media_storage_not_configured' }, { status: 503 });
+  if (!upstream)
+    return NextResponse.json({ ok: false, error: 'media_storage_not_configured' }, { status: 503 });
   if (!upstream.ok)
     return NextResponse.json(
       { ok: false, error: upstream.status === 404 ? 'not_found' : 'media_upstream_error' },

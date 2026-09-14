@@ -3,17 +3,31 @@
   "version": "6.0.0",
   "next": "16.3.4",
   "sourceFeatureCompletionPercent": 100,
-  "sourceAudit": { "passed": 201, "total": 201 },
-  "releaseAudit": { "passed": 159, "total": 159 },
-  "applicationRoutes": 55,
-  "apiRoutes": 15,
-  "commerceActions": 187,
+  "sourceAudit": {
+    "passed": 208,
+    "total": 208,
+    "note": "58 pages + 17 APIs + 189 actions gates; re-baselined 2026-09-14 after proving /offline, admin/database-backup, invoices/[orderId] and review-media actions are legitimate features"
+  },
+  "releaseAudit": { "passed": 161, "total": 161 },
+  "applicationRoutes": 58,
+  "apiRoutes": 17,
+  "commerceActions": 189,
   "typescriptTsxSyntax": { "files": 241, "errors": 0 },
   "javascriptMjsSyntax": { "files": 64, "errors": 0 },
   "currentPackageDocsOnly": true,
+  "verification20260914": {
+    "environment": "Windows local checkout (CRLF working tree), node v26.8.2, pnpm 11.16.0, no .env.local, no external services",
+    "typecheck": "PASS (tsc --noEmit exit 0, final run 2026-09-14)",
+    "unitTests": "PASS (9 files, 18 tests incl. new slip-amount suite)",
+    "build": "PASS (next build --webpack exit 0, final run 2026-09-14; storage-less warnings are graceful fallbacks by design)",
+    "lint": "PASS (biome check exit 0, final run 2026-09-14; 514 warnings + 5 infos remain, all pre-existing style/any warnings that do not fail the gate; fixed 8 explicit-any sites + proxy import-type + full-tree LF normalization via .gitattributes to get here)",
+    "e2e": "NOT RUN (requires DATABASE_URL + Redis + Playwright browsers)",
+    "smoke": "NOT RUN (requires running server + env)",
+    "migrationAudit": "PASS (8 SQL files incl. new 20260914090000_integrity_hardening; new migration NOT applied to any database in this environment)"
+  },
   "runtimeDependencyVerification": {
     "completedInPackagingEnvironment": false,
-    "reason": "registry.npmjs.org DNS returned EAI_AGAIN while Corepack attempted to download pnpm 11.16.0",
+    "reason": "No DATABASE_URL/REDIS_URL/Meilisearch/S3 credentials in this environment; DB-backed paths verified statically only. Staging must run pnpm db:migrate (incl. new FK VALIDATEs) before deploy.",
     "commandsProvided": [
       "pnpm install",
       "pnpm db:migrate",
@@ -25,5 +39,15 @@
       "pnpm test:e2e",
       "pnpm build"
     ]
+  },
+  "reviewFixes20260914": {
+    "role": "deep review of the hardening round; 4 defects found in the new changes and fixed the same day",
+    "findings": [
+      "idempotency_key persisted without a time component would collide on legitimate repeat purchases and reject their PG projection: added ORDER_CLAIM_TTL_MS window bucket to the server hash (same-window retry, cross-window new order)",
+      "payment.promptpay_qr order_no path bound server total without ownership: added owns-order-or-upload-token check, falls back to client display amount",
+      "next-search placed in fail-closed scopes would 429 search during storage outages: moved to fail-open (quota still enforces when storage answers)",
+      "AUTH_SECRET prod guard in env.ts was inert (zero importers) and its first placement in auth.ts broke next build (route config collection evaluates modules): guard now lives in auth.ts with NEXT_PHASE build exemption; runtime throw plus build-phase load plus valid-secret load all proven by execution"
+    ],
+    "verification": "typecheck PASS, unit 18/18 PASS, build PASS, node --check on 4 legacy JS files PASS, source 208/208, release 161/161, migration 8 files PASS, git diff --check clean"
   }
 }

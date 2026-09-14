@@ -74,7 +74,8 @@ export function normalizeAgentLevels(rows) {
     });
   }
   const out = [];
-  for (let level = 1; level <= 5; level++) out.push(byLevel.get(level) || { ...DEFAULT_AGENT_LEVELS[level - 1] });
+  for (let level = 1; level <= 5; level++)
+    out.push(byLevel.get(level) || { ...DEFAULT_AGENT_LEVELS[level - 1] });
   out[0].min_sales = 0; // level one is where everybody starts, whatever was typed
   for (let i = 1; i < out.length; i++) {
     if (out[i].min_sales <= out[i - 1].min_sales) out[i].min_sales = out[i - 1].min_sales + 1;

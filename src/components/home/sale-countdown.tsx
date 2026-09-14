@@ -23,7 +23,16 @@ export function SaleCountdown({ endsAt }: { endsAt?: string | null }) {
     return () => window.clearInterval(timer);
   }, [endsAt]);
   const time = useMemo(() => (endsAt ? parts(endsAt, now) : null), [endsAt, now]);
-  if (!time?.live) return null;
+  // No countdown configured: render nothing (the normal state). A configured
+  // countdown that has expired renders an ended badge instead of vanishing —
+  // otherwise the flash-sale heading column collapses to an empty block.
+  if (!time) return null;
+  if (!time.live)
+    return (
+      <div className="flex flex-wrap items-center gap-1.5" role="timer" aria-label="หมดเวลาแล้ว">
+        <span className="mr-1 text-sm font-black text-white">หมดเวลาแล้ว</span>
+      </div>
+    );
   return (
     <div
       className="flex flex-wrap items-center gap-1.5"

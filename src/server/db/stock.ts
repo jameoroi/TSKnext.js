@@ -85,13 +85,20 @@ export async function reserveStock(
   const ids = [...wanted.keys()].sort();
 
   return db.transaction(async (tx) => {
+    // Bound as an array parameter, not interpolated. The previous version
+    // built the ARRAY literal by string-concatenating quoted ids (with a
+    // hand-rolled quote escape) — correct only while the escape is perfect,
+    // and invisible to statement-plan caching either way.
     const locked = await tx.execute<{
-      id: string; sku: string | null; stock: number; reserved: number;
+      id: string;
+      sku: string | null;
+      stock: number;
+      reserved: number;
     }>(sql`
       SELECT id, sku, stock, reserved
         FROM ${schema.products}
        WHERE tenant_id = ${tenantId}
-         AND id = ANY(${sql.raw(`ARRAY[${ids.map((id) => `'${id.replace(/'/g, "''")}'`).join(',') || 'NULL'}]::text[]`)})
+         AND id = ANY(${ids})
        ORDER BY id
          FOR UPDATE
     `);
@@ -105,8 +112,12 @@ export async function reserveStock(
       const available = Number(row.stock) - Number(row.reserved);
       if (available < quantity) {
         return {
-          ok: false, error: 'insufficient_stock', productId: id,
-          sku: row.sku ?? null, requested: quantity, available: Math.max(0, available),
+          ok: false,
+          error: 'insufficient_stock',
+          productId: id,
+          sku: row.sku ?? null,
+          requested: quantity,
+          available: Math.max(0, available),
         } as const;
       }
     }
@@ -125,9 +136,15 @@ export async function reserveStock(
       `);
 
       await tx.insert(schema.stockLedger).values({
-        tenantId, productId: id, movement: 'reserve', quantity,
-        stockAfter: Number(row.stock), reservedAfter,
-        orderId, reason: 'checkout', actor: 'system',
+        tenantId,
+        productId: id,
+        movement: 'reserve',
+        quantity,
+        stockAfter: Number(row.stock),
+        reservedAfter,
+        orderId,
+        reason: 'checkout',
+        actor: 'system',
       });
     }
 
@@ -171,9 +188,15 @@ export async function releaseStock(db: Db, tenantId: string, orderId: string): P
          WHERE tenant_id = ${tenantId} AND id = ${line.product_id}
       `);
       await tx.insert(schema.stockLedger).values({
-        tenantId, productId: line.product_id, movement: 'release', quantity,
-        stockAfter: Number(row.stock), reservedAfter,
-        orderId, reason: 'released', actor: 'system',
+        tenantId,
+        productId: line.product_id,
+        movement: 'release',
+        quantity,
+        stockAfter: Number(row.stock),
+        reservedAfter,
+        orderId,
+        reason: 'released',
+        actor: 'system',
       });
       released += quantity;
     }
@@ -231,8 +254,15 @@ export async function deductStock(db: Db, tenantId: string, orderId: string): Pr
          WHERE tenant_id = ${tenantId} AND id = ${line.product_id}
       `);
       await tx.insert(schema.stockLedger).values({
-        tenantId, productId: line.product_id, movement: 'deduct', quantity,
-        stockAfter, reservedAfter, orderId, reason: 'paid', actor: 'system',
+        tenantId,
+        productId: line.product_id,
+        movement: 'deduct',
+        quantity,
+        stockAfter,
+        reservedAfter,
+        orderId,
+        reason: 'paid',
+        actor: 'system',
       });
       deducted += quantity;
     }

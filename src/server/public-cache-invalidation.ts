@@ -11,13 +11,13 @@ const PUBLIC_MUTATION_PREFIXES = [
   'reviews.',
 ];
 
-const PUBLIC_MUTATION_ACTIONS = new Set([
-  'admin.site.settings',
-  'business.settings.save',
-]);
+const PUBLIC_MUTATION_ACTIONS = new Set(['admin.site.settings', 'business.settings.save']);
 
 export function actionChangesPublicStorefront(action: string) {
-  return PUBLIC_MUTATION_ACTIONS.has(action) || PUBLIC_MUTATION_PREFIXES.some((prefix) => action.startsWith(prefix));
+  return (
+    PUBLIC_MUTATION_ACTIONS.has(action) ||
+    PUBLIC_MUTATION_PREFIXES.some((prefix) => action.startsWith(prefix))
+  );
 }
 
 export function revalidatePublicStorefront(action: string) {

@@ -11,7 +11,11 @@ const serverSchema = z.object({
   MEILISEARCH_HOST: z.string().url().optional().or(z.literal('')),
   OPENAI_API_KEY: z.string().optional(),
   RESEND_API_KEY: z.string().optional(),
-  AUTH_SECRET: z.string().optional(),
+  // AUTH_SECRET signs every session JWT (and backs kit-quote HMAC when
+  // KIT_QUOTE_SECRET is unset). An empty secret boots into forgeable
+  // sessions, so production refuses to start without a real one. Dev/test
+  // keep the optional shape so `pnpm dev` works before secrets exist.
+  AUTH_SECRET: process.env.NODE_ENV === 'production' ? z.string().min(32) : z.string().optional(),
 });
 
 export const env = serverSchema.parse({

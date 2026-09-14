@@ -2,9 +2,15 @@ import 'server-only';
 import { headers } from 'next/headers';
 import legacyApi from '@/legacy-api/api.js';
 
-export async function serverLegacyRequest<T>(action: string, params: Record<string, unknown> = {}, method: 'GET' | 'POST' = 'GET') {
+export async function serverLegacyRequest<T>(
+  action: string,
+  params: Record<string, unknown> = {},
+  method: 'GET' | 'POST' = 'GET',
+) {
   const incoming = await headers();
-  const host = incoming.get('x-forwarded-host') || incoming.get('host') || 'localhost';
+  // Validated Host first (see requestHostname in server/request-tenant.ts):
+  // x-forwarded-host is client-spoofable on direct origin hits.
+  const host = incoming.get('host') || incoming.get('x-forwarded-host') || 'localhost';
   const proto = incoming.get('x-forwarded-proto') || 'https';
   const h = new Headers();
   const cookie = incoming.get('cookie');

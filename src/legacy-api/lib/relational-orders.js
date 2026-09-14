@@ -138,7 +138,12 @@ export async function readRelationalOrders(tenantId,options={}){
   if(options.from){params.push(String(options.from));where.push(`created_at >= $${params.length}::date`);}
   if(options.to){params.push(String(options.to));where.push(`created_at < ($${params.length}::date + INTERVAL '1 day')`);}
   const limit=Math.max(0,Math.min(20000,Number(options.limit??300)||0));
-  const sqlText=`SELECT * FROM orders WHERE ${where.join(' AND ')} ORDER BY created_at DESC${limit?` LIMIT ${limit}`:''}`;
+  // limit:0 used to mean "no LIMIT at all": the sales report passed 0, so one
+  // request loaded the tenant's entire order history plus every line into
+  // memory. Cap it — 20k rows is the most a report ever aggregates — and say
+  // so, so a truncated report never silently poses as a complete one.
+  const effectiveLimit=limit>0?limit:20000;
+  const sqlText=`SELECT * FROM orders WHERE ${where.join(' AND ')} ORDER BY created_at DESC LIMIT ${effectiveLimit}`;
   const result=await db.pool.query(sqlText,params);
   if(!result.rows.length)return [];
   const ids=result.rows.map(row=>String(row.id));
@@ -202,7 +207,7 @@ export async function relationalSalesReport(tenantId,{from='',to='',channel='',i
       current.top_products=current.top_products.map(row=>({...row,image_url:images.get(String(row.product_id))||''}));
     }catch{/* image enrichment is optional */}
   }
-  return {filters:{from,to,channel:channel||'all'},...current,previous:previous?{...previous,top_products:[]}:null,generated_at:new Date().toISOString(),scanned_orders:rows.length,complete:true,source:'relational'};
+  return {filters:{from,to,channel:channel||'all'},...current,previous:previous?{...previous,top_products:[]}:null,generated_at:new Date().toISOString(),scanned_orders:rows.length,complete:rows.length<20000,source:'relational'};
 }
 
 export async function relationalDashboardMetrics(tenantId,authNamespace){

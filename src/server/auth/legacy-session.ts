@@ -12,8 +12,11 @@ export type LegacySession = {
 };
 
 export async function getLegacySession(): Promise<LegacySession> {
-  try { return await serverLegacyRequest<LegacySession>('session'); }
-  catch { return {}; }
+  try {
+    return await serverLegacyRequest<LegacySession>('session');
+  } catch {
+    return {};
+  }
 }
 
 export function roleFromSession(session: LegacySession) {

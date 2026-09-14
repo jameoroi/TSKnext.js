@@ -13,7 +13,10 @@ export function OrderEmail({ orderNo, total }: { orderNo: string; total: string 
       <Body style={{ fontFamily: 'Arial, sans-serif', background: '#f6f7f8' }}>
         <Container style={{ maxWidth: 560, background: '#fff', margin: '32px auto', padding: 32 }}>
           <Heading>THAISERKIT SUPPLY</Heading>
-          <Section><Text>เราได้รับคำสั่งซื้อ {orderNo} แล้ว</Text><Text>ยอดรวม {total}</Text></Section>
+          <Section>
+            <Text>เราได้รับคำสั่งซื้อ {orderNo} แล้ว</Text>
+            <Text>ยอดรวม {total}</Text>
+          </Section>
         </Container>
       </Body>
     </Html>

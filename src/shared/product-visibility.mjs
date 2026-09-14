@@ -37,7 +37,9 @@ export const HIDDEN_STATES = Object.freeze(['hidden', 'discontinued']);
  * @returns {'active' | 'hidden' | 'discontinued'}
  */
 export function lifecycleStatus(product) {
-  const state = String(product?.state ?? '').trim().toLowerCase();
+  const state = String(product?.state ?? '')
+    .trim()
+    .toLowerCase();
   return HIDDEN_STATES.includes(state) ? /** @type {'hidden'|'discontinued'} */ (state) : 'active';
 }
 

@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server';
-import { taxInvoices } from '@/server/db/schema';
 import { getLegacySession } from '@/server/auth/legacy-session';
 import { withDb } from '@/server/db/client';
+import { taxInvoices } from '@/server/db/schema';
 import { serverLegacyRequest } from '@/server/legacy-api';
 import { resolveRequestTenant } from '@/server/request-tenant';
 
@@ -63,25 +63,39 @@ export async function GET(request: NextRequest, context: { params: Promise<{ ord
   }
   if (!order) return Response.json({ ok: false, error: 'order_not_found' }, { status: 404 });
 
+  // Defense in depth: the customer branch already goes through order.track,
+  // which enforces ownership — but this route must not depend on that alone.
+  // A customer session may only ever render its own order's PII.
+  if (session.customer && order.customer_id) {
+    const customerId = String((session.customer as Record<string, unknown>).id || '');
+    if (!customerId || String(order.customer_id) !== customerId)
+      return Response.json({ ok: false, error: 'order_not_found' }, { status: 404 });
+  }
+
   const tax = order.tax_invoice || {};
   const invoiceNo = `TAX-${String(order.order_no || order.id).slice(0, 48)}`;
   const total = Number(order.total || order.total_baht || 0);
   const tenant = resolveRequestTenant(request);
   if (tenant.ok && order.id) {
-    await withDb((db) => db.insert(taxInvoices).values({
-      tenantId: tenant.tenant.id,
-      id: `invoice-${String(order.id).slice(0, 80)}`,
-      orderId: String(order.id),
-      invoiceNo,
-      invoiceType: 'full_tax_invoice',
-      customerName: String(tax.company_name || order.name || '-').slice(0, 180),
-      taxId: String(tax.tax_id || '').slice(0, 32) || null,
-      branch: String(tax.branch || '').slice(0, 80) || null,
-      address: String(tax.address || order.address || '').slice(0, 1000) || null,
-      subtotalSatang: Math.max(0, Math.round(Number(order.subtotal || 0) * 100)),
-      vatSatang: Math.max(0, Math.round((total * 100 * 7) / 107)),
-      totalSatang: Math.max(0, Math.round(total * 100)),
-    }).onConflictDoNothing()).catch((error) => {
+    await withDb((db) =>
+      db
+        .insert(taxInvoices)
+        .values({
+          tenantId: tenant.tenant.id,
+          id: `invoice-${String(order.id).slice(0, 80)}`,
+          orderId: String(order.id),
+          invoiceNo,
+          invoiceType: 'full_tax_invoice',
+          customerName: String(tax.company_name || order.name || '-').slice(0, 180),
+          taxId: String(tax.tax_id || '').slice(0, 32) || null,
+          branch: String(tax.branch || '').slice(0, 80) || null,
+          address: String(tax.address || order.address || '').slice(0, 1000) || null,
+          subtotalSatang: Math.max(0, Math.round(Number(order.subtotal || 0) * 100)),
+          vatSatang: Math.max(0, Math.round((total * 100 * 7) / 107)),
+          totalSatang: Math.max(0, Math.round(total * 100)),
+        })
+        .onConflictDoNothing(),
+    ).catch((error) => {
       console.warn('[invoice] relational record unavailable', error instanceof Error ? error.message : error);
     });
   }

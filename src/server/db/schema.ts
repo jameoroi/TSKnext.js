@@ -23,22 +23,23 @@
  * locks. Settings, content and sessions stay in app_kv, where they belong and
  * where they work.
  */
-import {
-  pgTable,
-  text,
-  integer,
-  bigint,
-  numeric,
-  boolean,
-  timestamp,
-  jsonb,
-  uniqueIndex,
-  index,
-  primaryKey,
-  pgEnum,
-  foreignKey,
-} from 'drizzle-orm/pg-core';
+
 import { sql } from 'drizzle-orm';
+import {
+  bigint,
+  boolean,
+  foreignKey,
+  index,
+  integer,
+  jsonb,
+  numeric,
+  pgEnum,
+  pgTable,
+  primaryKey,
+  text,
+  timestamp,
+  uniqueIndex,
+} from 'drizzle-orm/pg-core';
 
 /** Tenant id, on every row. The shop is multi-tenant and a query that forgets
  *  this is how one merchant's catalogue reaches another — a bug this project
@@ -211,11 +212,16 @@ export const orders = pgTable(
   (t) => [
     primaryKey({ columns: [t.tenantId, t.id] }),
     uniqueIndex('orders_tenant_order_no_idx').on(t.tenantId, t.orderNo),
-    uniqueIndex('orders_tenant_idempotency_idx').on(t.tenantId, t.idempotencyKey),
+    // Partial: the key is NULL on rows written before order.create persisted
+    // it, and NULLs never collide — a plain unique index on this column
+    // deduplicates nothing. Mirrors 20260914090000 (partial unique index).
+    uniqueIndex('orders_tenant_idempotency_key_idx')
+      .on(t.tenantId, t.idempotencyKey)
+      .where(sql`idempotency_key IS NOT NULL`),
     index('orders_tenant_status_idx').on(t.tenantId, t.status),
     index('orders_tenant_customer_idx').on(t.tenantId, t.customerId),
     // The sweep that releases expired reservations reads exactly this.
-    index('orders_reservation_expiry_idx').on(t.reservationExpiresAt),
+    index('orders_tenant_reservation_expiry_idx').on(t.tenantId, t.reservationExpiresAt),
   ],
 );
 
@@ -238,7 +244,13 @@ export const orderItems = pgTable(
   },
   (t) => [
     primaryKey({ columns: [t.tenantId, t.orderId, t.lineNo] }),
+    foreignKey({
+      columns: [t.tenantId, t.orderId],
+      foreignColumns: [orders.tenantId, orders.id],
+      name: 'order_items_order_fk',
+    }),
     index('order_items_product_idx').on(t.tenantId, t.productId),
+    index('order_items_tenant_order_idx').on(t.tenantId, t.orderId),
   ],
 );
 
@@ -269,6 +281,11 @@ export const stockLedger = pgTable(
   },
   (t) => [
     primaryKey({ columns: [t.tenantId, t.id] }),
+    foreignKey({
+      columns: [t.tenantId, t.orderId],
+      foreignColumns: [orders.tenantId, orders.id],
+      name: 'stock_ledger_order_fk',
+    }),
     index('stock_ledger_product_idx').on(t.tenantId, t.productId, t.createdAt),
     index('stock_ledger_order_idx').on(t.tenantId, t.orderId),
   ],
@@ -321,7 +338,13 @@ export const equipmentSetItems = pgTable(
   },
   (t) => [
     primaryKey({ columns: [t.tenantId, t.setId, t.lineNo] }),
+    foreignKey({
+      columns: [t.tenantId, t.setId],
+      foreignColumns: [equipmentSets.tenantId, equipmentSets.id],
+      name: 'equipment_set_items_set_fk',
+    }),
     index('equipment_set_items_product_idx').on(t.tenantId, t.productId),
+    index('equipment_set_items_tenant_set_idx').on(t.tenantId, t.setId),
   ],
 );
 
@@ -350,7 +373,11 @@ export const taxInvoices = pgTable(
   },
   (t) => [
     primaryKey({ columns: [t.tenantId, t.id] }),
-    foreignKey({ columns: [t.tenantId, t.orderId], foreignColumns: [orders.tenantId, orders.id], name: 'tax_invoices_order_fk' }),
+    foreignKey({
+      columns: [t.tenantId, t.orderId],
+      foreignColumns: [orders.tenantId, orders.id],
+      name: 'tax_invoices_order_fk',
+    }),
     uniqueIndex('tax_invoices_tenant_invoice_no_idx').on(t.tenantId, t.invoiceNo),
     uniqueIndex('tax_invoices_tenant_order_idx').on(t.tenantId, t.orderId),
   ],
@@ -376,7 +403,7 @@ export const aiUsageLogs = pgTable(
   (t) => [
     primaryKey({ columns: [t.tenantId, t.id] }),
     index('ai_usage_logs_tenant_created_idx').on(t.tenantId, t.createdAt),
-    index('ai_usage_logs_feature_created_idx').on(t.feature, t.createdAt),
+    index('ai_usage_logs_tenant_feature_created_idx').on(t.tenantId, t.feature, t.createdAt),
   ],
 );
 

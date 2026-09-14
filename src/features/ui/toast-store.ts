@@ -25,7 +25,10 @@ export const useToastStore = create<ToastState>((set) => ({
     set((state) => ({ message: String(message || ''), tone, visible: true, nonce: state.nonce + 1 }));
     timer = setTimeout(() => set({ visible: false }), duration);
   },
-  hide: () => { if (timer) clearTimeout(timer); set({ visible: false }); },
+  hide: () => {
+    if (timer) clearTimeout(timer);
+    set({ visible: false });
+  },
 }));
 
 export function showToast(message: string, options?: { tone?: ToastTone; duration?: number }) {

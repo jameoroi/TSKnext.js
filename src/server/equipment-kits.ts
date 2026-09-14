@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { and, asc, desc, eq } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray } from 'drizzle-orm';
 import { headers } from 'next/headers';
 import { resolveTenant } from '@/legacy-api/lib/tenants.js';
 import { databaseConfigured, withDb } from '@/server/db/client';
@@ -14,12 +14,22 @@ export type PublicEquipmentSet = {
   imageUrl: string;
   discountType: 'none' | 'percent' | 'fixed';
   discountValue: number;
-  items: Array<{ productId: string; variantId?: string | null; quantity: number; required: boolean; note: string }>;
+  items: Array<{
+    productId: string;
+    variantId?: string | null;
+    quantity: number;
+    required: boolean;
+    note: string;
+  }>;
 };
 
 async function currentTenantId() {
   const incoming = await headers();
-  const host = String(incoming.get('x-forwarded-host') || incoming.get('host') || 'localhost').split(',')[0].trim().replace(/:\d+$/, '');
+  // Validated Host first (see requestHostname in server/request-tenant.ts).
+  const host = String(incoming.get('host') || incoming.get('x-forwarded-host') || 'localhost')
+    .split(',')[0]
+    .trim()
+    .replace(/:\d+$/, '');
   const tenant = resolveTenant(host) as { id?: string } | null;
   return String(tenant?.id || '').trim();
 }
@@ -30,12 +40,20 @@ export async function getPublicEquipmentSets(limit = 12): Promise<PublicEquipmen
   if (!tenantId) return [];
   try {
     return await withDb(async (db) => {
-      const rows = await db.select().from(equipmentSets)
+      const rows = await db
+        .select()
+        .from(equipmentSets)
         .where(and(eq(equipmentSets.tenantId, tenantId), eq(equipmentSets.status, 'active')))
-        .orderBy(desc(equipmentSets.updatedAt)).limit(Math.max(1, Math.min(50, limit)));
+        .orderBy(desc(equipmentSets.updatedAt))
+        .limit(Math.max(1, Math.min(50, limit)));
       if (!rows.length) return [];
-      const items = await db.select().from(equipmentSetItems)
-        .where(eq(equipmentSetItems.tenantId, tenantId))
+      const setIds = rows.map((row) => row.id);
+      // Scope the line query to the requested sets: cost follows the request,
+      // not the tenant's total bundle-line count.
+      const items = await db
+        .select()
+        .from(equipmentSetItems)
+        .where(and(eq(equipmentSetItems.tenantId, tenantId), inArray(equipmentSetItems.setId, setIds)))
         .orderBy(asc(equipmentSetItems.setId), asc(equipmentSetItems.lineNo));
       return rows.map((row) => ({
         id: row.id,
@@ -43,15 +61,19 @@ export async function getPublicEquipmentSets(limit = 12): Promise<PublicEquipmen
         name: row.name,
         description: String(row.description || ''),
         imageUrl: String(row.imageUrl || ''),
-        discountType: (['percent', 'fixed'].includes(String(row.discountType)) ? String(row.discountType) : 'none') as 'none' | 'percent' | 'fixed',
+        discountType: (['percent', 'fixed'].includes(String(row.discountType))
+          ? String(row.discountType)
+          : 'none') as 'none' | 'percent' | 'fixed',
         discountValue: Math.max(0, Number(row.discountValue || 0)),
-        items: items.filter((item) => item.setId === row.id).map((item) => ({
-          productId: item.productId,
-          variantId: item.variantId,
-          quantity: item.quantity,
-          required: item.required,
-          note: String(item.note || ''),
-        })),
+        items: items
+          .filter((item) => item.setId === row.id)
+          .map((item) => ({
+            productId: item.productId,
+            variantId: item.variantId,
+            quantity: item.quantity,
+            required: item.required,
+            note: String(item.note || ''),
+          })),
       }));
     });
   } catch (error) {

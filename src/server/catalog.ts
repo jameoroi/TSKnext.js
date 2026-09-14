@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { and, desc, eq, ilike, or, sql } from 'drizzle-orm';
+import { and, desc, eq, or, sql } from 'drizzle-orm';
 import { headers } from 'next/headers';
 import type { Product } from '@/features/catalog/types';
 import { resolveTenant } from '@/legacy-api/lib/tenants.js';
@@ -28,12 +28,21 @@ export type SiteSettings = {
 
 async function tenantId() {
   const incoming = await headers();
-  const host = String(incoming.get('x-forwarded-host') || incoming.get('host') || 'localhost')
+  // Validated Host first (see requestHostname in server/request-tenant.ts):
+  // x-forwarded-host is client-spoofable on direct origin hits.
+  const host = String(incoming.get('host') || incoming.get('x-forwarded-host') || 'localhost')
     .split(',')[0]
     .trim()
     .replace(/:\d+$/, '');
   const tenant = resolveTenant(host) as { id?: string } | null;
   return String(tenant?.id || '').trim();
+}
+
+// LIKE wildcards in the caller's pocket: % and _ inside the query are pattern
+// operators. Escape them (every use site carries an explicit ESCAPE clause)
+// so catalogue search matches literally.
+function likePattern(query: string) {
+  return `%${query.replace(/[\\%_]/g, (char) => `\\${char}`)}%`;
 }
 
 function mapProduct(row: typeof productTable.$inferSelect): Product {
@@ -78,9 +87,9 @@ async function relationalProducts(params: Record<string, unknown>) {
   if (q)
     conditions.push(
       or(
-        ilike(productTable.name, `%${q}%`),
-        ilike(productTable.sku, `%${q}%`),
-        ilike(productTable.brand, `%${q}%`),
+        sql`${productTable.name} ILIKE ${likePattern(q)} ESCAPE '\\'`,
+        sql`${productTable.sku} ILIKE ${likePattern(q)} ESCAPE '\\'`,
+        sql`${productTable.brand} ILIKE ${likePattern(q)} ESCAPE '\\'`,
       )!,
     );
   if (category) conditions.push(eq(productTable.categoryKey, category));

@@ -14,8 +14,12 @@ export default async function AccountPage({
 }) {
   const session = await requireRole('customer', '/account');
   const [orders, addresses] = await Promise.all([
-    safeLegacy<any>('customer.orders', {}, { orders: [] }),
-    safeLegacy<any>('customer.addresses.list', {}, { addresses: [] }),
+    safeLegacy<{ orders?: Array<Record<string, unknown>> }>('customer.orders', {}, { orders: [] }),
+    safeLegacy<{ addresses?: Array<Record<string, unknown>> }>(
+      'customer.addresses.list',
+      {},
+      { addresses: [] },
+    ),
   ]);
   const sp = await searchParams;
   const raw = Array.isArray(sp.tab) ? sp.tab[0] : sp.tab;

@@ -1,1 +1,23 @@
-import { NextResponse } from 'next/server';export function GET(){return NextResponse.json({ok:true,api:'v1',runtime:'Next.js Route Handlers',database:process.env.DATABASE_URL?'configured':'not-configured',endpoints:['/api/v1/health','/api/v1/products','/api/v1/products/:idOrSlug','/api/v1/stock/:idOrSlug','/api/v1/search?q=','/api/v1/categories','/api/v1/brands','/api/v1/kits','/api/v1/kits/:idOrSlug']},{headers:{'cache-control':'public, s-maxage=600, stale-while-revalidate=86400'}})}
+import { NextResponse } from 'next/server';
+export function GET() {
+  return NextResponse.json(
+    {
+      ok: true,
+      api: 'v1',
+      runtime: 'Next.js Route Handlers',
+      database: process.env.DATABASE_URL ? 'configured' : 'not-configured',
+      endpoints: [
+        '/api/v1/health',
+        '/api/v1/products',
+        '/api/v1/products/:idOrSlug',
+        '/api/v1/stock/:idOrSlug',
+        '/api/v1/search?q=',
+        '/api/v1/categories',
+        '/api/v1/brands',
+        '/api/v1/kits',
+        '/api/v1/kits/:idOrSlug',
+      ],
+    },
+    { headers: { 'cache-control': 'public, s-maxage=600, stale-while-revalidate=86400' } },
+  );
+}

@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function ComparePage() {
-  return <CompareProducts/>;
+  return <CompareProducts />;
 }

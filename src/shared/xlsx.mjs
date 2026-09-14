@@ -39,16 +39,16 @@ const CRC_TABLE = (() => {
   const table = new Uint32Array(256);
   for (let n = 0; n < 256; n++) {
     let c = n;
-    for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
     table[n] = c >>> 0;
   }
   return table;
 })();
 
 function crc32(bytes) {
-  let c = 0xFFFFFFFF;
-  for (let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
-  return (c ^ 0xFFFFFFFF) >>> 0;
+  let c = 0xffffffff;
+  for (let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xff] ^ (c >>> 8);
+  return (c ^ 0xffffffff) >>> 0;
 }
 
 const utf8 = new TextEncoder();
@@ -62,9 +62,11 @@ async function through(bytes, stream) {
 /** Whether this runtime can deflate. Without it, .xlsx is not on the menu. */
 export function xlsxSupported() {
   try {
-    return typeof CompressionStream === 'function'
-      && typeof DecompressionStream === 'function'
-      && Boolean(new CompressionStream('deflate-raw'));
+    return (
+      typeof CompressionStream === 'function' &&
+      typeof DecompressionStream === 'function' &&
+      Boolean(new CompressionStream('deflate-raw'))
+    );
   } catch {
     return false;
   }
@@ -92,11 +94,11 @@ async function zip(files) {
 
     const local = new DataView(new ArrayBuffer(30));
     local.setUint32(0, 0x04034b50, true);
-    local.setUint16(4, 20, true);      // version needed
-    local.setUint16(6, 0x0800, true);  // flag: names and comments are UTF-8
+    local.setUint16(4, 20, true); // version needed
+    local.setUint16(6, 0x0800, true); // flag: names and comments are UTF-8
     local.setUint16(8, method, true);
-    local.setUint16(10, 0, true);      // time — fixed, see the note below
-    local.setUint16(12, 0x21, true);   // date: 1980-01-01
+    local.setUint16(10, 0, true); // time — fixed, see the note below
+    local.setUint16(12, 0x21, true); // date: 1980-01-01
     local.setUint32(14, sum, true);
     local.setUint32(18, body.length, true);
     local.setUint32(22, bytes.length, true);
@@ -140,7 +142,10 @@ async function zip(files) {
   const size = all.reduce((n, part) => n + part.length, 0);
   const out = new Uint8Array(size);
   let at = 0;
-  for (const part of all) { out.set(part, at); at += part.length; }
+  for (const part of all) {
+    out.set(part, at);
+    at += part.length;
+  }
   return out;
 }
 
@@ -152,7 +157,10 @@ async function unzip(bytes) {
   // found by scanning back for its signature rather than assumed to be at -22.
   let end = -1;
   for (let i = bytes.length - 22; i >= 0 && i > bytes.length - 65558; i--) {
-    if (view.getUint32(i, true) === 0x06054b50) { end = i; break; }
+    if (view.getUint32(i, true) === 0x06054b50) {
+      end = i;
+      break;
+    }
   }
   if (end < 0) throw new Error('xlsx_not_a_zip');
 
@@ -200,10 +208,12 @@ const XML_ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'"
  * why. Dropping them is the only option that produces a file.
  */
 function xml(value) {
-  return String(value ?? '')
-    // eslint-disable-next-line no-control-regex
-    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '')
-    .replace(/[&<>"']/g, (c) => XML_ESCAPES[c]);
+  return (
+    String(value ?? '')
+      // eslint-disable-next-line no-control-regex
+      .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '')
+      .replace(/[&<>"']/g, (c) => XML_ESCAPES[c])
+  );
 }
 
 /** 0 → A, 25 → Z, 26 → AA. Spreadsheet columns are bijective base-26. */
@@ -288,49 +298,63 @@ function sheetXml(sheet) {
     ? `<cols>${sheet.widths.map((w, i) => `<col min="${i + 1}" max="${i + 1}" width="${w}" customWidth="1"/>`).join('')}</cols>`
     : '';
 
-  const body = rows.map((row, r) => {
-    const cells = (row || []).map((value, c) => {
-      const reference = `${columnName(c)}${r + 1}`;
-      const style = header && r === 0 ? ' s="1"' : '';
-      if (value === null || value === undefined || value === '') return `<c r="${reference}"${style}/>`;
-      // A number only when it is unambiguously one. "0812345678" is a phone
-      // number and "01" is a code; both lose their meaning as numbers, so
-      // anything with a leading zero stays text.
-      const isNumber = typeof value === 'number'
-        || (typeof value === 'string' && /^-?(0|[1-9]\d*)(\.\d+)?$/.test(value) && value.length < 15);
-      if (isNumber) return `<c r="${reference}"${style}><v>${xml(value)}</v></c>`;
-      return `<c r="${reference}"${style} t="inlineStr"><is><t xml:space="preserve">${xml(value)}</t></is></c>`;
-    }).join('');
-    return `<row r="${r + 1}">${cells}</row>`;
-  }).join('');
+  const body = rows
+    .map((row, r) => {
+      const cells = (row || [])
+        .map((value, c) => {
+          const reference = `${columnName(c)}${r + 1}`;
+          const style = header && r === 0 ? ' s="1"' : '';
+          if (value === null || value === undefined || value === '') return `<c r="${reference}"${style}/>`;
+          // A number only when it is unambiguously one. "0812345678" is a phone
+          // number and "01" is a code; both lose their meaning as numbers, so
+          // anything with a leading zero stays text.
+          const isNumber =
+            typeof value === 'number' ||
+            (typeof value === 'string' && /^-?(0|[1-9]\d*)(\.\d+)?$/.test(value) && value.length < 15);
+          if (isNumber) return `<c r="${reference}"${style}><v>${xml(value)}</v></c>`;
+          return `<c r="${reference}"${style} t="inlineStr"><is><t xml:space="preserve">${xml(value)}</t></is></c>`;
+        })
+        .join('');
+      return `<row r="${r + 1}">${cells}</row>`;
+    })
+    .join('');
 
   // Dropdowns. `showErrorMessage="0"` warns without refusing: a supplier's
   // brand that is not in the shop's list yet is a normal thing to type, and a
   // spreadsheet that will not let you type it is worse than one that flags it.
-  const validations = (sheet.validations || []).filter((v) => v.options?.length).map((v) => {
-    const column = columnName(v.column);
-    const list = v.options.map((option) => xml(option).replace(/,/g, ' ')).join(',');
-    // Excel refuses an inline list over 255 characters. Longer lists are left
-    // to the reference sheet and the import preview rather than truncated into
-    // a dropdown that silently omits half the brands.
-    if (list.length > 250) return '';
-    return `<dataValidation type="list" allowBlank="1" showInputMessage="1" showErrorMessage="${v.strict ? 1 : 0}" sqref="${column}2:${column}5000"><formula1>"${list}"</formula1></dataValidation>`;
-  }).filter(Boolean);
+  const validations = (sheet.validations || [])
+    .filter((v) => v.options?.length)
+    .map((v) => {
+      const column = columnName(v.column);
+      const list = v.options.map((option) => xml(option).replace(/,/g, ' ')).join(',');
+      // Excel refuses an inline list over 255 characters. Longer lists are left
+      // to the reference sheet and the import preview rather than truncated into
+      // a dropdown that silently omits half the brands.
+      if (list.length > 250) return '';
+      return `<dataValidation type="list" allowBlank="1" showInputMessage="1" showErrorMessage="${v.strict ? 1 : 0}" sqref="${column}2:${column}5000"><formula1>"${list}"</formula1></dataValidation>`;
+    })
+    .filter(Boolean);
 
   const frozen = header
     ? '<sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>'
     : '';
-  const autoFilter = header && rows.length > 1 && width > 0
-    ? `<autoFilter ref="A1:${columnName(width - 1)}${rows.length}"/>`
-    : '';
+  const autoFilter =
+    header && rows.length > 1 && width > 0
+      ? `<autoFilter ref="A1:${columnName(width - 1)}${rows.length}"/>`
+      : '';
 
-  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>`
-    + `<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">`
-    + frozen + columns
-    + `<sheetData>${body}</sheetData>`
-    + autoFilter
-    + (validations.length ? `<dataValidations count="${validations.length}">${validations.join('')}</dataValidations>` : '')
-    + `</worksheet>`;
+  return (
+    `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>` +
+    `<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">` +
+    frozen +
+    columns +
+    `<sheetData>${body}</sheetData>` +
+    autoFilter +
+    (validations.length
+      ? `<dataValidations count="${validations.length}">${validations.join('')}</dataValidations>`
+      : '') +
+    `</worksheet>`
+  );
 }
 
 /**
@@ -348,49 +372,84 @@ export async function writeXlsx(sheets) {
   sheets.forEach((sheet, index) => {
     const n = index + 1;
     parts.push([`xl/worksheets/sheet${n}.xml`, utf8.encode(sheetXml(sheet))]);
-    rels.push(`<Relationship Id="rId${n}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${n}.xml"/>`);
+    rels.push(
+      `<Relationship Id="rId${n}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${n}.xml"/>`,
+    );
   });
 
   // Two fonts and two formats: plain, and bold for the header row. Anything
   // more is a styling engine, and this file is not one.
-  const styles = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>`
-    + `<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">`
-    + `<fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts>`
-    + `<fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills>`
-    + `<borders count="1"><border/></borders>`
-    + `<cellStyleXfs count="1"><xf/></cellStyleXfs>`
-    + `<cellXfs count="2"><xf xfId="0"/><xf xfId="0" fontId="1" applyFont="1"/></cellXfs>`
+  const styles =
+    `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>` +
+    `<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">` +
+    `<fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts>` +
+    `<fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills>` +
+    `<borders count="1"><border/></borders>` +
+    `<cellStyleXfs count="1"><xf/></cellStyleXfs>` +
+    `<cellXfs count="2"><xf xfId="0"/><xf xfId="0" fontId="1" applyFont="1"/></cellXfs>` +
     // Without a named Normal style, readers report the workbook as having no
     // default and substitute their own. It costs one line to be correct.
-    + `<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>`
-    + `</styleSheet>`;
+    `<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>` +
+    `</styleSheet>`;
 
-  const sheetTags = sheets.map((sheet, index) =>
-    // Tab names cannot hold : \ / ? * [ ] and cannot exceed 31 characters.
-    `<sheet name="${xml(String(sheet.name || `Sheet${index + 1}`).replace(/[:\\/?*[\]]/g, ' ').slice(0, 31))}" sheetId="${index + 1}" r:id="rId${index + 1}"/>`,
-  ).join('');
+  const sheetTags = sheets
+    .map(
+      (sheet, index) =>
+        // Tab names cannot hold : \ / ? * [ ] and cannot exceed 31 characters.
+        `<sheet name="${xml(
+          String(sheet.name || `Sheet${index + 1}`)
+            .replace(/[:\\/?*[\]]/g, ' ')
+            .slice(0, 31),
+        )}" sheetId="${index + 1}" r:id="rId${index + 1}"/>`,
+    )
+    .join('');
 
   const files = [
-    ['[Content_Types].xml', utf8.encode(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>`
-      + `<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">`
-      + `<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>`
-      + `<Default Extension="xml" ContentType="application/xml"/>`
-      + `<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>`
-      + `<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>`
-      + sheets.map((_, i) => `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')
-      + `</Types>`)],
-    ['_rels/.rels', utf8.encode(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>`
-      + `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">`
-      + `<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>`
-      + `</Relationships>`)],
-    ['xl/workbook.xml', utf8.encode(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>`
-      + `<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">`
-      + `<sheets>${sheetTags}</sheets></workbook>`)],
-    ['xl/_rels/workbook.xml.rels', utf8.encode(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>`
-      + `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">`
-      + rels.join('')
-      + `<Relationship Id="rId${sheets.length + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>`
-      + `</Relationships>`)],
+    [
+      '[Content_Types].xml',
+      utf8.encode(
+        `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>` +
+          `<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">` +
+          `<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>` +
+          `<Default Extension="xml" ContentType="application/xml"/>` +
+          `<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>` +
+          `<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>` +
+          sheets
+            .map(
+              (_, i) =>
+                `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`,
+            )
+            .join('') +
+          `</Types>`,
+      ),
+    ],
+    [
+      '_rels/.rels',
+      utf8.encode(
+        `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>` +
+          `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` +
+          `<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>` +
+          `</Relationships>`,
+      ),
+    ],
+    [
+      'xl/workbook.xml',
+      utf8.encode(
+        `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>` +
+          `<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">` +
+          `<sheets>${sheetTags}</sheets></workbook>`,
+      ),
+    ],
+    [
+      'xl/_rels/workbook.xml.rels',
+      utf8.encode(
+        `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>` +
+          `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` +
+          rels.join('') +
+          `<Relationship Id="rId${sheets.length + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>` +
+          `</Relationships>`,
+      ),
+    ],
     ['xl/styles.xml', utf8.encode(styles)],
     ...parts,
   ];
@@ -512,15 +571,27 @@ export function readCsv(text) {
   for (let i = 0; i < source.length; i++) {
     const c = source[i];
     if (quoted) {
-      if (c === '"' && source[i + 1] === '"') { field += '"'; i += 1; }
-      else if (c === '"') quoted = false;
+      if (c === '"' && source[i + 1] === '"') {
+        field += '"';
+        i += 1;
+      } else if (c === '"') quoted = false;
       else field += c;
     } else if (c === '"') quoted = true;
-    else if (c === ',') { row.push(field); field = ''; }
-    else if (c === '\r') { /* handled by the \n that follows */ }
-    else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
-    else field += c;
+    else if (c === ',') {
+      row.push(field);
+      field = '';
+    } else if (c === '\r') {
+      /* handled by the \n that follows */
+    } else if (c === '\n') {
+      row.push(field);
+      rows.push(row);
+      row = [];
+      field = '';
+    } else field += c;
   }
-  if (field.length || row.length) { row.push(field); rows.push(row); }
+  if (field.length || row.length) {
+    row.push(field);
+    rows.push(row);
+  }
   return rows.filter((cells) => cells.some((cell) => String(cell).trim() !== ''));
 }

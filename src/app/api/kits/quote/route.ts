@@ -1,18 +1,24 @@
 import { and, eq, inArray } from 'drizzle-orm';
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
-import { products, equipmentSetItems, equipmentSets } from '@/server/db/schema';
+import { rateLimit } from '@/legacy-api/api.js';
 import { databaseConfigured, withDb } from '@/server/db/client';
+import { equipmentSetItems, equipmentSets, products } from '@/server/db/schema';
 import { resolveRequestTenant } from '@/server/request-tenant';
 import { kitQuoteSigningConfigured, signKitQuote } from '@/shared/kit-quote.mjs';
 
 const requestSchema = z.object({
   setId: z.string().trim().min(1).max(100),
-  items: z.array(z.object({
-    id: z.string().trim().min(1).max(200),
-    variant_id: z.string().trim().max(200).optional().default(''),
-    qty: z.coerce.number().int().min(1).max(999),
-  })).min(1).max(200),
+  items: z
+    .array(
+      z.object({
+        id: z.string().trim().min(1).max(200),
+        variant_id: z.string().trim().max(200).optional().default(''),
+        qty: z.coerce.number().int().min(1).max(999),
+      }),
+    )
+    .min(1)
+    .max(200),
 });
 
 function fail(error: string, status: number, detail?: unknown) {
@@ -27,48 +33,75 @@ function matchedQty(cart: z.infer<typeof requestSchema>['items'], productId: str
 
 export async function POST(request: NextRequest) {
   if (!databaseConfigured()) return fail('database_not_configured', 503);
-  if (!kitQuoteSigningConfigured()) return fail('kit_quote_signing_not_configured', 503, 'Set KIT_QUOTE_SECRET or AUTH_SECRET.');
+  if (!kitQuoteSigningConfigured())
+    return fail('kit_quote_signing_not_configured', 503, 'Set KIT_QUOTE_SECRET or AUTH_SECRET.');
 
   const tenant = resolveRequestTenant(request);
   if (!tenant.ok) return fail(tenant.error, 421);
+
+  // Quote minting is unauthenticated by design (guest checkout), so it gets a
+  // storage-backed quota: without one, setId/item probing doubles as a free
+  // catalogue/pricing oracle and discount-token mint.
+  const rl = await rateLimit(request, 'kit-quote', 120, 3600, tenant.tenant.id);
+  if (!rl.ok) {
+    const retryAfter = 'retry_after' in rl && typeof rl.retry_after === 'number' ? rl.retry_after : 3600;
+    return fail('rate_limited', 429, { retry_after: retryAfter });
+  }
 
   const parsed = requestSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return fail('invalid_input', 422, parsed.error.flatten());
   const input = parsed.data;
 
   const result = await withDb(async (db) => {
-    const [set] = await db.select().from(equipmentSets).where(and(
-      eq(equipmentSets.tenantId, tenant.tenant.id),
-      eq(equipmentSets.id, input.setId),
-      eq(equipmentSets.status, 'active'),
-    )).limit(1);
+    const [set] = await db
+      .select()
+      .from(equipmentSets)
+      .where(
+        and(
+          eq(equipmentSets.tenantId, tenant.tenant.id),
+          eq(equipmentSets.id, input.setId),
+          eq(equipmentSets.status, 'active'),
+        ),
+      )
+      .limit(1);
     if (!set) return { error: 'kit_not_found' as const };
 
-    const setItems = await db.select().from(equipmentSetItems).where(and(
-      eq(equipmentSetItems.tenantId, tenant.tenant.id),
-      eq(equipmentSetItems.setId, set.id),
-    ));
+    const setItems = await db
+      .select()
+      .from(equipmentSetItems)
+      .where(and(eq(equipmentSetItems.tenantId, tenant.tenant.id), eq(equipmentSetItems.setId, set.id)));
     if (!setItems.length) return { error: 'kit_empty' as const };
 
-    const missing = setItems.filter((line) => line.required && matchedQty(input.items, line.productId, String(line.variantId || '')) < line.quantity);
+    const missing = setItems.filter(
+      (line) =>
+        line.required &&
+        matchedQty(input.items, line.productId, String(line.variantId || '')) < line.quantity,
+    );
     if (missing.length) {
       return {
         error: 'kit_requirements_not_met' as const,
-        missing: missing.map((line) => ({ productId: line.productId, variantId: line.variantId || '', quantity: line.quantity })),
+        missing: missing.map((line) => ({
+          productId: line.productId,
+          variantId: line.variantId || '',
+          quantity: line.quantity,
+        })),
       };
     }
 
     const claimed = setItems.flatMap((line) => {
-      const qty = Math.min(line.quantity, matchedQty(input.items, line.productId, String(line.variantId || '')));
+      const qty = Math.min(
+        line.quantity,
+        matchedQty(input.items, line.productId, String(line.variantId || '')),
+      );
       if (qty <= 0) return [];
       return [{ id: line.productId, variant_id: String(line.variantId || ''), qty }];
     });
     const productIds = [...new Set(claimed.map((line) => line.id))];
     const rows = productIds.length
-      ? await db.select({ id: products.id, priceSatang: products.priceSatang, status: products.status }).from(products).where(and(
-          eq(products.tenantId, tenant.tenant.id),
-          inArray(products.id, productIds),
-        ))
+      ? await db
+          .select({ id: products.id, priceSatang: products.priceSatang, status: products.status })
+          .from(products)
+          .where(and(eq(products.tenantId, tenant.tenant.id), inArray(products.id, productIds)))
       : [];
     const priceMap = new Map(rows.map((row) => [row.id, row]));
 
@@ -110,14 +143,17 @@ export async function POST(request: NextRequest) {
     items: result.claimed,
   });
 
-  return Response.json({
-    ok: true,
-    set: { id: result.set.id, slug: result.set.slug, name: result.set.name },
-    eligible_subtotal: result.eligibleSubtotal,
-    discount_type: result.set.discountType,
-    discount_value: Number(result.set.discountValue || 0),
-    discount: result.discountAmount,
-    token,
-    expires_in: 600,
-  }, { headers: { 'cache-control': 'no-store' } });
+  return Response.json(
+    {
+      ok: true,
+      set: { id: result.set.id, slug: result.set.slug, name: result.set.name },
+      eligible_subtotal: result.eligibleSubtotal,
+      discount_type: result.set.discountType,
+      discount_value: Number(result.set.discountValue || 0),
+      discount: result.discountAmount,
+      token,
+      expires_in: 600,
+    },
+    { headers: { 'cache-control': 'no-store' } },
+  );
 }

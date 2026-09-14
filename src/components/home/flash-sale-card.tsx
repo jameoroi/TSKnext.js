@@ -1,4 +1,3 @@
-
 'use client';
 
 import { ShoppingCart } from 'lucide-react';
@@ -19,7 +18,8 @@ const money = (value: number) =>
 
 export function FlashSaleCard({ item }: { item: FlashSaleItem }) {
   const add = useCartStore((s) => s.add);
-  const { product, normalPrice, salePrice, discountPercent, stockQuantity, soldQuantity, startsAt, endsAt } = item;
+  const { product, normalPrice, salePrice, discountPercent, stockQuantity, soldQuantity, startsAt, endsAt } =
+    item;
   const imageCandidates = productImageCandidates(product);
   const [imageIndex, setImageIndex] = useState(0);
   const image = imageCandidates[imageIndex] || '/legacy-assets/logo.png';
@@ -50,15 +50,32 @@ export function FlashSaleCard({ item }: { item: FlashSaleItem }) {
         )}
       </div>
       <div className="space-y-2 p-4">
-        {product.brand ? <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{String(product.brand)}</p> : null}
-        <Link href={productHref(product)} className="line-clamp-2 min-h-10 text-sm font-semibold hover:text-rose-700">{product.name}</Link>
+        {product.brand ? (
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+            {String(product.brand)}
+          </p>
+        ) : null}
+        <Link
+          href={productHref(product)}
+          className="line-clamp-2 min-h-10 text-sm font-semibold hover:text-rose-700"
+        >
+          {product.name}
+        </Link>
         <div className="flex items-baseline gap-2">
           <strong className="text-lg font-black text-rose-700">{money(salePrice)}</strong>
           <del className="text-xs text-slate-400">{money(normalPrice)}</del>
         </div>
         {stockQuantity != null && <FlashStockBar stock={stockQuantity} />}
-        {soldQuantity != null ? <p className="text-[11px] font-bold text-slate-500">ขายแล้ว {soldQuantity.toLocaleString('th-TH')} ชิ้น</p> : null}
-        {startsAt || endsAt ? <p className="text-[11px] text-slate-400">{[startsAt ? 'เริ่ม ' + startsAt : '', endsAt ? 'ถึง ' + endsAt : ''].filter(Boolean).join(' · ')}</p> : null}
+        {soldQuantity != null ? (
+          <p className="text-[11px] font-bold text-slate-500">
+            ขายแล้ว {soldQuantity.toLocaleString('th-TH')} ชิ้น
+          </p>
+        ) : null}
+        {startsAt || endsAt ? (
+          <p className="text-[11px] text-slate-400">
+            {[startsAt ? 'เริ่ม ' + startsAt : '', endsAt ? 'ถึง ' + endsAt : ''].filter(Boolean).join(' · ')}
+          </p>
+        ) : null}
         <Button className="w-full bg-rose-600 hover:bg-rose-500" onClick={addNow} aria-label="เพิ่มลงตะกร้า">
           <ShoppingCart size={17} />
           เพิ่มลงตะกร้า

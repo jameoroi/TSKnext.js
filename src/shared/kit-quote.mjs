@@ -5,10 +5,7 @@ const MAX_TOKEN_AGE_SECONDS = 20 * 60;
 
 function secret() {
   return String(
-    process.env.KIT_QUOTE_SECRET ||
-    process.env.AUTH_SECRET ||
-    process.env.NEXTAUTH_SECRET ||
-    '',
+    process.env.KIT_QUOTE_SECRET || process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || '',
   ).trim();
 }
 
@@ -54,17 +51,19 @@ export function signKitQuote(payload, ttlSeconds = 10 * 60) {
   const now = Math.floor(Date.now() / 1000);
   const ttl = Math.max(60, Math.min(MAX_TOKEN_AGE_SECONDS, Math.trunc(Number(ttlSeconds) || 600)));
   const claims = Array.isArray(payload?.items) ? payload.items.map(cleanClaimItem).filter(Boolean) : [];
-  const body = encode(JSON.stringify({
-    v: VERSION,
-    tenant: String(payload?.tenant || '').trim(),
-    set_id: String(payload?.set_id || '').trim(),
-    set_name: String(payload?.set_name || '').slice(0, 240),
-    discount_amount: Math.max(0, Number(payload?.discount_amount || 0)),
-    eligible_subtotal: Math.max(0, Number(payload?.eligible_subtotal || 0)),
-    items: claims,
-    iat: now,
-    exp: now + ttl,
-  }));
+  const body = encode(
+    JSON.stringify({
+      v: VERSION,
+      tenant: String(payload?.tenant || '').trim(),
+      set_id: String(payload?.set_id || '').trim(),
+      set_name: String(payload?.set_name || '').slice(0, 240),
+      discount_amount: Math.max(0, Number(payload?.discount_amount || 0)),
+      eligible_subtotal: Math.max(0, Number(payload?.eligible_subtotal || 0)),
+      items: claims,
+      iat: now,
+      exp: now + ttl,
+    }),
+  );
   return `${body}.${signature(body, key)}`;
 }
 
@@ -82,14 +81,23 @@ export function verifyKitQuote(token, { tenantId = '', items = [] } = {}) {
   if (!safeEqual(mac, signature(body, key))) return { ok: false, error: 'kit_quote_signature' };
 
   let payload;
-  try { payload = JSON.parse(decode(body)); }
-  catch { return { ok: false, error: 'kit_quote_payload' }; }
+  try {
+    payload = JSON.parse(decode(body));
+  } catch {
+    return { ok: false, error: 'kit_quote_payload' };
+  }
 
   const now = Math.floor(Date.now() / 1000);
   if (Number(payload?.v) !== VERSION) return { ok: false, error: 'kit_quote_version' };
   if (!payload?.exp || Number(payload.exp) < now) return { ok: false, error: 'kit_quote_expired' };
-  if (!payload?.iat || Number(payload.iat) > now + 30 || now - Number(payload.iat) > MAX_TOKEN_AGE_SECONDS + 30) return { ok: false, error: 'kit_quote_time' };
-  if (String(payload?.tenant || '') !== String(tenantId || '')) return { ok: false, error: 'kit_quote_tenant' };
+  if (
+    !payload?.iat ||
+    Number(payload.iat) > now + 30 ||
+    now - Number(payload.iat) > MAX_TOKEN_AGE_SECONDS + 30
+  )
+    return { ok: false, error: 'kit_quote_time' };
+  if (String(payload?.tenant || '') !== String(tenantId || ''))
+    return { ok: false, error: 'kit_quote_tenant' };
   if (!payload?.set_id) return { ok: false, error: 'kit_quote_set' };
 
   const cart = Array.isArray(items) ? items.map(cleanClaimItem).filter(Boolean) : [];
@@ -103,9 +111,21 @@ export function verifyKitQuote(token, { tenantId = '', items = [] } = {}) {
 
   const discountAmount = Math.max(0, Number(payload.discount_amount || 0));
   const eligibleSubtotal = Math.max(0, Number(payload.eligible_subtotal || 0));
-  if (!Number.isFinite(discountAmount) || !Number.isFinite(eligibleSubtotal) || discountAmount > eligibleSubtotal + 0.01) {
+  if (
+    !Number.isFinite(discountAmount) ||
+    !Number.isFinite(eligibleSubtotal) ||
+    discountAmount > eligibleSubtotal + 0.01
+  ) {
     return { ok: false, error: 'kit_quote_amount' };
   }
 
-  return { ok: true, payload: { ...payload, discount_amount: discountAmount, eligible_subtotal: eligibleSubtotal, items: claims } };
+  return {
+    ok: true,
+    payload: {
+      ...payload,
+      discount_amount: discountAmount,
+      eligible_subtotal: eligibleSubtotal,
+      items: claims,
+    },
+  };
 }

@@ -1,5 +1,5 @@
-import OpenAI from 'openai';
 import { createOpenAI } from '@ai-sdk/openai';
+import OpenAI from 'openai';
 
 export function openAIClient() {
   if (!process.env.OPENAI_API_KEY) return null;

@@ -9,14 +9,34 @@ import { trackInternalAnalytics } from '@/lib/internal-analytics.client';
 import { legacyRequest } from '@/lib/legacy-api.client';
 
 const LEGACY_ROUTE_MAP: Record<string, string> = {
-  about: '/about', account: '/account', admin: '/admin', 'admin-settings': '/admin/settings',
-  'agent-center': '/agent', 'agent-store': '/store', cart: '/cart', checkout: '/checkout',
-  compare: '/compare', contact: '/contact', inventory: '/admin/inventory', login: '/login',
-  news: '/news', 'network-ops': '/operations/network', 'owner-console': '/owner',
-  'partner-register': '/partner-register', partners: '/partners', privacy: '/privacy',
-  product: '/product', products: '/products', reports: '/admin/reports', returns: '/returns',
-  'supplier-portal': '/supplier', terms: '/terms', 'track-order': '/track-order',
-  'verify-payment': '/verify-payment', videos: '/videos', wishlist: '/wishlist',
+  about: '/about',
+  account: '/account',
+  admin: '/admin',
+  'admin-settings': '/admin/settings',
+  'agent-center': '/agent',
+  'agent-store': '/store',
+  cart: '/cart',
+  checkout: '/checkout',
+  compare: '/compare',
+  contact: '/contact',
+  inventory: '/admin/inventory',
+  login: '/login',
+  news: '/news',
+  'network-ops': '/operations/network',
+  'owner-console': '/owner',
+  'partner-register': '/partner-register',
+  partners: '/partners',
+  privacy: '/privacy',
+  product: '/product',
+  products: '/products',
+  reports: '/admin/reports',
+  returns: '/returns',
+  'supplier-portal': '/supplier',
+  terms: '/terms',
+  'track-order': '/track-order',
+  'verify-payment': '/verify-payment',
+  videos: '/videos',
+  wishlist: '/wishlist',
 };
 
 function rewriteLegacyLinks(root: ParentNode = document) {
@@ -30,7 +50,11 @@ function rewriteLegacyLinks(root: ParentNode = document) {
     try {
       const url = new URL(raw, window.location.origin);
       if (url.origin !== window.location.origin) return;
-      const file = url.pathname.split('/').pop()?.replace(/\.html$/i, '') || '';
+      const file =
+        url.pathname
+          .split('/')
+          .pop()
+          ?.replace(/\.html$/i, '') || '';
       const target = LEGACY_ROUTE_MAP[file] || (file ? `/${file}` : '/');
       // The old agent-store page became /store while preserving ref/code.
       const next = target + url.search + url.hash;
@@ -105,19 +129,25 @@ export function StorefrontRuntime() {
     }
   }, [pathname, search]);
 
-  useEffect(() => onConsentChange((next) => {
-    if (!next?.analytics) return;
-    const key = `${window.location.pathname}?${window.location.search.replace(/^\?/, '')}`;
-    if (lastPageView.current === key) return;
-    lastPageView.current = key;
-    trackInternalAnalytics('page_view');
-  }), []);
+  useEffect(
+    () =>
+      onConsentChange((next) => {
+        if (!next?.analytics) return;
+        const key = `${window.location.pathname}?${window.location.search.replace(/^\?/, '')}`;
+        if (lastPageView.current === key) return;
+        lastPageView.current = key;
+        trackInternalAnalytics('page_view');
+      }),
+    [],
+  );
 
   useEffect(() => {
     const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
     const observers: IntersectionObserver[] = [];
     const reveal = (selector: string, done: string, options: IntersectionObserverInit) => {
-      const nodes = Array.from(document.querySelectorAll<HTMLElement>(selector)).filter((node) => !node.classList.contains(done));
+      const nodes = Array.from(document.querySelectorAll<HTMLElement>(selector)).filter(
+        (node) => !node.classList.contains(done),
+      );
       if (!nodes.length) return;
       if (reduced || !('IntersectionObserver' in window)) {
         nodes.forEach((node) => node.classList.add(done));
@@ -153,8 +183,14 @@ export function StorefrontRuntime() {
       const card = (event.target as HTMLElement | null)?.closest<HTMLElement>('.cat-card');
       if (!card) return;
       const rect = card.getBoundingClientRect();
-      card.style.setProperty('--mx', `${((event.clientX - rect.left) / Math.max(1, rect.width) * 100).toFixed(1)}%`);
-      card.style.setProperty('--my', `${((event.clientY - rect.top) / Math.max(1, rect.height) * 100).toFixed(1)}%`);
+      card.style.setProperty(
+        '--mx',
+        `${(((event.clientX - rect.left) / Math.max(1, rect.width)) * 100).toFixed(1)}%`,
+      );
+      card.style.setProperty(
+        '--my',
+        `${(((event.clientY - rect.top) / Math.max(1, rect.height)) * 100).toFixed(1)}%`,
+      );
     };
     if (!reduced) categoryGrid?.addEventListener('mousemove', onCategoryMove, { passive: true });
 
@@ -183,7 +219,10 @@ export function StorefrontRuntime() {
         const delay = Math.min(index * 70, 350);
         card.style.setProperty('--v25-delay', `${delay}ms`);
         card.animate?.(
-          [{ opacity: 0.15, transform: 'translateY(14px)' }, { opacity: 1, transform: 'translateY(0)' }],
+          [
+            { opacity: 0.15, transform: 'translateY(14px)' },
+            { opacity: 1, transform: 'translateY(0)' },
+          ],
           { duration: 520, delay, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'both' },
         );
       });
@@ -193,8 +232,14 @@ export function StorefrontRuntime() {
     const onHeroMove = (event: PointerEvent) => {
       if (!hero) return;
       const rect = hero.getBoundingClientRect();
-      hero.style.setProperty('--v25-x', `${((event.clientX - rect.left) / Math.max(1, rect.width) * 100).toFixed(1)}%`);
-      hero.style.setProperty('--v25-y', `${((event.clientY - rect.top) / Math.max(1, rect.height) * 100).toFixed(1)}%`);
+      hero.style.setProperty(
+        '--v25-x',
+        `${(((event.clientX - rect.left) / Math.max(1, rect.width)) * 100).toFixed(1)}%`,
+      );
+      hero.style.setProperty(
+        '--v25-y',
+        `${(((event.clientY - rect.top) / Math.max(1, rect.height)) * 100).toFixed(1)}%`,
+      );
     };
     const resetHero = () => {
       hero?.style.setProperty('--v25-x', '50%');

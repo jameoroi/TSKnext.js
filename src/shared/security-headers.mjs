@@ -1,31 +1,25 @@
 /**
  * The response headers every page must carry.
  *
- * These were declared in netlify.toml and site/_headers, and applied by
- * neither: netlify.toml was a Netlify file and this deploys to Cloudflare Pages
- * (that file has since been deleted along with the rest of the Netlify setup),
- * and site/_headers is never copied into `dist` and still addresses the retired
- * `/admin.html` routes. Production therefore served no CSP, no HSTS and no
- * framing protection on a site that collects addresses and payment slips.
+ * Applied in two places, both Next.js-native:
+ *   1. `next.config.ts` `headers()` — sets these on every `/:path*` response
+ *      (plus no-cache for /sw.js and the manifest content-type).
+ *   2. This module is the single definition both the config and any future
+ *      middleware/proxy use — never duplicate the strings elsewhere.
  *
- * nuxt.config.ts applies this object to every rendered route through
- * routeRules. That is the whole mechanism — Nitro also folds routeRule headers
- * into the `dist/_headers` it generates for Cloudflare, so the static assets
- * are covered by the same definition without anyone writing that file by hand.
- * Do not write `dist/_headers` from the build script: Nitro puts its own cache
- * rules there, including `/_nuxt/builds/* → max-age=1`, and overwriting the
- * file lets the build manifest be cached as immutable for a year, pinning
- * browsers to a build whose chunks are gone after the next deploy.
+ * Production collects addresses and payment slips, so these must stay on:
+ * framing protection (clickjacking on checkout), HSTS, no-sniff, a locked-down
+ * referrer/permission set, and a CSP. Every source listed is one the
+ * storefront actually loads: connect.facebook.net for the optional chat
+ * widget, googletagmanager for analytics once a measurement id is set,
+ * YouTube for the embeds on /videos, and `img-src https:` for the Supabase
+ * media bucket and the supplier image host. `unsafe-inline` on scripts is
+ * currently required by Next.js inlined flight data/runtime scripts; removing
+ * it needs nonces threaded through the render, not a one-line edit. Adding a
+ * third-party embed means adding it here too.
  *
- * Every source listed is one the storefront actually loads: connect.facebook.net for the optional chat widget,
- * googletagmanager for analytics once a measurement id is set, YouTube for the
- * embeds on /videos, and `img-src https:` for the Supabase media bucket and the
- * supplier image host. `unsafe-inline` on scripts is required by Nuxt's inlined
- * `__NUXT__` payload. Adding a third-party embed means adding it here too.
- *
- * Private routes are kept out of search indexes by each page's own
- * `useSeoMeta({ robots: 'noindex,nofollow' })` and by robots.txt, not from
- * here — they are rendered by the worker, where `_headers` does not apply.
+ * Private routes are kept out of search indexes by each page's own metadata
+ * (`robots: noindex`) and by robots.txt, not from here.
  */
 
 export const CONTENT_SECURITY_POLICY = [
@@ -71,8 +65,8 @@ export const CONTENT_SECURITY_POLICY = [
  * `https:` on connect-src means an injected script can post anything it can
  * read — a cart, an address, a session-bound response — to a server of the
  * attacker's choosing, and the policy will not object. `unsafe-inline` is
- * currently required by Nuxt's inlined `__NUXT__` payload, so removing it needs
- * nonces threaded through the render, not a one-line edit.
+ * currently required by Next.js inlined flight/runtime payloads, so removing
+ * it needs nonces threaded through the render, not a one-line edit.
  *
  * Tightening either one blind risks breaking a real integration on a live
  * shop, so this ships alongside as Report-Only first. It enforces nothing: the

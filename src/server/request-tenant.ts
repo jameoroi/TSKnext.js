@@ -1,7 +1,7 @@
 import 'server-only';
 
 import type { NextRequest } from 'next/server';
-import { resolveTenant, tenantById, tenantRegistry } from '@/legacy-api/lib/tenants.js';
+import { resolveTenant, tenantById } from '@/legacy-api/lib/tenants.js';
 
 export type TenantDescriptor = {
   id: string;
@@ -26,23 +26,30 @@ function cleanHost(raw: string | null | undefined) {
 }
 
 export function requestHostname(request: NextRequest) {
-  return cleanHost(request.headers.get('x-forwarded-host') || request.headers.get('host') || request.nextUrl.hostname);
+  // Prefer the validated Host over x-forwarded-host: the former is what the
+  // edge terminated TLS for, while the latter is trivially spoofed by any
+  // client that reaches the origin directly.
+  return cleanHost(
+    request.headers.get('host') || request.headers.get('x-forwarded-host') || request.nextUrl.hostname,
+  );
 }
 
 /**
  * Resolve a relational-API request to exactly one tenant.
  *
- * The compatibility API already scopes by Host. The first Next v1 port kept a
- * `?tenant=` fallback that let any public caller select an arbitrary tenant id,
- * which defeats host isolation as soon as the second merchant is configured.
- * Keep the query parameter for the original single-shop contract and for
- * explicit local/QA use, but never let it cross a host boundary in production.
+ * The compatibility API already scopes by Host. A `?tenant=` fallback exists
+ * for explicit local/QA use (TOGROW_ALLOW_TENANT_QUERY=1, non-production
+ * only): it may select any configured tenant for testing. Otherwise the
+ * query parameter must name the SAME tenant the hostname resolves to — a
+ * mismatch is refused, and an unknown hostname is refused. The production
+ * guard above means a mis-set flag can never silently open host isolation.
  */
 export function resolveRequestTenant(request: NextRequest): RequestTenantResult {
   const hostname = requestHostname(request);
-  const registry = tenantRegistry() as TenantDescriptor[];
   const hostTenant = resolveTenant(hostname) as TenantDescriptor | null;
-  const requested = String(request.nextUrl.searchParams.get('tenant') || '').trim().toLowerCase();
+  const requested = String(request.nextUrl.searchParams.get('tenant') || '')
+    .trim()
+    .toLowerCase();
 
   if (!requested) {
     return hostTenant
@@ -54,16 +61,19 @@ export function resolveRequestTenant(request: NextRequest): RequestTenantResult 
   if (!requestedTenant) return { ok: false, error: 'tenant_not_found', hostname, requested };
 
   // Explicit opt-in exists for local QA where one hostname intentionally tests
-  // several tenants. Production should not set this flag.
-  if (process.env.TOGROW_ALLOW_TENANT_QUERY === '1') {
-    return { ok: true, tenant: requestedTenant, hostname };
+  // several tenants. Production must never set this flag: a ?tenant= override
+  // that crosses host boundaries defeats host isolation outright, so in
+  // production the flag is treated as unset (and loudly so).
+  const allowQuery = process.env.TOGROW_ALLOW_TENANT_QUERY === '1' && process.env.NODE_ENV !== 'production';
+  if (process.env.TOGROW_ALLOW_TENANT_QUERY === '1' && process.env.NODE_ENV === 'production') {
+    console.warn('[tenant] TOGROW_ALLOW_TENANT_QUERY=1 is ignored in production');
   }
-
-  if (registry.length <= 1) {
+  if (allowQuery) {
     return { ok: true, tenant: requestedTenant, hostname };
   }
 
   if (!hostTenant) return { ok: false, error: 'tenant_not_found', hostname, requested };
-  if (hostTenant.id !== requestedTenant.id) return { ok: false, error: 'tenant_mismatch', hostname, requested };
+  if (hostTenant.id !== requestedTenant.id)
+    return { ok: false, error: 'tenant_mismatch', hostname, requested };
   return { ok: true, tenant: hostTenant, hostname };
 }

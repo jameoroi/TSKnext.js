@@ -5,10 +5,7 @@ export default function OfflinePage() {
         <p className="text-sm font-semibold tracking-[0.18em] text-emerald-700">THAISERKIT SUPPLY</p>
         <h1 className="mt-3 text-3xl font-bold text-slate-900">ขณะนี้ออฟไลน์</h1>
         <p className="mt-3 text-slate-600">ตรวจสอบการเชื่อมต่ออินเทอร์เน็ต แล้วลองโหลดหน้านี้อีกครั้ง</p>
-        <a
-          className="mt-6 rounded-xl bg-emerald-700 px-5 py-3 font-semibold text-white"
-          href="/"
-        >
+        <a className="mt-6 rounded-xl bg-emerald-700 px-5 py-3 font-semibold text-white" href="/">
           ลองใหม่
         </a>
       </div>

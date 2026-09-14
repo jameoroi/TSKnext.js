@@ -4,8 +4,8 @@ import { mkdtemp, rm, stat } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { Readable } from 'node:stream';
-import type { ReadableStream as NodeReadableStream } from 'node:stream/web';
 import { pipeline } from 'node:stream/promises';
+import type { ReadableStream as NodeReadableStream } from 'node:stream/web';
 import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 
 function required(name: string) {
@@ -80,17 +80,31 @@ export async function restoreDatabaseBackup(key: string) {
   if (!cleanKey || cleanKey.includes('..') || cleanKey.length > 512) throw new Error('invalid_backup_key');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'thaiserkit-restore-'));
   const file = path.join(directory, 'database.dump');
-  const client = new S3Client({ endpoint, region: process.env.BACKUP_S3_REGION || 'auto', forcePathStyle: process.env.BACKUP_S3_FORCE_PATH_STYLE === '1' || process.env.BACKUP_S3_FORCE_PATH_STYLE === 'true', credentials: { accessKeyId, secretAccessKey } });
+  const client = new S3Client({
+    endpoint,
+    region: process.env.BACKUP_S3_REGION || 'auto',
+    forcePathStyle:
+      process.env.BACKUP_S3_FORCE_PATH_STYLE === '1' || process.env.BACKUP_S3_FORCE_PATH_STYLE === 'true',
+    credentials: { accessKeyId, secretAccessKey },
+  });
   try {
     const object = await client.send(new GetObjectCommand({ Bucket: bucket, Key: cleanKey }));
     if (!object.Body) throw new Error('backup_object_empty');
     await pipeline(Readable.fromWeb(object.Body as unknown as NodeReadableStream), createWriteStream(file));
     await new Promise<void>((resolve, reject) => {
-      const child = spawn(process.env.PG_RESTORE_BIN || 'pg_restore', ['--clean', '--if-exists', '--no-owner', '--no-privileges', '--dbname', databaseUrl, file], { stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true });
+      const child = spawn(
+        process.env.PG_RESTORE_BIN || 'pg_restore',
+        ['--clean', '--if-exists', '--no-owner', '--no-privileges', '--dbname', databaseUrl, file],
+        { stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true },
+      );
       let stderr = '';
-      child.stderr.on('data', (chunk) => { stderr += String(chunk); });
+      child.stderr.on('data', (chunk) => {
+        stderr += String(chunk);
+      });
       child.on('error', reject);
-      child.on('close', (code) => code === 0 ? resolve() : reject(new Error(`pg_restore_failed:${code}:${stderr.slice(-1000)}`)));
+      child.on('close', (code) =>
+        code === 0 ? resolve() : reject(new Error(`pg_restore_failed:${code}:${stderr.slice(-1000)}`)),
+      );
     });
     return { ok: true, bucket, key: cleanKey };
   } finally {

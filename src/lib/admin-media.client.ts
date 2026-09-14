@@ -1,6 +1,6 @@
 'use client';
 
-import { legacyRequest, LegacyApiError } from '@/lib/legacy-api.client';
+import { LegacyApiError, legacyRequest } from '@/lib/legacy-api.client';
 
 const UPLOADABLE = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/avif']);
 
@@ -34,11 +34,15 @@ export async function scaleImageFile(file: File, maxEdge: number): Promise<File>
       const context = canvas.getContext('2d');
       if (!context) return resolve(file);
       context.drawImage(image, 0, 0, canvas.width, canvas.height);
-      canvas.toBlob((blob) => {
-        if (!blob || blob.type !== 'image/webp' || blob.size >= file.size) return resolve(file);
-        const name = (file.name || 'image').replace(/\.[^.]+$/, '') + '.webp';
-        resolve(new File([blob], name, { type: 'image/webp', lastModified: Date.now() }));
-      }, 'image/webp', 0.82);
+      canvas.toBlob(
+        (blob) => {
+          if (!blob || blob.type !== 'image/webp' || blob.size >= file.size) return resolve(file);
+          const name = (file.name || 'image').replace(/\.[^.]+$/, '') + '.webp';
+          resolve(new File([blob], name, { type: 'image/webp', lastModified: Date.now() }));
+        },
+        'image/webp',
+        0.82,
+      );
     };
     image.src = url;
   });
@@ -69,15 +73,20 @@ export async function uploadAdminImage(
 
   let presigned: any;
   try {
-    presigned = await legacyRequest<any>('admin.media.presign', {
-      filename: file.name || 'image.png',
-      mime_type: mime,
-      owner_type: options.ownerType || 'image',
-      owner_id: options.ownerId || '',
-      csrf: options.csrf,
-    }, 'POST');
+    presigned = await legacyRequest<any>(
+      'admin.media.presign',
+      {
+        filename: file.name || 'image.png',
+        mime_type: mime,
+        owner_type: options.ownerType || 'image',
+        owner_id: options.ownerId || '',
+        csrf: options.csrf,
+      },
+      'POST',
+    );
   } catch (error) {
-    if (error instanceof LegacyApiError && error.code === 'media_storage_not_configured') return readAsDataUrl(file);
+    if (error instanceof LegacyApiError && error.code === 'media_storage_not_configured')
+      return readAsDataUrl(file);
     throw error;
   }
 
@@ -100,16 +109,20 @@ export async function uploadAdminImage(
   }
 
   const { width, height } = await measure(file);
-  const committed = await legacyRequest<any>('admin.media.commit', {
-    key,
-    mime_type: mime,
-    size_bytes: file.size,
-    width,
-    height,
-    owner_type: options.ownerType || 'image',
-    owner_id: options.ownerId || '',
-    csrf: options.csrf,
-  }, 'POST');
+  const committed = await legacyRequest<any>(
+    'admin.media.commit',
+    {
+      key,
+      mime_type: mime,
+      size_bytes: file.size,
+      width,
+      height,
+      owner_type: options.ownerType || 'image',
+      owner_id: options.ownerId || '',
+      csrf: options.csrf,
+    },
+    'POST',
+  );
 
   return String(committed?.asset?.public_url || presigned?.public_url || '') || readAsDataUrl(file);
 }

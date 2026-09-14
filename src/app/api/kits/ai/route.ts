@@ -1,8 +1,11 @@
 import { generateText } from 'ai';
+import type { NextRequest } from 'next/server';
 import { z } from 'zod';
+import { rateLimit } from '@/legacy-api/api.js';
 import { aiSdkOpenAI } from '@/lib/ai';
-import { getProducts } from '@/server/catalog';
 import { logAiUsage } from '@/server/ai-usage';
+import { getProducts } from '@/server/catalog';
+import { resolveRequestTenant } from '@/server/request-tenant';
 
 const schema = z.object({
   job: z.string().trim().min(2).max(500),
@@ -29,7 +32,7 @@ function text(value: unknown) {
 }
 function tokens(value: string) {
   return text(value)
-    .split(/[\s,./|;:()\[\]{}\-_]+/)
+    .split(/[\s,./|;:()[\]{}\-_]+/)
     .map((item) => item.trim())
     .filter((item) => item.length >= 2);
 }
@@ -117,7 +120,7 @@ function extractJson(value: string) {
   return JSON.parse(trimmed.slice(start, end + 1));
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const startedAt = Date.now();
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success)
@@ -125,6 +128,17 @@ export async function POST(request: Request) {
       { ok: false, error: 'invalid_input', issues: parsed.error.flatten() },
       { status: 422 },
     );
+
+  // Each call can spend real OpenAI money (120-product catalogue in the
+  // prompt), so unauthenticated callers get a storage-backed quota. Tenant
+  // resolution stays best-effort here to preserve the rule-engine fallback
+  // for unknown hosts; the quota identity just gets less specific.
+  const tenant = resolveRequestTenant(request);
+  const rl = await rateLimit(request, 'kit-ai', 60, 3600, tenant.ok ? tenant.tenant.id : '');
+  if (!rl.ok) {
+    const retryAfter = 'retry_after' in rl && typeof rl.retry_after === 'number' ? rl.retry_after : 3600;
+    return Response.json({ ok: false, error: 'rate_limited', retry_after: retryAfter }, { status: 429 });
+  }
 
   const requestData = parsed.data;
   const catalog = await getProducts({ page: 1, per_page: 160, status: 'active' });

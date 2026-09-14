@@ -54,8 +54,17 @@
 
 /** Exactly the routes nuxt.config.ts holds at the edge. */
 const ALLOWED = new Set([
-  '/', '/products', '/brands', '/about', '/contact',
-  '/terms', '/privacy', '/returns', '/partners', '/news', '/videos',
+  '/',
+  '/products',
+  '/brands',
+  '/about',
+  '/contact',
+  '/terms',
+  '/privacy',
+  '/returns',
+  '/partners',
+  '/news',
+  '/videos',
 ]);
 
 /** `/products/<slug>` as well, which is the same rule written as a glob there. */
@@ -283,7 +292,8 @@ export function pageCacheSave(request, { status, headers, body }, waitUntil) {
   const write = caches.default
     .put(new Request(key, { method: 'GET' }), new Response(body, { status: 200, headers: outgoing }))
     .catch(() => {});
-  if (typeof waitUntil === 'function') waitUntil(write); else void write;
+  if (typeof waitUntil === 'function') waitUntil(write);
+  else void write;
 
   return 'STORED';
 }

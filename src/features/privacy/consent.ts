@@ -49,7 +49,8 @@ export function writeConsent(input: Pick<ConsentPreferences, 'analytics' | 'mark
 
 export function onConsentChange(listener: (value: ConsentPreferences | null) => void) {
   if (typeof window === 'undefined') return () => {};
-  const handler = (event: Event) => listener((event as CustomEvent<ConsentPreferences>).detail || readConsent());
+  const handler = (event: Event) =>
+    listener((event as CustomEvent<ConsentPreferences>).detail || readConsent());
   window.addEventListener(EVENT_NAME, handler);
   return () => window.removeEventListener(EVENT_NAME, handler);
 }

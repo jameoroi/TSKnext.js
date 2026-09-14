@@ -8,5 +8,11 @@ export default async function Page() {
     getLegacySession(),
     safeLegacy<any>('agent.catalog.list', { q: '' }, { selected: [], candidates: [] }),
   ]);
-  return <AgentSettingsForm agent={dashboard.agent || {}} csrf={String(session.csrf || '')} initialCatalog={catalog}/>;
+  return (
+    <AgentSettingsForm
+      agent={dashboard.agent || {}}
+      csrf={String(session.csrf || '')}
+      initialCatalog={catalog}
+    />
+  );
 }

@@ -105,21 +105,34 @@ export const TH_PROVINCES = [
  * form can say so rather than posting an address nobody can deliver to.
  */
 export function normaliseProvince(value) {
-  const token = String(value ?? '').trim().replace(/^(?:จังหวัด|จ\.)\s*/, '').replace(/\s+/g, ' ').toLowerCase();
+  const token = String(value ?? '')
+    .trim()
+    .replace(/^(?:จังหวัด|จ\.)\s*/, '')
+    .replace(/\s+/g, ' ')
+    .toLowerCase();
   if (!token) return '';
   const flat = token.replace(/\s+/g, '');
-  const hit = TH_PROVINCES.find((province) => province.name.toLowerCase() === token
-    || province.latin.toLowerCase() === token
-    || province.latin.toLowerCase().replace(/\s+/g, '') === flat);
+  const hit = TH_PROVINCES.find(
+    (province) =>
+      province.name.toLowerCase() === token ||
+      province.latin.toLowerCase() === token ||
+      province.latin.toLowerCase().replace(/\s+/g, '') === flat,
+  );
   return hit ? hit.name : '';
 }
 
 /** Everything matching what has been typed so far, in list order. */
 export function searchProvinces(query) {
-  const token = String(query ?? '').trim().replace(/^(?:จังหวัด|จ\.)\s*/, '').toLowerCase();
+  const token = String(query ?? '')
+    .trim()
+    .replace(/^(?:จังหวัด|จ\.)\s*/, '')
+    .toLowerCase();
   if (!token) return TH_PROVINCES;
   const flat = token.replace(/\s+/g, '');
-  return TH_PROVINCES.filter((province) => province.name.toLowerCase().includes(token)
-    || province.latin.toLowerCase().includes(token)
-    || province.latin.toLowerCase().replace(/\s+/g, '').includes(flat));
+  return TH_PROVINCES.filter(
+    (province) =>
+      province.name.toLowerCase().includes(token) ||
+      province.latin.toLowerCase().includes(token) ||
+      province.latin.toLowerCase().replace(/\s+/g, '').includes(flat),
+  );
 }

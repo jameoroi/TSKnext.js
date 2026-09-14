@@ -1,1 +1,24 @@
-import Link from 'next/link';import { AdminPageHeader } from '@/components/admin/page-header';import { ImportProducts } from '@/components/admin/import-products';import { getLegacySession } from '@/server/auth/legacy-session';export default async function Page(){const s=await getLegacySession();return <><AdminPageHeader title="นำเข้าสินค้า" description="Preview-first CSV import ป้องกันการอัปเดตผิดชุด" actions={<Link href="/admin/products-export" className="rounded-xl border bg-white px-4 py-2 text-sm font-bold">ส่งออกสินค้า</Link>}/><ImportProducts csrf={String(s.csrf||'')}/></>}
+import Link from 'next/link';
+import { ImportProducts } from '@/components/admin/import-products';
+import { AdminPageHeader } from '@/components/admin/page-header';
+import { getLegacySession } from '@/server/auth/legacy-session';
+export default async function Page() {
+  const s = await getLegacySession();
+  return (
+    <>
+      <AdminPageHeader
+        title="นำเข้าสินค้า"
+        description="Preview-first CSV import ป้องกันการอัปเดตผิดชุด"
+        actions={
+          <Link
+            href="/admin/products-export"
+            className="rounded-xl border bg-white px-4 py-2 text-sm font-bold"
+          >
+            ส่งออกสินค้า
+          </Link>
+        }
+      />
+      <ImportProducts csrf={String(s.csrf || '')} />
+    </>
+  );
+}

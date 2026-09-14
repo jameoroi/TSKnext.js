@@ -5,7 +5,10 @@ async function requestAction(request: Request) {
   const urlAction = new URL(request.url).searchParams.get('action');
   if (urlAction) return urlAction;
   if (request.method === 'GET' || request.method === 'HEAD') return '';
-  const body = await request.clone().json().catch(() => null) as { action?: unknown } | null;
+  const body = (await request
+    .clone()
+    .json()
+    .catch(() => null)) as { action?: unknown } | null;
   return typeof body?.action === 'string' ? body.action : '';
 }
 

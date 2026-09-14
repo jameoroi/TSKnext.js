@@ -1,9 +1,9 @@
 import { Worker } from 'bullmq/dist/esm/classes/worker.js';
 import sharp from 'sharp';
-import { getRedis } from '@/lib/redis';
-import { searchClient, PRODUCT_INDEX } from '@/lib/search';
 import { resendClient } from '@/lib/email';
 import { logger } from '@/lib/logger';
+import { getRedis } from '@/lib/redis';
+import { PRODUCT_INDEX, searchClient } from '@/lib/search';
 import { createDatabaseBackup, restoreDatabaseBackup } from './database-backup';
 
 const connection = getRedis();
@@ -38,7 +38,7 @@ const worker = new Worker(
         text: String(job.data.text || `เราได้รับคำสั่งซื้อ ${String(job.data.orderNo || '')} แล้ว`),
       });
     }
-  if (job.name === 'maintenance.backup') {
+    if (job.name === 'maintenance.backup') {
       const backup = await createDatabaseBackup();
       const origin = String(process.env.APP_ORIGIN || 'http://localhost:3000').replace(/\/$/, '');
       const response = await fetch(`${origin}/api/cron/maintenance`, {
@@ -46,11 +46,11 @@ const worker = new Worker(
         headers: process.env.CRON_SECRET ? { authorization: `Bearer ${process.env.CRON_SECRET}` } : {},
       });
       if (!response.ok) throw new Error(`maintenance_${response.status}`);
-    return { backup, maintenance: await response.json() };
-  }
-  if (job.name === 'maintenance.restore') {
-    return restoreDatabaseBackup(String(job.data.key || ''));
-  }
+      return { backup, maintenance: await response.json() };
+    }
+    if (job.name === 'maintenance.restore') {
+      return restoreDatabaseBackup(String(job.data.key || ''));
+    }
     throw new Error(`unknown_job:${job.name}`);
   },
   { connection, concurrency: Number(process.env.WORKER_CONCURRENCY || 8) },

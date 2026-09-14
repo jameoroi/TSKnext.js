@@ -14,7 +14,8 @@ const migrationsDir = path.resolve(process.cwd(), 'database/migrations');
 const sql = postgres(databaseUrl, {
   max: 1,
   prepare: false,
-  onnotice: process.env.MIGRATION_VERBOSE === '1' ? (notice) => console.log('[postgres]', notice.message) : undefined,
+  onnotice:
+    process.env.MIGRATION_VERBOSE === '1' ? (notice) => console.log('[postgres]', notice.message) : undefined,
 });
 
 function checksum(text) {
@@ -51,7 +52,9 @@ async function run() {
 
     if (previous) {
       if (previous !== digest) {
-        throw new Error(`Migration checksum mismatch: ${name}. Never edit an already-applied migration; add a new migration instead.`);
+        throw new Error(
+          `Migration checksum mismatch: ${name}. Never edit an already-applied migration; add a new migration instead.`,
+        );
       }
       console.log(`✓ ${name} (already applied)`);
       continue;

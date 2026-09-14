@@ -25,7 +25,10 @@ export function spreadByBrand(products, limit) {
   const order = [];
   for (const product of products || []) {
     const brand = String(product?.brand || '').trim() || UNBRANDED;
-    if (!byBrand.has(brand)) { byBrand.set(brand, []); order.push(brand); }
+    if (!byBrand.has(brand)) {
+      byBrand.set(brand, []);
+      order.push(brand);
+    }
     byBrand.get(brand).push(product);
   }
 

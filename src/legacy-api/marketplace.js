@@ -118,6 +118,10 @@ async function lazadaCall(cfg, token, apiPath, extraParams={}){
   return res.json();
 }
 function xmlEscape(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+// Upstream OAuth errors are reflected into an HTML page served from the admin
+// origin. data.message comes from Shopee/Lazada and can echo request input,
+// so it is escaped — otherwise a crafted error text runs script as admin.
+function htmlEscape(s){ return xmlEscape(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 // Lazada: อัปเดตสต็อก+ราคาของ SellerSku หนึ่งตัว (ใช้ seller_stock ปัจจุบันถ้าไม่ส่งราคาใหม่มา)
 async function lazadaUpdateStock(cfg, token, sellerSku, quantity, price){
   const payload = `<Request><Product><Skus><Sku><SellerSku>${xmlEscape(sellerSku)}</SellerSku><Quantity>${Number(quantity)}</Quantity>${price?`<Price>${Number(price)}</Price>`:''}</Sku></Skus></Product></Request>`;
@@ -172,7 +176,7 @@ async function handleMarketplaceRequest(req) {
       await ds.setJSON('shopee-token', { access_token:data.access_token, refresh_token:data.refresh_token, shop_id:shopId, expire_in:data.expire_in, saved_at:new Date().toISOString() });
       return new Response('<h2>เชื่อมต่อ Shopee สำเร็จแล้ว ปิดหน้านี้แล้วกลับไปที่แอดมินได้เลย</h2>', { status:200, headers:{'content-type':'text/html; charset=utf-8'} });
     }
-    return new Response('<h2>เชื่อมต่อ Shopee ไม่สำเร็จ: '+(data.message||'unknown error')+'</h2>', { status:400, headers:{'content-type':'text/html; charset=utf-8'} });
+    return new Response('<h2>เชื่อมต่อ Shopee ไม่สำเร็จ: '+htmlEscape(data.message||'unknown error')+'</h2>', { status:400, headers:{'content-type':'text/html; charset=utf-8'} });
   }
   if(action==='shopee.status'){
     if(!admin) return json({ok:false,error:'unauthorized'},401);
@@ -205,7 +209,7 @@ async function handleMarketplaceRequest(req) {
       await ds.setJSON('lazada-token', { access_token:data.access_token, refresh_token:data.refresh_token, country:settings.lazada.country, saved_at:new Date().toISOString() });
       return new Response('<h2>เชื่อมต่อ Lazada สำเร็จแล้ว ปิดหน้านี้แล้วกลับไปที่แอดมินได้เลย</h2>', { status:200, headers:{'content-type':'text/html; charset=utf-8'} });
     }
-    return new Response('<h2>เชื่อมต่อ Lazada ไม่สำเร็จ: '+(data.message||'unknown error')+'</h2>', { status:400, headers:{'content-type':'text/html; charset=utf-8'} });
+    return new Response('<h2>เชื่อมต่อ Lazada ไม่สำเร็จ: '+htmlEscape(data.message||'unknown error')+'</h2>', { status:400, headers:{'content-type':'text/html; charset=utf-8'} });
   }
   if(action==='lazada.status'){
     if(!admin) return json({ok:false,error:'unauthorized'},401);

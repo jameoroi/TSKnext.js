@@ -1,3 +1,48 @@
 'use client';
-import Image from 'next/image';import { ProductCard } from '@/components/commerce/product-card';
-export function PartnerStorefront({agent,products,code}:{agent:any;products:any[];code:string}){return <><section style={{backgroundColor:String(agent?.theme_color||'#0b2e22')}} className="px-4 py-12 text-white"><div className="mx-auto flex max-w-6xl flex-col items-center gap-5 text-center md:flex-row md:text-left">{agent?.avatar_url&&<Image src={agent.avatar_url} alt={agent.store_name||'Partner'} width={112} height={112} className="size-28 rounded-full border-4 border-white/30 object-cover"/>}<div><p className="text-xs font-bold tracking-[.2em] text-white/60">AUTHORIZED PARTNER</p><h1 className="mt-2 text-3xl font-bold md:text-4xl">{agent?.store_name||'ร้านตัวแทน THAISERKIT'}</h1><p className="mt-2 max-w-2xl text-sm text-white/70">{agent?.store_bio||`ตัวแทนจำหน่ายอย่างเป็นทางการ${agent?.province?` · ${agent.province}`:''}`}</p><p className="mt-3 text-xs text-white/50">Referral code: {code}</p></div></div></section><section className="mx-auto max-w-7xl px-4 py-10"><h2 className="text-2xl font-bold">สินค้าที่แนะนำ</h2><div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">{products.map(p=><ProductCard key={p.id} product={p}/>)}</div>{!products.length&&<div className="mt-5 rounded-2xl border bg-white p-10 text-center text-slate-400">ร้านนี้ยังไม่ได้เลือกสินค้า</div>}</section></>}
+import Image from 'next/image';
+import { ProductCard } from '@/components/commerce/product-card';
+export function PartnerStorefront({ agent, products, code }: { agent: any; products: any[]; code: string }) {
+  return (
+    <>
+      <section
+        style={{ backgroundColor: String(agent?.theme_color || '#0b2e22') }}
+        className="px-4 py-12 text-white"
+      >
+        <div className="mx-auto flex max-w-6xl flex-col items-center gap-5 text-center md:flex-row md:text-left">
+          {agent?.avatar_url && (
+            <Image
+              src={agent.avatar_url}
+              alt={agent.store_name || 'Partner'}
+              width={112}
+              height={112}
+              className="size-28 rounded-full border-4 border-white/30 object-cover"
+            />
+          )}
+          <div>
+            <p className="text-xs font-bold tracking-[.2em] text-white/60">AUTHORIZED PARTNER</p>
+            <h1 className="mt-2 text-3xl font-bold md:text-4xl">
+              {agent?.store_name || 'ร้านตัวแทน THAISERKIT'}
+            </h1>
+            <p className="mt-2 max-w-2xl text-sm text-white/70">
+              {agent?.store_bio || `ตัวแทนจำหน่ายอย่างเป็นทางการ${agent?.province ? ` · ${agent.province}` : ''}`}
+            </p>
+            <p className="mt-3 text-xs text-white/50">Referral code: {code}</p>
+          </div>
+        </div>
+      </section>
+      <section className="mx-auto max-w-7xl px-4 py-10">
+        <h2 className="text-2xl font-bold">สินค้าที่แนะนำ</h2>
+        <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          {products.map((p) => (
+            <ProductCard key={p.id} product={p} />
+          ))}
+        </div>
+        {!products.length && (
+          <div className="mt-5 rounded-2xl border bg-white p-10 text-center text-slate-400">
+            ร้านนี้ยังไม่ได้เลือกสินค้า
+          </div>
+        )}
+      </section>
+    </>
+  );
+}

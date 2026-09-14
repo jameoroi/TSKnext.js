@@ -17,7 +17,9 @@ function readStoredMode(): Mode {
 }
 
 function systemDark() {
-  return typeof window !== 'undefined' && Boolean(window.matchMedia?.('(prefers-color-scheme: dark)').matches);
+  return (
+    typeof window !== 'undefined' && Boolean(window.matchMedia?.('(prefers-color-scheme: dark)').matches)
+  );
 }
 
 function apply(mode: Mode) {
@@ -28,7 +30,9 @@ function apply(mode: Mode) {
 }
 
 function persist(mode: Mode) {
-  try { window.localStorage.setItem(KEY, mode); } catch {
+  try {
+    window.localStorage.setItem(KEY, mode);
+  } catch {
     // Theme still works for this tab when storage is unavailable.
   }
 }
@@ -61,7 +65,10 @@ export function ThemeToggle() {
   useEffect(() => {
     const onStorage = (event: StorageEvent) => {
       if (event.key !== KEY) return;
-      const next: Mode = event.newValue === 'light' || event.newValue === 'dark' || event.newValue === 'auto' ? event.newValue : 'auto';
+      const next: Mode =
+        event.newValue === 'light' || event.newValue === 'dark' || event.newValue === 'auto'
+          ? event.newValue
+          : 'auto';
       setMode(next);
       setDark(apply(next));
     };
@@ -77,5 +84,17 @@ export function ThemeToggle() {
   }
 
   const label = dark ? 'เปลี่ยนเป็นโหมดกลางวัน' : 'เปลี่ยนเป็นโหมดกลางคืน';
-  return <button type="button" className="tsk-theme-toggle" aria-label={label} title={label} aria-pressed={dark} onClick={toggle}>{dark ? <Sun aria-hidden="true"/> : <Moon aria-hidden="true"/>}<span className="sr-only">{mode}</span></button>;
+  return (
+    <button
+      type="button"
+      className="tsk-theme-toggle"
+      aria-label={label}
+      title={label}
+      aria-pressed={dark}
+      onClick={toggle}
+    >
+      {dark ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
+      <span className="sr-only">{mode}</span>
+    </button>
+  );
 }

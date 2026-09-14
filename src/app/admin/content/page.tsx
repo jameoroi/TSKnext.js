@@ -3,8 +3,6 @@ import { AdminPageHeader } from '@/components/admin/page-header';
 import { getLegacySession } from '@/server/auth/legacy-session';
 import { safeLegacy } from '@/server/safe-legacy';
 
-
-
 export default async function Page() {
   const [site, news, article, video, session] = await Promise.all([
     safeLegacy<any>('site.settings', { compact: 1 }, { settings: {} }),
@@ -14,12 +12,17 @@ export default async function Page() {
     getLegacySession(),
   ]);
 
-  return <>
-    <AdminPageHeader title="เนื้อหาหน้าแรก" description="Banner Studio · News · Articles · Videos · Managed Media"/>
-    <ContentManager
-      initialSettings={site.settings || {}}
-      initialItems={{ news: news.items || [], article: article.items || [], video: video.items || [] }}
-      csrf={String(session.csrf || '')}
-    />
-  </>;
+  return (
+    <>
+      <AdminPageHeader
+        title="เนื้อหาหน้าแรก"
+        description="Banner Studio · News · Articles · Videos · Managed Media"
+      />
+      <ContentManager
+        initialSettings={site.settings || {}}
+        initialItems={{ news: news.items || [], article: article.items || [], video: video.items || [] }}
+        csrf={String(session.csrf || '')}
+      />
+    </>
+  );
 }

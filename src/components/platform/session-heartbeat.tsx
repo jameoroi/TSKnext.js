@@ -24,24 +24,38 @@ export function SessionHeartbeat() {
       lastAttempt = Date.now();
       try {
         await legacyRequest('session');
-        window.dispatchEvent(new CustomEvent('tsk:session-heartbeat', { detail: { ok: true, at: lastAttempt } }));
+        window.dispatchEvent(
+          new CustomEvent('tsk:session-heartbeat', { detail: { ok: true, at: lastAttempt } }),
+        );
       } catch (error) {
-        const detail = error instanceof LegacyApiError
-          ? { ok: false, at: lastAttempt, status: error.status, code: error.code, retryAfterMs: error.retryAfterMs }
-          : { ok: false, at: lastAttempt, status: 0, code: 'network_error', retryAfterMs: 0 };
+        const detail =
+          error instanceof LegacyApiError
+            ? {
+                ok: false,
+                at: lastAttempt,
+                status: error.status,
+                code: error.code,
+                retryAfterMs: error.retryAfterMs,
+              }
+            : { ok: false, at: lastAttempt, status: 0, code: 'network_error', retryAfterMs: 0 };
         window.dispatchEvent(new CustomEvent('tsk:session-temporary-error', { detail }));
       } finally {
         running = false;
       }
     }
 
-    const onOnline = () => { void ping(); };
+    const onOnline = () => {
+      void ping();
+    };
     const onVisible = () => {
-      if (document.visibilityState === 'visible' && Date.now() - lastAttempt >= VISIBILITY_REFRESH_AFTER_MS) void ping();
+      if (document.visibilityState === 'visible' && Date.now() - lastAttempt >= VISIBILITY_REFRESH_AFTER_MS)
+        void ping();
     };
 
     void ping();
-    const timer = window.setInterval(() => { void ping(); }, HEARTBEAT_MS);
+    const timer = window.setInterval(() => {
+      void ping();
+    }, HEARTBEAT_MS);
     window.addEventListener('online', onOnline);
     document.addEventListener('visibilitychange', onVisible);
 

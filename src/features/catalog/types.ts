@@ -52,6 +52,8 @@ export const productImageCandidates = (product: Product) => {
   ].filter((value, index, values) => Boolean(value) && values.indexOf(value) === index);
 };
 
-export const productImage = (product: Product) => productImageCandidates(product)[0] || '/legacy-assets/logo.png';
+export const productImage = (product: Product) =>
+  productImageCandidates(product)[0] || '/legacy-assets/logo.png';
 export const productOldPrice = (product: Product) => Number(product.oldPrice ?? product.old_price ?? 0) || 0;
-export const productHref = (product: Product) => `/products/${encodeURIComponent(String(product.slug || product.id))}`;
+export const productHref = (product: Product) =>
+  `/products/${encodeURIComponent(String(product.slug || product.id))}`;

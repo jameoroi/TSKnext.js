@@ -9,7 +9,9 @@ test('legacy same-origin html links are rewritten to Next routes', async ({ page
     link.textContent = 'legacy';
     document.body.appendChild(link);
   });
-  await expect.poll(() => page.locator('#legacy-agent-store-link').getAttribute('href')).toBe('/store?ref=abc');
+  await expect
+    .poll(() => page.locator('#legacy-agent-store-link').getAttribute('href'))
+    .toBe('/store?ref=abc');
 });
 
 test('storefront keeps referral attribution in the shopper browser', async ({ page }) => {

@@ -33,7 +33,10 @@ function exampleOf(schema: ProductTransferSchema | undefined, key: string) {
   const value = schema?.sample_row?.[key];
   if (value === null || value === undefined || value === '') return '';
   if (Array.isArray(value)) return value.join(' | ');
-  if (typeof value === 'object') return Object.entries(value as Record<string, unknown>).map(([name, item]) => `${name}=${String(item ?? '')}`).join(' | ');
+  if (typeof value === 'object')
+    return Object.entries(value as Record<string, unknown>)
+      .map(([name, item]) => `${name}=${String(item ?? '')}`)
+      .join(' | ');
   return String(value);
 }
 
@@ -76,7 +79,7 @@ export async function productCsvToWorkbook(csvText: string, schema?: ProductTran
   const columns = (grid[0] || []).map((cell) => String(cell || ''));
   const { guide, reference } = workbookSheets(schema, columns);
   const validations = columns
-    .map((key, index) => CHOICES[key] ? { column: index, options: CHOICES[key] } : null)
+    .map((key, index) => (CHOICES[key] ? { column: index, options: CHOICES[key] } : null))
     .filter(Boolean) as Array<{ column: number; options: string[] }>;
 
   return writeXlsx([
@@ -87,10 +90,13 @@ export async function productCsvToWorkbook(csvText: string, schema?: ProductTran
 }
 
 export async function productWorkbookToCsv(file: File) {
-  const workbook = await readXlsx(await file.arrayBuffer()) as Array<{ name: string; rows: unknown[][] }>;
-  const found = workbook.find((sheet) => sheet.name.trim() === SHEET_DATA)
-    || workbook.find((sheet) => (sheet.rows[0] || []).some((cell) => ['id', 'sku'].includes(String(cell).trim())))
-    || workbook[0];
+  const workbook = (await readXlsx(await file.arrayBuffer())) as Array<{ name: string; rows: unknown[][] }>;
+  const found =
+    workbook.find((sheet) => sheet.name.trim() === SHEET_DATA) ||
+    workbook.find((sheet) =>
+      (sheet.rows[0] || []).some((cell) => ['id', 'sku'].includes(String(cell).trim())),
+    ) ||
+    workbook[0];
   if (!found) throw new Error('xlsx_no_data_sheet');
 
   const rows = found.rows

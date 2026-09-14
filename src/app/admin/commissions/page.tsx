@@ -1,1 +1,19 @@
-import { AdminPageHeader } from '@/components/admin/page-header';import { CommissionManager } from '@/components/admin/commission-manager';import { getLegacySession } from '@/server/auth/legacy-session';import { safeLegacy } from '@/server/safe-legacy';export default async function Page(){const [d,s]=await Promise.all([safeLegacy<any>('admin.commissions.list',{}, {commissions:[],payouts:[],totals:{}}),getLegacySession()]);return <><AdminPageHeader title="ค่าคอมมิชชั่นและการจ่ายเงิน" description="Commission ledger · payout queue · payment reference"/><CommissionManager initial={d} csrf={String(s.csrf||'')}/></>}
+import { CommissionManager } from '@/components/admin/commission-manager';
+import { AdminPageHeader } from '@/components/admin/page-header';
+import { getLegacySession } from '@/server/auth/legacy-session';
+import { safeLegacy } from '@/server/safe-legacy';
+export default async function Page() {
+  const [d, s] = await Promise.all([
+    safeLegacy<any>('admin.commissions.list', {}, { commissions: [], payouts: [], totals: {} }),
+    getLegacySession(),
+  ]);
+  return (
+    <>
+      <AdminPageHeader
+        title="ค่าคอมมิชชั่นและการจ่ายเงิน"
+        description="Commission ledger · payout queue · payment reference"
+      />
+      <CommissionManager initial={d} csrf={String(s.csrf || '')} />
+    </>
+  );
+}

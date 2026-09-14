@@ -44,9 +44,10 @@ export const ROW_PROBLEMS: Record<string, string> = {
 export function explainProductTransferError(error: unknown) {
   const api = error instanceof LegacyApiError ? error : null;
   const code = api?.code || (error instanceof Error ? error.message : '') || 'unknown';
-  const body = api?.detail && typeof api.detail === 'object' ? api.detail as Record<string, unknown> : {};
+  const body = api?.detail && typeof api.detail === 'object' ? (api.detail as Record<string, unknown>) : {};
   const extra = Array.isArray(body.columns) ? body.columns.map(String).filter(Boolean) : [];
-  const base = ERRORS[code] || (code.startsWith('http_') ? 'เซิร์ฟเวอร์ตอบกลับไม่สำเร็จ' : code) || 'ดำเนินการไม่สำเร็จ';
+  const base =
+    ERRORS[code] || (code.startsWith('http_') ? 'เซิร์ฟเวอร์ตอบกลับไม่สำเร็จ' : code) || 'ดำเนินการไม่สำเร็จ';
   return extra.length ? `${base} (${extra.join(', ')})` : base;
 }
 
@@ -63,6 +64,9 @@ export function transferExample(schema: ProductTransferSchema | undefined, key: 
   const value = schema?.sample_row?.[key];
   if (value === null || value === undefined || value === '') return '';
   if (Array.isArray(value)) return value.join(' | ');
-  if (typeof value === 'object') return Object.entries(value as Record<string, unknown>).map(([name, item]) => `${name}=${String(item ?? '')}`).join(' | ');
+  if (typeof value === 'object')
+    return Object.entries(value as Record<string, unknown>)
+      .map(([name, item]) => `${name}=${String(item ?? '')}`)
+      .join(' | ');
   return String(value);
 }

@@ -10,7 +10,9 @@ const SESSION_KEY = 'tsk-analytics-session';
 function identity(store: Storage, key: string) {
   let value = store.getItem(key);
   if (!value) {
-    value = globalThis.crypto?.randomUUID?.() || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+    value =
+      globalThis.crypto?.randomUUID?.() ||
+      `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
     store.setItem(key, value);
   }
   return value;

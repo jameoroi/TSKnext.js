@@ -17,11 +17,13 @@ export function PwaRegister() {
     let timer = 0;
     let removeRuntimeListeners = () => undefined;
 
-    void navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' })
+    void navigator.serviceWorker
+      .register('/sw.js', { scope: '/', updateViaCache: 'none' })
       .then((registration) => {
         if (disposed) return;
         const update = () => {
-          if (document.visibilityState === 'visible' && navigator.onLine) void registration.update().catch(() => undefined);
+          if (document.visibilityState === 'visible' && navigator.onLine)
+            void registration.update().catch(() => undefined);
         };
         timer = window.setInterval(update, UPDATE_EVERY_MS);
         window.addEventListener('online', update);

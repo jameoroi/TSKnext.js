@@ -12,7 +12,12 @@ export default async function AdminReportsPage() {
   const from = new Date(now.getTime() - 29 * 86_400_000).toISOString().slice(0, 10);
   let sales: Record<string, unknown> = { summary: {}, daily: [], top_products: [], previous: null };
   let analytics: Record<string, unknown> = {
-    summary: {}, daily: [], top_products: [], top_pages: [], members: {}, previous: null,
+    summary: {},
+    daily: [],
+    top_products: [],
+    top_pages: [],
+    members: {},
+    previous: null,
   };
   const errors: string[] = [];
   try {
