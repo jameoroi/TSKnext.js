@@ -2,6 +2,8 @@
 
 ## 6.0.0
 
+- fix(ci): remove 2 dead legacy modules blocking legacy import audit (99f492f)
+- docs(changelog): update generated changelog (2a70cfe)
 - docs: record pushed deploy status in release verification (bca4aa8)
 - ci: cloudflare workers deploy workflow plus deploy status record (d6bfad4)
 - hardening: production security/commerce/tenant fixes, audit re-baseline, LF normalization (ff63f89)
