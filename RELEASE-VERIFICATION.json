@@ -41,12 +41,10 @@
     ]
   },
   "deploy20260914": {
-    "status": "BLOCKED_ON_WINDOWS_BUILD_ENV",
-    "evidence": "pnpm build:cloudflare fails deterministically (2 identical runs) inside opennextjs-cloudflare bundling: esbuild service protocol crash on win32-x64 (node v26.8.2), while the esbuild binary itself runs fine standalone and next build (73 pages) succeeds. OpenNext documents Windows as unsupported.",
-    "unblockedPaths": [
-      "Run pnpm deploy:cloudflare on Linux/macOS/WSL (single command)",
-      "Push + add CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID repo secrets, then run the new .github/workflows/deploy-cloudflare.yml (workflow_dispatch); it gates on audits/typecheck/lint/test before deploying"
-    ],
+    "status": "PUSHED_PENDING_WORKFLOW_DISPATCH",
+    "pushed": "main d6bfad4 pushed to origin/main; CI (quality plus e2e with postgres/redis on Linux) runs automatically",
+    "windowsBuild": "pnpm build:cloudflare fails on this Windows machine only (opennext bundling esbuild-service crash, next build itself passes 73 pages)",
+    "toDeploy": "add CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID as GitHub repo secrets, then run .github/workflows/deploy-cloudflare.yml via workflow_dispatch",
     "productionSecretsPresent": ["AUTH_SECRET", "ADMIN_USERNAME", "ADMIN_PASSWORD"],
     "migrationNote": "deploy code is backward-compatible with the current production schema; apply database/migrations/20260914090000_integrity_hardening.sql on staging first (FK VALIDATE fails loudly on orphans)"
   },
