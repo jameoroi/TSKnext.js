@@ -2,6 +2,8 @@
 
 ## 6.0.0
 
+- fix(e2e): tolerate slow guard redirects on cold CI servers (7c73911)
+- docs(changelog): update generated changelog (37d1260)
 - fix(e2e): scope drawer and dialog assertions, all 38 green locally (34eeeee)
 - docs(changelog): update generated changelog (aa09b5f)
 - fix(e2e): run browser tests against production build, dev never hydrates (74c01a6)
