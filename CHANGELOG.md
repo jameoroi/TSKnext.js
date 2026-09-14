@@ -2,6 +2,8 @@
 
 ## 6.0.0
 
+- perf(security): drop report-uri from report-only CSP to stop self-DDoS (c7b486f)
+- docs(changelog): update generated changelog (69f9352)
 - fix(e2e): tolerate slow guard redirects on cold CI servers (7c73911)
 - docs(changelog): update generated changelog (37d1260)
 - fix(e2e): scope drawer and dialog assertions, all 38 green locally (34eeeee)
