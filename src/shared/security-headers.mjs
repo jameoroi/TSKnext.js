@@ -131,7 +131,14 @@ export const CONTENT_SECURITY_POLICY_REPORT_ONLY = [
   // No `upgrade-insecure-requests` here on purpose: a browser ignores it in a
   // report-only policy and says so in the console on every page load. The
   // enforced policy above carries it, which is where it does something.
-  'report-uri /api?action=csp.report',
+  // No `report-uri` here on purpose either: the report-only img-src names a
+  // closed host list while the shop's catalogue hotlinks arbitrary supplier
+  // hosts (postimg.cc and friends), so every product image on every page view
+  // POSTed a violation report back to this shop's own API — the policy became
+  // a load generator pointed at the site it was linting, and on the Workers
+  // Free plan that traffic is what Error 1102s are made of. The endpoint
+  // (/api?action=csp.report) stays for manual testing; re-add report-uri with
+  // sampling only once the plan (and the image pipeline) can afford it.
 ].join('; ');
 
 export const SECURITY_HEADERS = {
