@@ -81,7 +81,7 @@ export function QuickViewModal() {
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"
                 className="object-contain p-7"
-                unoptimized={productImage(product).startsWith('data:')}
+                unoptimized
               />
             </div>
             <div className="flex flex-col justify-center p-6 md:p-9">

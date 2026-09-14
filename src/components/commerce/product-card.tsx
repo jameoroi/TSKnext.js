@@ -88,7 +88,10 @@ export function ProductCard({
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
             className="object-contain p-4 transition duration-300 group-hover:scale-[1.03]"
-            unoptimized={imageSrc.startsWith('data:')}
+            // Product media is already resized and served by our media route/R2.
+            // Keep it direct on Workers so a failed optimizer fetch cannot
+            // replace a valid product photo with the logo fallback.
+            unoptimized
             onError={() => setImageIndex((current) => Math.min(current + 1, imageCandidates.length - 1))}
           />
         </Link>

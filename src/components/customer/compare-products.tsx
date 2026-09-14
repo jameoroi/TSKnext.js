@@ -296,7 +296,7 @@ export function CompareProducts() {
                           width={128}
                           height={128}
                           className="size-32 rounded-xl bg-white object-contain p-2"
-                          unoptimized={imageOf(product).startsWith('data:')}
+                          unoptimized
                         />
                       ) : (
                         <span className="grid size-32 place-items-center rounded-xl bg-slate-50 text-xs font-bold text-slate-400">

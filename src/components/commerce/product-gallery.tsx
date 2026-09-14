@@ -21,7 +21,7 @@ export function ProductGallery({ product }: { product: Product }) {
           priority
           sizes="(max-width: 1024px) 100vw, 50vw"
           className="object-contain p-6 sm:p-10"
-          unoptimized={active.startsWith('data:')}
+          unoptimized
         />
       </div>
       {images.length > 1 && (
@@ -40,7 +40,7 @@ export function ProductGallery({ product }: { product: Product }) {
                 fill
                 sizes="80px"
                 className="object-contain p-1"
-                unoptimized={image.startsWith('data:')}
+                unoptimized
               />
             </button>
           ))}
