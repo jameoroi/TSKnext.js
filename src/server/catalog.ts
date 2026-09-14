@@ -12,7 +12,7 @@ import {
 } from '@/server/db/schema';
 import { FALLBACK_CATEGORIES } from '@/shared/categories';
 import { serverLegacyRequest } from './legacy-api';
-import { safePublicLegacy } from './public-legacy-cache';
+import { requestOrigin, safePublicLegacy } from './public-legacy-cache';
 
 export type SiteSettings = {
   site_title?: string;
@@ -235,6 +235,27 @@ export async function getProduct(idOrSlug: string) {
     moved_to?: string;
   }>('products.get', looksLikeSourceId ? { id: idOrSlug } : { slug: idOrSlug }).catch(() => fallback);
   if (direct.product || direct.error === 'moved') return direct;
+
+  // In some edge SSR deployments the local compatibility call does not carry
+  // the public tenant host even though the public API does. Retry through the
+  // same-origin API so a valid imported slug cannot become a server-rendered
+  // 404 while /api?action=products.get can still resolve it.
+  const publicLookup = await (async () => {
+    try {
+      const origin = await requestOrigin();
+      const query = new URLSearchParams({ action: 'products.get' });
+      query.set(looksLikeSourceId ? 'id' : 'slug', idOrSlug);
+      const response = await fetch(`${origin}/api?${query.toString()}`, {
+        headers: { accept: 'application/json' },
+        cache: 'no-store',
+      });
+      const data = await response.json().catch(() => fallback);
+      return response.ok && data?.ok !== false ? data : fallback;
+    } catch {
+      return fallback;
+    }
+  })();
+  if (publicLookup.product || publicLookup.error === 'moved') return publicLookup;
 
   return safePublicLegacy<{ product?: Product | null; error?: string; moved_to?: string }>(
     'products.get',
