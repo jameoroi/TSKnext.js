@@ -14,7 +14,10 @@ type EntryPopup = {
   end_at?: string;
 };
 
-const MIN_AUTO_DELAY_MS = 30_000;
+// The admin setting is already expressed in milliseconds. Keep a tiny safety
+// floor so the popup does not compete with the first paint, but do not hide a
+// 700 ms campaign behind an unexpected 30-second delay.
+const MIN_AUTO_DELAY_MS = 900;
 
 function dateBoundary(value: unknown, end = false) {
   const raw = String(value || '').trim();

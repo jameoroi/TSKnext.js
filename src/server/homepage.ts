@@ -193,7 +193,9 @@ export async function getHomepageData(): Promise<HomepageData> {
       getCategories(),
       getBrands(),
       getProducts({ featured: 1, per_page: 10 }),
-      getProducts({ status: 'สินค้าลดราคา', per_page: 60 }),
+      // Four cards are enough for the shelf. Avoid fetching/counting dozens
+      // of sale rows that are discarded after the response is mapped.
+      getProducts({ status: 'สินค้าลดราคา', per_page: 8, include_total: false }),
       safePublicLegacy<{ items?: unknown }>('content.list', { kind: 'article' }, { items: [] }),
     ]);
   const site = siteResult.status === 'fulfilled' ? siteResult.value : {};

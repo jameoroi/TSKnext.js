@@ -106,15 +106,19 @@ async function relationalProducts(params: Record<string, unknown>) {
   const where = and(...conditions);
   try {
     return await withDb(async (db) => {
+      const includeTotal = params.include_total !== false;
+      const rowsQuery = db
+        .select()
+        .from(productTable)
+        .where(where)
+        .orderBy(desc(productTable.updatedAt))
+        .limit(perPage)
+        .offset((page - 1) * perPage);
       const [rows, countRows] = await Promise.all([
-        db
-          .select()
-          .from(productTable)
-          .where(where)
-          .orderBy(desc(productTable.updatedAt))
-          .limit(perPage)
-          .offset((page - 1) * perPage),
-        db.select({ count: sql<number>`count(*)::int` }).from(productTable).where(where),
+        rowsQuery,
+        includeTotal
+          ? db.select({ count: sql<number>`count(*)::int` }).from(productTable).where(where)
+          : Promise.resolve([{ count: 0 }]),
       ]);
       return { products: rows.map(mapProduct), total: Number(countRows[0]?.count || 0), page, perPage };
     });

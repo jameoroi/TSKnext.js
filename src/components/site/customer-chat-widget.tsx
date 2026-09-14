@@ -145,6 +145,7 @@ export function CustomerChatWidget() {
   const [aiSessionId, setAiSessionId] = useState('');
   const [artFailed, setArtFailed] = useState(false);
   const [marketingConsent, setMarketingConsent] = useState(false);
+  const settingsLoaded = useRef(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const roomRef = useRef(room);
   const tokenRef = useRef(token);
@@ -208,7 +209,17 @@ export function CustomerChatWidget() {
       setAiMessages(readLegacyAiMessages());
       setAiSessionId(getAiSessionId());
     } catch {}
+  }, []);
+
+  // The launcher is present on every storefront page, but chat availability,
+  // room adoption and contact settings are only useful after a visitor opens
+  // it. Deferring these requests removes three network calls from every cold
+  // page load without changing the chat flow.
+  useEffect(() => {
+    if (!open) return;
     void Promise.all([checkAvailability(), adoptAccountRoom()]);
+    if (settingsLoaded.current) return;
+    settingsLoaded.current = true;
     fetch('/api?action=site.settings&compact=1', {
       credentials: 'include',
       headers: { accept: 'application/json' },
@@ -216,7 +227,7 @@ export function CustomerChatWidget() {
       .then((response) => response.json())
       .then((data) => setSettings((data?.settings || {}) as Record<string, unknown>))
       .catch(() => {});
-  }, [adoptAccountRoom, checkAvailability]);
+  }, [adoptAccountRoom, checkAvailability, open]);
 
   useEffect(() => {
     if (!open) return;
@@ -892,7 +903,6 @@ export function CustomerChatWidget() {
             setOpen((value) => !value);
             if (!open) {
               setMode(available ? 'staff' : 'menu');
-              void checkAvailability();
             }
           }}
           className={`relative grid place-items-center transition hover:scale-105 ${open ? 'size-14 rounded-full border-2 border-white bg-emerald-900 text-white shadow-xl' : artFailed ? 'size-16 rounded-full border-[3px] border-white bg-emerald-800 shadow-xl' : 'size-20 bg-transparent'}`}

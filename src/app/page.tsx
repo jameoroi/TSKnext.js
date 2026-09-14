@@ -2,11 +2,12 @@ import type { ComponentProps } from 'react';
 import { ProductCard } from '@/components/commerce/product-card';
 import { ArticleCard } from '@/components/home/article-card';
 import { BrandItem } from '@/components/home/brand-item';
-import { CategoryGrid } from '@/components/home/category-grid';
+import { CategoryGrid, CategoryItem } from '@/components/home/category-grid';
 import { DealerRegisterSection } from '@/components/home/dealer-register-section';
 import { EntryPopup } from '@/components/home/entry-popup';
 import { FlashSaleCard } from '@/components/home/flash-sale-card';
 import { Hero } from '@/components/home/hero';
+import { MobileAutoRail } from '@/components/home/mobile-auto-rail';
 import {
   ArticleCardPlaceholder,
   BrandItemPlaceholder,
@@ -71,34 +72,64 @@ export default async function HomePage() {
         <SectionTitle eyebrow="SHOP BY CATEGORY" title="เลือกช้อปตามหมวดหมู่" href="/products" />
         <p className="-mt-3 mb-5 text-sm text-slate-500">ค้นหาสินค้าให้ใช่ ตอบโจทย์ทุกงานช่างและอุตสาหกรรม</p>
         {home.categories.length > 0 && (
-          <CategoryGrid
-            categories={home.categories.map((c) => ({
-              key: c.key,
-              name: c.name,
-              en: c.en,
-              icon: c.icon,
-              image: c.image,
-            }))}
-          />
+          <>
+            <MobileAutoRail label="หมวดหมู่สินค้า" itemClassName="min-w-[42%] snap-start" speed={40}>
+              {home.categories.map((c) => (
+                <CategoryItem
+                  key={c.key}
+                  category={{ key: c.key, name: c.name, en: c.en, icon: c.icon, image: c.image }}
+                />
+              ))}
+            </MobileAutoRail>
+            <div className="hidden md:block">
+              <CategoryGrid
+                categories={home.categories.map((c) => ({
+                  key: c.key,
+                  name: c.name,
+                  en: c.en,
+                  icon: c.icon,
+                  image: c.image,
+                }))}
+              />
+            </div>
+          </>
         )}
         {missingCategories > 0 && (
-          <div
-            className={`grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-8 ${home.categories.length > 0 ? 'mt-3' : ''}`}
-          >
-            {placeholderIds(
-              home.categories.length > 0 ? missingCategories : categorySlots,
-              'category-ph',
-            ).map((id) => (
-              <CategoryItemPlaceholder key={id} />
-            ))}
-          </div>
+          <>
+            <MobileAutoRail label="หมวดหมู่สินค้าที่กำลังเตรียม" itemClassName="min-w-[42%] snap-start" speed={40}>
+              {placeholderIds(
+                home.categories.length > 0 ? missingCategories : categorySlots,
+                'category-mobile-ph',
+              ).map((id) => (
+                <CategoryItemPlaceholder key={id} />
+              ))}
+            </MobileAutoRail>
+            <div
+              className={`hidden grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-8 md:grid ${home.categories.length > 0 ? 'mt-3' : ''}`}
+            >
+              {placeholderIds(
+                home.categories.length > 0 ? missingCategories : categorySlots,
+                'category-ph',
+              ).map((id) => (
+                <CategoryItemPlaceholder key={id} />
+              ))}
+            </div>
+          </>
         )}
       </section>
 
       {/* 5. FEATURED_PRODUCTS — DYNAMIC_DATA (Supabase: products) */}
       <section className="mx-auto max-w-7xl px-4 pb-12 lg:px-6" aria-label="สินค้าขายดี สินค้าแนะนำ">
         <SectionTitle eyebrow="BEST SELLER" title="สินค้าขายดี / สินค้าแนะนำ" href="/products" />
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
+        <MobileAutoRail label="สินค้าขายดีและสินค้าแนะนำ" itemClassName="min-w-[78%] snap-start" speed={34}>
+          {home.featured.map((p) => (
+            <ProductCard key={p.id} product={p} badge="ขายดี" cta />
+          ))}
+          {placeholderIds(missingFeatured, 'featured-mobile-ph').map((id) => (
+            <ProductCardPlaceholder key={id} />
+          ))}
+        </MobileAutoRail>
+        <div className="hidden grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid xl:grid-cols-5">
           {home.featured.map((p) => (
             <ProductCard key={p.id} product={p} badge="ขายดี" cta />
           ))}
@@ -120,7 +151,15 @@ export default async function HomePage() {
               <SaleCountdown endsAt={home.flash.endsAt} />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+          <MobileAutoRail label="สินค้า Flash Sale" itemClassName="min-w-[78%] snap-start" speed={34}>
+            {home.flash.items.map((item) => (
+              <FlashSaleCard key={item.product.id} item={item} />
+            ))}
+            {placeholderIds(missingFlash, 'flash-mobile-ph').map((id) => (
+              <FlashSaleCardPlaceholder key={id} />
+            ))}
+          </MobileAutoRail>
+          <div className="hidden grid-cols-2 gap-3 sm:grid sm:grid-cols-3 xl:grid-cols-4">
             {home.flash.items.map((item) => (
               <FlashSaleCard key={item.product.id} item={item} />
             ))}
@@ -134,7 +173,15 @@ export default async function HomePage() {
       {/* 7. ARTICLE_SECTION — DYNAMIC_DATA (Supabase: articles) */}
       <section className="mx-auto max-w-7xl px-4 py-10 lg:px-6" aria-label="บทความและเคล็ดลับ">
         <SectionTitle eyebrow="TIPS & ARTICLES" title="บทความ & เคล็ดลับ" href="/news" />
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <MobileAutoRail label="บทความและเคล็ดลับ" itemClassName="min-w-[84%] snap-start" speed={28}>
+          {home.articles.map((article) => (
+            <ArticleCard key={article.id} article={article} />
+          ))}
+          {placeholderIds(missingArticles, 'article-mobile-ph').map((id) => (
+            <ArticleCardPlaceholder key={id} />
+          ))}
+        </MobileAutoRail>
+        <div className="hidden gap-3 sm:grid sm:grid-cols-2 xl:grid">
           {home.articles.map((article) => (
             <ArticleCard key={article.id} article={article} />
           ))}
@@ -148,17 +195,31 @@ export default async function HomePage() {
       <section className="mx-auto max-w-7xl px-4 pb-12 lg:px-6" aria-label="แบรนด์">
         <SectionTitle eyebrow="TOP BRANDS" title="แบรนด์" href="/brands" />
         {home.brands.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
-            {home.brands.map((brand) => (
-              <BrandItem key={brand.id} brand={brand} />
-            ))}
-          </div>
+          <>
+            <MobileAutoRail label="แบรนด์ชั้นนำ" itemClassName="min-w-[44%] snap-start" speed={30}>
+              {home.brands.map((brand) => (
+                <BrandItem key={brand.id} brand={brand} />
+              ))}
+            </MobileAutoRail>
+            <div className="hidden grid-cols-2 gap-3 sm:grid sm:grid-cols-4 lg:grid xl:grid-cols-8">
+              {home.brands.map((brand) => (
+                <BrandItem key={brand.id} brand={brand} />
+              ))}
+            </div>
+          </>
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {placeholderIds(brandSlots, 'brand-ph').map((id) => (
-              <BrandItemPlaceholder key={id} />
-            ))}
-          </div>
+          <>
+            <MobileAutoRail label="แบรนด์สินค้าที่กำลังเตรียม" itemClassName="min-w-[44%] snap-start" speed={30}>
+              {placeholderIds(brandSlots, 'brand-mobile-ph').map((id) => (
+                <BrandItemPlaceholder key={id} />
+              ))}
+            </MobileAutoRail>
+            <div className="hidden grid-cols-2 gap-3 sm:grid sm:grid-cols-4 md:grid">
+              {placeholderIds(brandSlots, 'brand-ph').map((id) => (
+                <BrandItemPlaceholder key={id} />
+              ))}
+            </div>
+          </>
         )}
       </section>
 

@@ -35,6 +35,16 @@ function fileToDataUrl(file: File) {
   });
 }
 
+function dateTimeLocalValue(value: unknown) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return `${raw}T00:00`;
+  const date = new Date(raw);
+  if (!Number.isFinite(date.getTime())) return '';
+  const pad = (part: number) => String(part).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 export function SettingsEditor({
   settings,
   businessSettings,
@@ -72,8 +82,11 @@ export function SettingsEditor({
     alt_text: String(settings.entry_popup?.alt_text || ''),
     frequency: String(settings.entry_popup?.frequency || 'session'),
     delay_ms: Number(settings.entry_popup?.delay_ms || 700),
-    start_at: String(settings.entry_popup?.start_at || ''),
-    end_at: String(settings.entry_popup?.end_at || ''),
+    // API accepts date-only values, while datetime-local inputs do not. Keep
+    // the date visible so an admin does not accidentally save an expired
+    // popup with an empty range.
+    start_at: dateTimeLocalValue(settings.entry_popup?.start_at),
+    end_at: dateTimeLocalValue(settings.entry_popup?.end_at),
   });
   const [theme, setTheme] = useState<Record<string, string>>(() => {
     const initial = { ...(settings.theme || {}) };

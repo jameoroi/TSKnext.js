@@ -52,7 +52,9 @@ export function SessionHeartbeat() {
         void ping();
     };
 
-    void ping();
+    // Let the first document paint and hydrate before the background session
+    // check competes with hero/catalog requests on a cold visit.
+    const startupTimer = window.setTimeout(() => void ping(), 1200);
     const timer = window.setInterval(() => {
       void ping();
     }, HEARTBEAT_MS);
@@ -61,6 +63,7 @@ export function SessionHeartbeat() {
 
     return () => {
       disposed = true;
+      window.clearTimeout(startupTimer);
       window.clearInterval(timer);
       window.removeEventListener('online', onOnline);
       document.removeEventListener('visibilitychange', onVisible);

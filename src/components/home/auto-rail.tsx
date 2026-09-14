@@ -102,6 +102,7 @@ export function AutoRail({ children, itemClassName, label, speed = 36, arrows = 
           <div
             key={i >= items.length ? `loop-${i}` : `rail-${i}`}
             aria-hidden={i >= items.length || undefined}
+            inert={i >= items.length || undefined}
             className={itemClassName}
           >
             {child}
