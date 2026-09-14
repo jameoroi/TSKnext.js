@@ -784,7 +784,7 @@ export function Header() {
               <Search className="size-4" />
             </button>
           </form>
-          <nav className="grid gap-3 text-sm font-semibold">
+          <nav className="grid gap-3 text-sm font-semibold" aria-label="เมนูนำทางมือถือ">
             <Link onClick={() => setMenuOpen(false)} href="/">
               หน้าแรก
             </Link>
