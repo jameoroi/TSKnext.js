@@ -2,6 +2,8 @@
 
 ## 6.0.0
 
+- fix(e2e): run browser tests against production build, dev never hydrates (74c01a6)
+- docs(changelog): update generated changelog (0b6dee3)
 - fix(e2e): referral stub matches the real client contract (GET query) (e999e01)
 - docs(changelog): update generated changelog (0fce925)
 - fix(e2e): make kit entry SSR-visible, pin sw version, keep failure traces (c89598e)
