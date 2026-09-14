@@ -23,7 +23,9 @@
     "lint": "PASS (biome check exit 0, final run 2026-09-14; 514 warnings + 5 infos remain, all pre-existing style/any warnings that do not fail the gate; fixed 8 explicit-any sites + proxy import-type + full-tree LF normalization via .gitattributes to get here)",
     "e2e": "NOT RUN (requires DATABASE_URL + Redis + Playwright browsers)",
     "smoke": "NOT RUN (requires running server + env)",
-    "migrationAudit": "PASS (8 SQL files incl. new 20260914090000_integrity_hardening; new migration NOT applied to any database in this environment)"
+    "migrationAudit": "PASS (8 SQL files incl. new 20260914090000_integrity_hardening; new migration NOT applied to any database in this environment)",
+    "legacyAuditStrict": "PASS (16/16 referenced, 0 unused) after deleting 2 provably dead files: src/legacy-api/seo.js (superseded by Next-native sitemap.ts/robots.ts) and src/legacy-api/maintenance-backup.js (HTTP path /.api/maintenance-backup has no dispatcher; zero importers; working backup path is BullMQ maintenance.backup)",
+    "ci109": "CI run #109 (bca4aa8): quality failed ONLY at legacy:audit --strict (now fixed); e2e failed at test:e2e with identical failure already present on pre-change run #107 (59eee97) — pre-existing, spec names need CI log read; coverage gate (0.95 vs 80) is pre-existing fiction, untouched"
   },
   "runtimeDependencyVerification": {
     "completedInPackagingEnvironment": false,
