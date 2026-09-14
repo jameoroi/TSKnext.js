@@ -2,6 +2,8 @@
 
 ## 6.0.0
 
+- fix(e2e): make kit entry SSR-visible, pin sw version, keep failure traces (c89598e)
+- docs(changelog): update generated changelog (d8531dc)
 - fix(ci): remove 2 dead legacy modules blocking legacy import audit (99f492f)
 - docs(changelog): update generated changelog (2a70cfe)
 - docs: record pushed deploy status in release verification (bca4aa8)
