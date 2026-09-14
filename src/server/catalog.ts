@@ -11,6 +11,7 @@ import {
   products as productTable,
 } from '@/server/db/schema';
 import { FALLBACK_CATEGORIES } from '@/shared/categories';
+import { serverLegacyRequest } from './legacy-api';
 import { safePublicLegacy } from './public-legacy-cache';
 
 export type SiteSettings = {
@@ -224,6 +225,17 @@ export async function getProduct(idOrSlug: string) {
     fallback,
   );
   if (primary.product || primary.error === 'moved') return primary;
+
+  // A stale edge/cache miss must not turn a real product into a 404. The
+  // compatibility API is local to the Worker, so retry the exact lookup
+  // directly before trying the alternate id/slug form.
+  const direct = await serverLegacyRequest<{
+    product?: Product | null;
+    error?: string;
+    moved_to?: string;
+  }>('products.get', looksLikeSourceId ? { id: idOrSlug } : { slug: idOrSlug }).catch(() => fallback);
+  if (direct.product || direct.error === 'moved') return direct;
+
   return safePublicLegacy<{ product?: Product | null; error?: string; moved_to?: string }>(
     'products.get',
     looksLikeSourceId ? { slug: idOrSlug } : { id: idOrSlug },
