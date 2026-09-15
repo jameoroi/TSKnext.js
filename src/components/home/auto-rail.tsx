@@ -1,7 +1,16 @@
 'use client';
 
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Children, type PointerEvent, type ReactNode, useEffect, useRef, useState } from 'react';
+import {
+  Children,
+  type MouseEvent,
+  type PointerEvent,
+  type ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+import { motionPaused } from '@/lib/overlay-bus';
 
 type Props = {
   children: ReactNode;
@@ -21,12 +30,20 @@ type Props = {
 };
 
 const MOBILE_QUERY = '(max-width: 639px)';
+/** How long the row waits after a finger or mouse lets go before moving again. */
+const RESUME_AFTER_MS = 2500;
+/** A press that moves further than this is a drag, not a tap. */
+const DRAG_THRESHOLD_PX = 6;
 
 /**
- * AutoRail — แถวเลื่อนอัตโนมัติแบบสมูท + เมาส์คลิกค้างลากได้ + ไม่มี scrollbar
- * - เล่นเองด้วย rAF drift (หยุดเมื่อ hover/focus/ลาก/แตะ)
- * - เนื้อหาซ้ำ 2 ชุดเพื่อวนซ้ำไร้รอยต่อ (เหมือน ProductRail ของ framework เดิม)
+ * AutoRail — แถวเลื่อนอัตโนมัติแบบสมูท + ลากได้ + ไม่มี scrollbar
+ *
  * - เลื่อนไปทางขวาเป็นค่าเริ่มต้น; เครื่องที่ปิดแอนิเมชันยังเลื่อน แต่ช้าลง
+ * - หยุดเมื่อ hover/focus, เมื่อมีป๊อปอัพหรือหน้าต่างเปิดทับ (overlay bus)
+ * - นิ้วมีสิทธิ์ก่อนเสมอ: ระหว่างปัด/เลื่อนด้วยมือ แถวจะไม่แย่งเลื่อน และจะกลับมา
+ *   เลื่อนเองหลังปล่อยมือ 2.5 วินาที (เดิมทั้งสองฝั่งเขียน scrollLeft พร้อมกัน
+ *   ทำให้ภาพกระตุกและกดโดนการ์ดผิดใบ)
+ * - ลากด้วยเมาส์แล้วปล่อย ไม่นับเป็นการคลิกลิงก์ในการ์ด
  */
 export function AutoRail({
   children,
@@ -39,29 +56,70 @@ export function AutoRail({
   desktopClassName = '',
 }: Props) {
   const ref = useRef<HTMLElement | null>(null);
-  const [paused, setPaused] = useState(false);
-  const pausedRef = useRef(false);
-  const drag = useRef({ down: false, startX: 0, startLeft: 0 });
+  const [hovered, setHovered] = useState(false);
+  const hoveredRef = useRef(false);
+  const holdUntil = useRef(0);
+  const touching = useRef(false);
+  const expectedLeft = useRef<number | null>(null);
+  const drag = useRef({ down: false, startX: 0, startLeft: 0, moved: 0 });
+  const suppressClick = useRef(false);
 
   useEffect(() => {
-    pausedRef.current = paused;
-  }, [paused]);
+    hoveredRef.current = hovered;
+  }, [hovered]);
+
+  const hold = (ms = RESUME_AFTER_MS) => {
+    holdUntil.current = Math.max(holdUntil.current, performance.now() + ms);
+  };
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    const node = ref.current;
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const pace = reduced ? speed * 0.6 : speed;
     const sign = direction === 'right' ? -1 : 1;
     const mobile = window.matchMedia(MOBILE_QUERY);
     let raf = 0;
     let last = performance.now();
-    let placed = false;
+    let position = -1;
+
+    // A scroll we did not make is the visitor's: stand back until they are done.
+    const onScroll = () => {
+      if (!node) return;
+      const expected = expectedLeft.current;
+      if (expected === null || Math.abs(node.scrollLeft - expected) > 2) {
+        hold();
+        position = -1;
+      }
+    };
+    const onTouchStart = () => {
+      touching.current = true;
+      hold(60_000);
+    };
+    const onTouchEnd = () => {
+      touching.current = false;
+      holdUntil.current = performance.now() + RESUME_AFTER_MS;
+      position = -1;
+    };
+    node?.addEventListener('scroll', onScroll, { passive: true });
+    node?.addEventListener('touchstart', onTouchStart, { passive: true });
+    node?.addEventListener('touchend', onTouchEnd, { passive: true });
+    node?.addEventListener('touchcancel', onTouchEnd, { passive: true });
+
     const tick = (now: number) => {
       raf = requestAnimationFrame(tick);
-      const node = ref.current;
-      if (!node || pausedRef.current || node.children.length < 2 || (mobileOnly && !mobile.matches)) {
+      const blocked =
+        !node ||
+        hoveredRef.current ||
+        touching.current ||
+        drag.current.down ||
+        now < holdUntil.current ||
+        motionPaused() ||
+        document.visibilityState !== 'visible' ||
+        node.children.length < 2 ||
+        (mobileOnly && !mobile.matches);
+      if (blocked) {
         last = now;
-        placed = false;
         return;
       }
       const half = node.scrollWidth / 2;
@@ -69,45 +127,68 @@ export function AutoRail({
         last = now;
         return;
       }
-      // Moving right needs room on the left: start from the second copy.
-      if (!placed) {
-        if (sign < 0 && node.scrollLeft < 1) node.scrollLeft = half;
-        placed = true;
+      if (position < 0) {
+        position = node.scrollLeft;
+        // Moving right needs room on the left: start from the second copy.
+        if (sign < 0 && position < 1) position = half;
       }
       const dt = Math.min(64, now - last);
       last = now;
-      node.scrollLeft += (sign * pace * dt) / 1000;
-      if (node.scrollLeft >= half) node.scrollLeft -= half;
-      else if (node.scrollLeft <= 0) node.scrollLeft += half;
+      position += (sign * pace * dt) / 1000;
+      if (position >= half) position -= half;
+      else if (position <= 0) position += half;
+      node.scrollLeft = position;
+      expectedLeft.current = node.scrollLeft;
     };
     raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      node?.removeEventListener('scroll', onScroll);
+      node?.removeEventListener('touchstart', onTouchStart);
+      node?.removeEventListener('touchend', onTouchEnd);
+      node?.removeEventListener('touchcancel', onTouchEnd);
+    };
   }, [speed, direction, mobileOnly]);
-
-  function endDrag() {
-    if (!drag.current.down) return;
-    drag.current.down = false;
-    window.setTimeout(() => setPaused(false), 2000);
-  }
 
   function move(step: -1 | 1) {
     const node = ref.current;
     if (!node) return;
+    hold(RESUME_AFTER_MS + 600);
     node.scrollBy({ left: step * Math.max(260, node.clientWidth * 0.75), behavior: 'smooth' });
   }
 
+  // Mouse only: a finger scrolls the row natively and must not be fought.
   function onPointerDown(event: PointerEvent<HTMLElement>) {
-    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    if (event.pointerType !== 'mouse' || event.button !== 0) return;
     const node = ref.current;
     if (!node) return;
-    drag.current = { down: true, startX: event.clientX, startLeft: node.scrollLeft };
-    setPaused(true);
+    drag.current = { down: true, startX: event.clientX, startLeft: node.scrollLeft, moved: 0 };
+    suppressClick.current = false;
   }
 
   function onPointerMove(event: PointerEvent<HTMLElement>) {
     const node = ref.current;
     if (!drag.current.down || !node) return;
-    node.scrollLeft = drag.current.startLeft - (event.clientX - drag.current.startX);
+    const delta = event.clientX - drag.current.startX;
+    drag.current.moved = Math.max(drag.current.moved, Math.abs(delta));
+    if (drag.current.moved > DRAG_THRESHOLD_PX) {
+      node.scrollLeft = drag.current.startLeft - delta;
+      expectedLeft.current = node.scrollLeft;
+    }
+  }
+
+  function endDrag() {
+    if (!drag.current.down) return;
+    suppressClick.current = drag.current.moved > DRAG_THRESHOLD_PX;
+    drag.current.down = false;
+    hold();
+  }
+
+  function onClickCapture(event: MouseEvent<HTMLElement>) {
+    if (!suppressClick.current) return;
+    suppressClick.current = false;
+    event.preventDefault();
+    event.stopPropagation();
   }
 
   const items = Children.toArray(children);
@@ -120,9 +201,9 @@ export function AutoRail({
     // biome-ignore lint/a11y/noStaticElementInteractions: hover pauses autoplay (a11y feature, not interaction)
     <div
       className="relative min-w-0"
-      onMouseEnter={() => setPaused(true)}
+      onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => {
-        setPaused(false);
+        setHovered(false);
         endDrag();
       }}
     >
@@ -133,8 +214,9 @@ export function AutoRail({
         onPointerMove={onPointerMove}
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
-        onFocus={() => setPaused(true)}
-        onBlur={() => setPaused(false)}
+        onClickCapture={onClickCapture}
+        onFocus={() => setHovered(true)}
+        onBlur={() => setHovered(false)}
         className={railClass}
       >
         {loop.map((child, i) => {

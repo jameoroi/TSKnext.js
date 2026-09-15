@@ -1,8 +1,9 @@
 import 'server-only';
 
 import type { Product } from '@/features/catalog/types';
+import { cacheGetJson, cacheSetJson } from '@/lib/redis';
 import { getBrands, getCategories, getProducts, getSiteSettings } from '@/server/catalog';
-import { safePublicLegacy } from '@/server/public-legacy-cache';
+import { requestOrigin, safePublicLegacy } from '@/server/public-legacy-cache';
 
 /**
  * HOME DATA LAYER — THAISERKIT SUPPLY
@@ -199,7 +200,46 @@ function mapFlashSale(product: Product): FlashSaleItem | null {
   };
 }
 
+/**
+ * Nothing on the shelves at all: every loader fell back to empty. The catalogue
+ * is never truly empty on a live shop, so this is a failed render (usually the
+ * Workers Free subrequest budget), not data.
+ */
+export function homepageDegraded(data: HomepageData) {
+  return !data.categories.length && !data.brands.length && !data.featured.length;
+}
+
+const HOME_CACHE_SECONDS = 120;
+let homeMemory: { at: number; key: string; data: HomepageData } | null = null;
+
+/**
+ * The home page's data as one cached value.
+ *
+ * Each shelf used to be its own cached read (Redis GET, then Supabase on a
+ * miss, then Redis SET), so a cold render spent 25+ subrequests before the
+ * worker could store the page, went over the Workers Free limit, and the
+ * shelves that lost the race rendered as empty placeholders. One entry for the
+ * whole page is one Redis read. An empty (degraded) result is never stored.
+ */
 export async function getHomepageData(): Promise<HomepageData> {
+  const origin = await requestOrigin();
+  const key = `tsk:home:v1:${origin}`;
+  if (homeMemory && homeMemory.key === key && Date.now() - homeMemory.at < HOME_CACHE_SECONDS * 1000)
+    return homeMemory.data;
+  const shared = await cacheGetJson<HomepageData>(key).catch(() => null);
+  if (shared && Array.isArray(shared.categories) && !homepageDegraded(shared)) {
+    homeMemory = { at: Date.now(), key, data: shared };
+    return shared;
+  }
+  const fresh = await loadHomepageData();
+  if (!homepageDegraded(fresh)) {
+    homeMemory = { at: Date.now(), key, data: fresh };
+    void cacheSetJson(key, fresh, HOME_CACHE_SECONDS).catch(() => undefined);
+  }
+  return fresh;
+}
+
+async function loadHomepageData(): Promise<HomepageData> {
   const [siteResult, categoryResult, brandResult, featuredResult, saleResult, articleResult] =
     await Promise.allSettled([
       getSiteSettings(),

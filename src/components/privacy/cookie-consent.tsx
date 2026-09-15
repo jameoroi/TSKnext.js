@@ -3,14 +3,22 @@
 import { Check } from 'lucide-react';
 import Link from 'next/link';
 import { Checkbox } from 'radix-ui';
+
 import { useEffect, useRef, useState } from 'react';
 import { readConsent, writeConsent } from '@/features/privacy/consent';
+import { setOverlay, useOverlay } from '@/lib/overlay-bus';
 
 export function CookieConsent() {
   const [open, setOpen] = useState(false);
   const [detail, setDetail] = useState(false);
   const [analytics, setAnalytics] = useState(false);
   const [marketing, setMarketing] = useState(false);
+  // Shown after the entry popup closes instead of underneath it.
+  const popupOpen = useOverlay('entry-popup');
+  useEffect(() => {
+    setOverlay('cookie-consent', open && !popupOpen);
+    return () => setOverlay('cookie-consent', false);
+  }, [open, popupOpen]);
 
   useEffect(() => {
     const current = readConsent();
@@ -61,16 +69,16 @@ export function CookieConsent() {
       observer.disconnect();
       root.style.setProperty('--tsk-consent-h', '0px');
     };
-  }, [open, detail]);
+  }, [open, detail, popupOpen]);
 
-  if (!open) return null;
+  if (!open || popupOpen) return null;
   return (
     <aside
       ref={bannerRef}
       role="dialog"
       aria-modal="false"
       aria-labelledby="cookie-consent-title"
-      className="fixed inset-x-3 bottom-3 z-[100] mx-auto max-w-6xl rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl sm:p-5"
+      className="tsk-float-panel fixed inset-x-3 bottom-3 z-[100] mx-auto max-w-6xl rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl sm:p-5"
     >
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="min-w-0 flex-1 basis-[360px]">

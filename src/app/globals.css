@@ -470,3 +470,17 @@ a {
     accent-color: rgb(6 95 70);
   }
 }
+
+/* Floating panels (cookie notice, recently viewed) keep their contrast in dark mode:
+   the legacy dark theme lightened their text but left the white card behind it. */
+html[data-theme="dark"] .tsk-float-panel {
+  border-color: #26332c !important;
+  background: #101915 !important;
+  color: #e7f1ea !important;
+}
+html[data-theme="dark"] .tsk-float-panel :where(strong, b, h2, h3) {
+  color: #f3faf5 !important;
+}
+html[data-theme="dark"] .tsk-float-panel :where(p, small, span) {
+  color: #b9c9bf !important;
+}

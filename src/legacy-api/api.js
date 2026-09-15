@@ -962,7 +962,9 @@ async function saleProductsSupabase(limit){
   if(!base||!secret||storageBackend()!=='supabase-postgres')return null;
   const params=new URLSearchParams({
     select:'value',namespace:`eq.${dataNamespace()}`,key:'like.product:*','value->>state':'eq.active',
-    or:'(value->status.cs.["สินค้าลดราคา"],value->>oldPrice.not.is.null)',
+    // `cs` on a JSON array inside or=() was refused, so every call fell back to
+    // the full catalogue; the status list is matched as text instead.
+    or:'(value->>oldPrice.not.is.null,value->>status.like.*สินค้าลดราคา*)',
     order:'updated_at.desc,key.asc',limit:String(Math.min(400,Math.max(1,Number(limit)||60))),
   });
   try{

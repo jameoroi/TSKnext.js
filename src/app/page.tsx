@@ -20,7 +20,7 @@ import { PromoBanners } from '@/components/home/promo-banners';
 import { PromoRail } from '@/components/home/promo-rail';
 import { SaleCountdown } from '@/components/home/sale-countdown';
 import { SectionTitle } from '@/components/home/section-title';
-import { DYNAMIC_SECTIONS, emptyHomepageData, getHomepageData } from '@/server/homepage';
+import { DYNAMIC_SECTIONS, emptyHomepageData, getHomepageData, homepageDegraded } from '@/server/homepage';
 
 /**
  * HOMEPAGE — THAISERKIT SUPPLY (E-commerce Homepage)
@@ -60,6 +60,8 @@ export default async function HomePage() {
 
   return (
     <>
+      {/* Read by cloudflare/worker-entry.js: a render with every shelf empty is never cached. */}
+      {homepageDegraded(home) && <meta name="tsk-degraded" content="1" />}
       <h1 className="sr-only">THAISERKIT SUPPLY ไทยเซอร์กิจ ซัพพลาย — เครื่องมือช่าง อุปกรณ์การเกษตร และอุตสาหกรรม</h1>
       <EntryPopup popup={home.entryPopup as ComponentProps<typeof EntryPopup>['popup']} />
 

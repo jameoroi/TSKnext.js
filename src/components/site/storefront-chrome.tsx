@@ -8,6 +8,7 @@ import { useCartStore } from '@/features/cart/store';
 import { useCompareStore } from '@/features/customer/local-store';
 import { readRecentProducts } from '@/features/customer/recent-products';
 import { useWishlist } from '@/features/customer/wishlist';
+import { useOverlay } from '@/lib/overlay-bus';
 
 export function StorefrontChrome() {
   const pathname = usePathname();
@@ -18,6 +19,10 @@ export function StorefrontChrome() {
   const [showTop, setShowTop] = useState(false);
   const [recentDismissed, setRecentDismissed] = useState(false);
   const [recent, setRecent] = useState<any>(null);
+  const popupOpen = useOverlay('entry-popup');
+  const consentOpen = useOverlay('cookie-consent');
+  const quickViewOpen = useOverlay('quick-view');
+  const authOpen = useOverlay('auth');
 
   useEffect(() => {
     compare.hydrate();
@@ -52,7 +57,10 @@ export function StorefrontChrome() {
       ),
     [pathname],
   );
-  const showRecent = Boolean(recent && !recentDismissed && !recentHidden);
+  // Waits its turn: never on top of the entry popup, the cookie notice or a dialog.
+  const showRecent = Boolean(
+    recent && !recentDismissed && !recentHidden && !popupOpen && !consentOpen && !quickViewOpen && !authOpen,
+  );
 
   return (
     <>
@@ -93,10 +101,10 @@ export function StorefrontChrome() {
 
       {showRecent && (
         <aside
-          className="fixed inset-x-3 z-40 mx-auto flex max-w-3xl items-center gap-2 rounded-2xl border bg-white p-2.5 shadow-xl"
+          className="tsk-float-panel fixed inset-x-3 z-40 mx-auto flex max-w-3xl items-center gap-2 rounded-2xl border bg-white p-2.5 shadow-xl"
           // Pinned to the bottom stack from tsk-design-system.css: just above the
           // phone dock and the cookie banner, never floating mid-screen.
-          style={{ bottom: 'calc(var(--tsk-dock-h) + var(--tsk-consent-h) + var(--tsk-bottom-gap))' }}
+          style={{ bottom: 'calc(var(--tsk-dock-h) + var(--tsk-bottom-gap))' }}
         >
           <Link
             href={`/products/${encodeURIComponent(String(recent.id))}`}

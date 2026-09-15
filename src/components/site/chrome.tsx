@@ -9,6 +9,7 @@ import { CustomerChatWidget } from './customer-chat-widget';
 import { Footer } from './footer';
 import { Header } from './header';
 import { PageTranslator } from './language';
+import { OverlayCoordinator } from './overlay-coordinator';
 import { StorefrontChrome } from './storefront-chrome';
 import { ToastHost } from './toast-host';
 import { TrustStrip } from './trust-strip';
@@ -56,6 +57,7 @@ function ChromeShell({ children }: { children: React.ReactNode }) {
       <PwaInstallPrompt />
       <ToastHost />
       <PageTranslator />
+      <OverlayCoordinator />
     </div>
   );
 }

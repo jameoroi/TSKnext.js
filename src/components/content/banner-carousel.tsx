@@ -3,6 +3,7 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { type PointerEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { motionPaused } from '@/lib/overlay-bus';
 import type { CarouselSlide } from './banner-slides';
 
 export type { CarouselSlide } from './banner-slides';
@@ -52,6 +53,9 @@ export function BannerCarousel({
   const [animate, setAnimate] = useState(true);
   const [paused, setPaused] = useState(false);
   const swipe = useRef<{ x: number; active: boolean }>({ x: 0, active: false });
+  // A swipe that changed the slide must not also follow the slide's link.
+  const swiped = useRef(false);
+  const holdUntil = useRef(0);
 
   // Keep the position valid when the number of pictures changes (a failed image).
   useEffect(() => {
@@ -73,7 +77,8 @@ export function BannerCarousel({
   useEffect(() => {
     if (!looped || paused) return;
     const timer = window.setInterval(() => {
-      if (document.visibilityState === 'visible') step(forward);
+      if (document.visibilityState !== 'visible' || motionPaused() || Date.now() < holdUntil.current) return;
+      step(forward);
     }, interval);
     return () => window.clearInterval(timer);
   }, [looped, paused, interval, forward, step]);
@@ -91,12 +96,18 @@ export function BannerCarousel({
 
   function onPointerDown(event: PointerEvent<HTMLDivElement>) {
     swipe.current = { x: event.clientX, active: true };
+    swiped.current = false;
+    holdUntil.current = Date.now() + 60_000;
   }
   function onPointerUp(event: PointerEvent<HTMLDivElement>) {
     if (!swipe.current.active) return;
     swipe.current.active = false;
     const moved = event.clientX - swipe.current.x;
-    if (Math.abs(moved) > 40) step(moved > 0 ? -1 : 1);
+    holdUntil.current = Date.now() + interval;
+    if (Math.abs(moved) > 40) {
+      swiped.current = true;
+      step(moved > 0 ? -1 : 1);
+    }
   }
 
   if (!count) return null;
@@ -131,6 +142,16 @@ export function BannerCarousel({
         onTransitionEnd={onTransitionEnd}
         onPointerDown={background ? undefined : onPointerDown}
         onPointerUp={background ? undefined : onPointerUp}
+        onPointerCancel={() => {
+          swipe.current.active = false;
+          holdUntil.current = Date.now() + interval;
+        }}
+        onClickCapture={(event) => {
+          if (!swiped.current) return;
+          swiped.current = false;
+          event.preventDefault();
+          event.stopPropagation();
+        }}
       >
         {track.map((slide, index) => {
           const clone = looped && (index === 0 || index === track.length - 1);

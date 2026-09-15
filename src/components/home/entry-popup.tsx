@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useAuthModalStore } from '@/features/auth/modal-store';
+import { useOverlayFlag } from '@/lib/overlay-bus';
 
 type EntryPopup = {
   enabled?: boolean;
@@ -87,6 +88,10 @@ export function EntryPopup({ popup }: { popup?: EntryPopup | null }) {
       window.removeEventListener('keydown', key);
     };
   }, [config.frequency, storageKey, visible]);
+
+  // The cookie notice and the recently viewed card wait while this is open,
+  // and the moving rows behind it hold still.
+  useOverlayFlag('entry-popup', visible && Boolean(image));
 
   if (!visible || !image) return null;
   const artwork = (

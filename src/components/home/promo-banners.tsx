@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { AutoRail } from './auto-rail';
-import { PromoBannerPlaceholder } from './placeholders';
 
 type Banner = Record<string, unknown>;
 
@@ -18,54 +17,49 @@ function hrefOf(row: Banner) {
 }
 
 /**
- * PROMOTION_BANNERS — DYNAMIC_DATA, 3 ช่อง
- * data_source_future: Supabase: banners
- * ช่องไหนยังไม่มีแบนเนอร์จากหลังบ้าน แสดง PROMO_BANNER_n placeholder แทน
+ * PROMOTION_BANNERS — แถวแบนเนอร์ใต้ Hero
+ *
+ * Only pictures that exist are shown. Empty slots used to render a white
+ * placeholder card, and a picture that failed to load (a file missing from the
+ * bucket) left an empty frame the row kept scrolling past — shoppers saw white
+ * boxes and a gap. A failed picture is now dropped from the row, and when none
+ * are left the whole row is hidden. The admin banner editor still lists them.
  */
 export function PromoBanners({ banners }: { banners: Banner[] }) {
-  const live = banners.filter((row) => row && row.active !== false && imageOf(row)).slice(0, 3);
-  const slots: Array<{ row: Banner | null; slot: number }> = [1, 2, 3].map((slot) => ({
-    row: live[slot - 1] || null,
-    slot,
-  }));
+  const [failed, setFailed] = useState<string[]>([]);
+  const live = banners
+    .filter((row) => row && row.active !== false && imageOf(row))
+    .filter((row) => !failed.includes(imageOf(row)))
+    .slice(0, 12);
+  if (!live.length) return null;
+  const markFailed = (src: string) => setFailed((list) => (list.includes(src) ? list : [...list, src]));
   return (
     <section className="mx-auto max-w-7xl px-4 pt-6 lg:px-6" aria-label="แบนเนอร์โปรโมชั่น">
       <AutoRail label="แบนเนอร์โปรโมชั่น" itemClassName="min-w-[82%] snap-start sm:min-w-[47%] lg:min-w-[32%]">
-        {slots.map(({ row, slot }) => (
-          <div key={String(row?.id || `promo-slot-${slot}`)}>
-            {row ? <PromoBannerItem row={row} /> : <PromoBannerPlaceholder slot={slot} />}
-          </div>
+        {live.map((row, index) => (
+          <PromoBannerItem key={String(row.id || `${imageOf(row)}-${index}`)} row={row} onFail={markFailed} />
         ))}
       </AutoRail>
     </section>
   );
 }
 
-function PromoBannerItem({ row }: { row: Banner }) {
+function PromoBannerItem({ row, onFail }: { row: Banner; onFail: (src: string) => void }) {
   const image = imageOf(row);
   const label = labelOf(row);
   const href = hrefOf(row);
-  const [failed, setFailed] = useState(false);
-  // A picture that fails to load (e.g. removed from the bucket) is left out rather than
-  // showing shoppers an error box; the admin banner editor still lists the row.
-  if (failed) return null;
   const body = (
     <span className="tsk-pop block aspect-[12/5] overflow-hidden rounded-3xl border bg-white shadow-sm">
-      {failed ? (
-        <span className="grid h-full place-items-center bg-emerald-950 px-4 text-center text-xs font-bold text-white">
-          แบนเนอร์โหลดไม่สำเร็จ กรุณาเปลี่ยนรูปจากหลังบ้าน
-        </span>
-      ) : (
-        // biome-ignore lint/performance/noImgElement: CMS stores arbitrary CDN/data URLs
-        <img
-          src={image}
-          alt={label}
-          loading="lazy"
-          decoding="async"
-          className="h-full w-full object-cover"
-          onError={() => setFailed(true)}
-        />
-      )}
+      {/* biome-ignore lint/performance/noImgElement: CMS stores arbitrary CDN/data URLs */}
+      <img
+        src={image}
+        alt={label}
+        loading="lazy"
+        decoding="async"
+        draggable={false}
+        className="h-full w-full object-cover"
+        onError={() => onFail(image)}
+      />
     </span>
   );
   if (!href) return body;
