@@ -2,6 +2,12 @@
 
 ## 6.0.0
 
+- feat(auth): roles in the Auth.js session, and providers read at request time (bdc83a2)
+- feat(product): zoom pane beside the photo, edge-to-edge product images, one thumbnail per photo (a892b92)
+- feat(ui): Emotion on the storefront and admin, and the Lit packages alongside lit (59d8a73)
+- feat(product): Amazon-style image zoom as a Lit web component (11a80b0)
+- fix(ui): keep Material UI and Emotion in the back office, Radix and Tailwind on the storefront (d29d610)
+- docs(changelog): update generated changelog (3acd4bd)
 - fix(ui): mount Emotion at the root again, and wire up the jobs Workers never ran (7f19bb1)
 - docs(changelog): update generated changelog (e3ca99b)
 - fix(deploy): keep dashboard variables on Workers Builds deploys (10d1387)
