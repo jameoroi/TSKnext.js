@@ -37,7 +37,7 @@ export default async function Page() {
             type: 'image',
             ownerType: 'brand',
             maxEdge: 800,
-            help: 'อัปโหลดไฟล์หรือวาง URL ได้ หาก Media Storage ยังไม่ตั้งค่าจะ fallback ตาม backend เดิม',
+            help: 'ขนาดที่ต้องใส่ 600 × 300 px (2:1) PNG พื้นใส — หน้าร้านแสดงโลโก้สูง 48 px ไม่ครอป · อัปโหลดไฟล์หรือวาง URL ได้ หาก Media Storage ยังไม่ตั้งค่าจะ fallback ตาม backend เดิม',
           },
           { key: 'active', label: 'เปิดใช้งาน', type: 'checkbox' },
         ]}

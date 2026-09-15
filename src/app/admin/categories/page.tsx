@@ -38,7 +38,7 @@ export default async function Page() {
             type: 'image',
             ownerType: 'category',
             maxEdge: 1200,
-            help: 'อัปโหลดแล้วระบบย่อภาพก่อนส่งเข้า Media Storage; ยังวาง HTTPS URL ได้',
+            help: 'ขนาดที่ต้องใส่ 800 × 800 px (1:1) — หน้าร้านแสดงเป็นวงกลม ครอปกลางภาพ · อัปโหลดแล้วระบบย่อภาพก่อนส่งเข้า Media Storage; ยังวาง HTTPS URL ได้',
           },
           { key: 'active', label: 'เปิดใช้งาน', type: 'checkbox' },
         ]}

@@ -42,7 +42,7 @@ function BannerItem({ row, campaign }: { row: Banner; campaign: boolean }) {
   const href = hrefOf(row);
   const body = (
     <span
-      className={`tsk-pop block overflow-hidden rounded-2xl ${campaign ? 'aspect-[6/1] w-full min-w-full' : 'aspect-[16/7] min-w-[78%] border bg-white shadow-sm sm:min-w-[48%] lg:min-w-[32%]'}`}
+      className={`block overflow-hidden rounded-2xl ${campaign ? 'aspect-[6/1] w-full min-w-full' : 'aspect-[16/7] min-w-[78%] border bg-white shadow-sm sm:min-w-[48%] lg:min-w-[32%]'}`}
     >
       {/* The legacy admin stores arbitrary CDN/data URLs. Plain img preserves that contract without widening next/image remotePatterns. */}
       {/* biome-ignore lint/a11y/useAltText: alt is supplied explicitly below */}

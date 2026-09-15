@@ -3096,7 +3096,11 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
        */
       marketing:Object.fromEntries(Object.keys(DEFAULT_SITE_SETTINGS.marketing)
         .map(key=>[key,String(saved.marketing?.[key]??DEFAULT_SITE_SETTINGS.marketing[key]??'')]))};
-    if(url.searchParams.get('compact')==='1'){
+    // The full record (inline logos, favicons, popup and banner bytes: ~900 KB) is only for
+    // the admin editors. Everyone else gets the compact payload with image addresses, so a
+    // public or bot request can no longer make the Worker build and serialise a megabyte
+    // of JSON per hit, which is what ran site.settings past the CPU limit (error 1102).
+    if(url.searchParams.get('compact')==='1'||!isAdmin(ss)){
       const version=encodeURIComponent(settings.updated_at||'1');
       const managedImage=(value,imageAction)=>{
         const raw=clean(value,6000000);
