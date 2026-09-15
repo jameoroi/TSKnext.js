@@ -215,7 +215,7 @@ function CatMenu({
                           key={sub.query}
                           href={`/products?category=${encodeURIComponent(current.key)}&q=${encodeURIComponent(sub.query)}`}
                           onClick={() => onOpenChange(false)}
-                          className="mega-link truncate text-sm text-slate-600 hover:text-emerald-800"
+                          className="mega-link tsk-link truncate text-sm text-slate-600 hover:text-emerald-800"
                         >
                           {sub.label}
                         </Link>
@@ -241,7 +241,7 @@ function CatMenu({
             <Link
               href="/brands"
               onClick={() => onOpenChange(false)}
-              className="font-bold text-slate-600 hover:text-emerald-800"
+              className="tsk-link font-bold text-slate-600 hover:text-emerald-800"
             >
               แบรนด์ทั้งหมด
             </Link>

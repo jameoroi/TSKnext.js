@@ -11,7 +11,7 @@ export function BrandItem({ brand }: { brand: HomeBrand }) {
   return (
     <Link
       href={`/products?brand=${encodeURIComponent(brand.slug || brand.name)}`}
-      className="tsk-pop tsk-pop-tile grid h-full w-full place-items-center rounded-2xl p-3 text-center"
+      className="tsk-pop grid h-full w-full place-items-center p-1 text-center"
       aria-label={brand.name}
     >
       <BrandLogo src={brand.logo} name={brand.name} />

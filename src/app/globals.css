@@ -184,8 +184,8 @@ a {
 }
 .nav-link:hover::after,
 .nav-link.is-active::after {
-  opacity: 0.09;
-  transform: scale(1);
+  /* No pill behind menu links: the link itself lifts and zooms instead. */
+  opacity: 0;
 }
 .nav-link:active {
   scale: 0.95;
@@ -274,12 +274,7 @@ a {
       z-index: 1;
       translate: 0 var(--tsk-pop-lift);
       scale: var(--tsk-pop-scale);
-      box-shadow: var(--tsk-pop-shadow);
       animation: tsk-pop-bounce 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
-    }
-    /* Borderless pieces (brand logos) become a white tile while they pop. */
-    .tsk-pop-tile:hover {
-      background-color: #fff;
     }
     .tsk-pop:hover img {
       scale: var(--tsk-pop-img-scale);
@@ -300,7 +295,7 @@ a {
       scale 0.3s var(--tsk-spring);
   }
   .tsk-link:hover {
-    color: #047857;
+    /* Motion only: the link keeps its own colour on light and dark backgrounds. */
     translate: 0 -2px;
     scale: 1.08;
     text-decoration: none;
@@ -325,7 +320,6 @@ a {
   }
   .tsk-rich a:hover {
     color: #065f46;
-    background-color: rgb(16 185 129 / 0.14);
   }
 }
 

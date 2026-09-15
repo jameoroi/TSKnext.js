@@ -21,7 +21,7 @@ export function CategoryGrid({ categories }: { categories: GridCategory[] }) {
         <Link
           key={c.key}
           href={`/products?category=${encodeURIComponent(c.key)}`}
-          className="tsk-pop tsk-pop-tile group min-w-0 rounded-3xl p-2 text-center"
+          className="tsk-pop group min-w-0 text-center"
         >
           {c.image ? (
             // รูปหมวดจาก CMS — วงกลมรูปจริง ไม่มีกล่อง/พื้นหลัง/กรอบใด ๆ

@@ -29,8 +29,7 @@ function Glyph({ path, fill, size }: { path: string; fill: string; size: number 
 export function SocialBadge({ service, href, label }: { service: SocialKey; href?: string; label?: string }) {
   const glyph = BRAND_GLYPHS[service];
   const name = label || glyph.title;
-  const className =
-    'grid size-10 place-items-center rounded-full shadow-[0_6px_14px_-6px_rgb(0_0_0/0.45)] ring-1 ring-white/15';
+  const className = 'grid size-10 place-items-center rounded-full';
   const style = { background: SOCIAL_BACKGROUND[service] };
   if (!href)
     return (
@@ -57,8 +56,7 @@ export function SocialBadge({ service, href, label }: { service: SocialKey; href
   );
 }
 
-const card =
-  'grid h-9 min-w-16 place-items-center rounded-lg bg-white px-2.5 shadow-[0_6px_14px_-8px_rgb(0_0_0/0.5)]';
+const card = 'grid h-9 min-w-16 place-items-center rounded-lg bg-white px-2.5';
 
 /** Accepted payment methods as their real marks on white cards. */
 export function PaymentBadges() {
