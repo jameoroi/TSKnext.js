@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { AutoRail } from './auto-rail';
 
 export type GridCategory = {
   key: string;
@@ -16,7 +17,12 @@ export type GridCategory = {
 export function CategoryGrid({ categories }: { categories: GridCategory[] }) {
   if (!categories.length) return null;
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-8">
+    <AutoRail
+      label="หมวดหมู่สินค้า"
+      mobileOnly
+      itemClassName="w-[30%] shrink-0 sm:w-auto"
+      desktopClassName="sm:grid sm:grid-cols-4 xl:grid-cols-8"
+    >
       {categories.map((c) => (
         <Link
           key={c.key}
@@ -44,6 +50,6 @@ export function CategoryGrid({ categories }: { categories: GridCategory[] }) {
           ) : null}
         </Link>
       ))}
-    </div>
+    </AutoRail>
   );
 }

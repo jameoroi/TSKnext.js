@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { BannerCarousel } from '@/components/content/banner-carousel';
 
 type Banner = Record<string, unknown>;
 
@@ -22,6 +23,18 @@ export function PromoRail({
   const rows = banners.filter((row) => row && row.active !== false && imageOf(row));
   if (!rows.length) return null;
   const campaign = variant === 'campaign';
+  if (campaign) {
+    // A plain banner (no hover pop), several pictures sliding to the right.
+    return (
+      <section className="mx-auto max-w-7xl px-4 py-8 lg:px-6" aria-label="แบนเนอร์แคมเปญ">
+        <BannerCarousel
+          slides={rows.map((row) => ({ src: imageOf(row), href: hrefOf(row), alt: labelOf(row) }))}
+          className="aspect-[6/1] w-full rounded-2xl"
+          label="แบนเนอร์แคมเปญ"
+        />
+      </section>
+    );
+  }
   return (
     <section
       className={`mx-auto max-w-7xl px-4 lg:px-6 ${campaign ? 'py-8' : 'py-5'}`}

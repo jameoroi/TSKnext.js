@@ -3,8 +3,98 @@
 import { useMemo, useState } from 'react';
 import { scaleImageFile, uploadAdminImage } from '@/lib/admin-media.client';
 import { legacyRequest } from '@/lib/legacy-api.client';
+import { BannerListEditor, type BannerListMeta } from './banner-list-editor';
 
-type Tab = 'shop' | 'popup' | 'theme' | 'payment' | 'marketing' | 'integrations' | 'email';
+type Tab = 'shop' | 'banners' | 'popup' | 'theme' | 'payment' | 'marketing' | 'integrations' | 'email';
+
+/** Every banner on the shop, editable here; each holds several pictures that slide to the right. */
+const BANNER_GROUPS: Array<{ title: string; lists: BannerListMeta[] }> = [
+  {
+    title: 'หน้าแรก',
+    lists: [
+      {
+        key: 'banners',
+        ownerType: 'site-banner',
+        title: 'สไลด์ใหญ่ด้านบน',
+        note: 'ภาพ Hero บนสุดของหน้าแรก',
+        size: 'ขนาดที่ต้องใส่ 2800 × 1167 px (12:5)',
+        ratio: '12 / 5',
+        defaultLink: '/products',
+      },
+      {
+        key: 'promo_banners',
+        ownerType: 'site-promo-banner',
+        title: 'แบนเนอร์ย่อยใต้สไลด์',
+        note: 'แถวแบนเนอร์ใต้ Hero',
+        size: 'ขนาดที่ต้องใส่ 2800 × 1167 px (12:5)',
+        ratio: '12 / 5',
+        defaultLink: '/products',
+      },
+      {
+        key: 'article_banners',
+        ownerType: 'site-article-banner',
+        title: 'แบนเนอร์แคมเปญเหนือบทความ',
+        note: 'แถบยาวเท่ากล่อง Flash Sale',
+        size: 'ขนาดที่ต้องใส่ 2800 × 467 px (6:1)',
+        ratio: '6 / 1',
+        defaultLink: '/news',
+      },
+      {
+        key: 'flash_sale_backgrounds',
+        ownerType: 'site-flash-background',
+        title: 'พื้นหลังกล่อง Flash Sale',
+        note: 'รูปเต็มกล่อง ข้อความอยู่ซ้าย สินค้าอยู่ขวา',
+        size: 'ขนาดที่ต้องใส่ 2800 × 1080 px (≈2.6:1) · มือถือครอปกลางภาพ',
+        ratio: '2800 / 1080',
+      },
+      {
+        key: 'dealer_backgrounds',
+        ownerType: 'site-dealer-background',
+        title: 'พื้นหลังกล่องสมัครตัวแทน',
+        note: 'รูปเต็มกล่อง ข้อความอยู่ซ้าย ฟอร์มอยู่ขวา',
+        size: 'ขนาดที่ต้องใส่ 2800 × 1400 px (2:1) · มือถือครอปกลางภาพ',
+        ratio: '2 / 1',
+      },
+    ],
+  },
+  {
+    title: 'หน้าอื่น ๆ',
+    lists: [
+      {
+        key: 'page_banners_products',
+        ownerType: 'site-page-banner-products',
+        title: 'แบนเนอร์หน้าสินค้าทั้งหมด',
+        note: 'กล่องแบนเนอร์บนสุดของหน้า /products',
+        size: 'ขนาดที่ต้องใส่ 2400 × 480 px (5:1) · ข้อความอยู่ซ้าย',
+        ratio: '5 / 1',
+      },
+      {
+        key: 'page_banners_brands',
+        ownerType: 'site-page-banner-brands',
+        title: 'แบนเนอร์หน้าแบรนด์',
+        note: 'พื้นหลังหัวหน้า /brands',
+        size: 'ขนาดที่ต้องใส่ 2400 × 600 px (4:1) · มือถือครอปกลางภาพ',
+        ratio: '4 / 1',
+      },
+      {
+        key: 'page_banners_partners',
+        ownerType: 'site-page-banner-partners',
+        title: 'แบนเนอร์หน้าตัวแทนจำหน่าย',
+        note: 'พื้นหลังหัวหน้า /partners และ /partner-register',
+        size: 'ขนาดที่ต้องใส่ 2400 × 600 px (4:1) · มือถือครอปกลางภาพ',
+        ratio: '4 / 1',
+      },
+      {
+        key: 'page_banners_contact',
+        ownerType: 'site-page-banner-contact',
+        title: 'แบนเนอร์หน้าติดต่อเรา',
+        note: 'พื้นหลังหัวหน้า /contact',
+        size: 'ขนาดที่ต้องใส่ 2400 × 600 px (4:1) · มือถือครอปกลางภาพ',
+        ratio: '4 / 1',
+      },
+    ],
+  },
+];
 type Bank = { bank_name: string; account_name: string; account_no: string };
 
 const MARKETING_KEYS = [
@@ -160,6 +250,7 @@ export function SettingsEditor({
   const tabs = useMemo(
     () => [
       { key: 'shop' as Tab, label: 'ข้อมูลร้านและโลโก้' },
+      { key: 'banners' as Tab, label: 'แบนเนอร์และรูปภาพ' },
       { key: 'popup' as Tab, label: 'ป๊อปอัพหน้าแรก' },
       { key: 'theme' as Tab, label: 'ธีมสี' },
       ...(owner
@@ -348,16 +439,10 @@ export function SettingsEditor({
           </section>
 
           <section className={card}>
-            <h2 className="text-lg font-bold">รูปหน้าแรก</h2>
+            <h2 className="text-lg font-bold">รูปหน้าเกี่ยวกับเรา</h2>
             <p className="mt-1 text-sm text-slate-500">เก็บใน managed media / S3 ไม่ฝังไฟล์ใหญ่ใน settings</p>
             <div className="mt-4 grid gap-4">
-              {(
-                [
-                  ['featured_image_url', 'การ์ดสินค้าขายดี'],
-                  ['articles_image_url', 'การ์ดบทความ'],
-                  ['about_image_url', 'รูปหน้าเกี่ยวกับเรา'],
-                ] as const
-              ).map(([key, label]) => (
+              {([['about_image_url', 'รูปหน้าเกี่ยวกับเรา']] as const).map(([key, label]) => (
                 <label key={key} className="grid gap-2">
                   <span className="text-sm font-semibold">{label}</span>
                   <span className="text-xs text-emerald-800">{IMAGE_HINTS[key]}</span>
@@ -411,6 +496,19 @@ export function SettingsEditor({
               {busy === 'shop' ? 'กำลังบันทึก…' : 'บันทึกข้อมูลร้าน'}
             </button>
           </section>
+        </div>
+      )}
+
+      {tab === 'banners' && (
+        <div className="grid gap-8">
+          {BANNER_GROUPS.map((group) => (
+            <div key={group.title} className="grid gap-4">
+              <h2 className="text-lg font-bold">แบนเนอร์{group.title}</h2>
+              {group.lists.map((meta) => (
+                <BannerListEditor key={meta.key} meta={meta} initialRows={settings[meta.key]} csrf={csrf} />
+              ))}
+            </div>
+          ))}
         </div>
       )}
 

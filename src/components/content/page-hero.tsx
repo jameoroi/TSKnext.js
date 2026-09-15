@@ -1,20 +1,27 @@
 import Link from 'next/link';
+import { BannerCarousel } from '@/components/content/banner-carousel';
+import type { CarouselSlide } from '@/components/content/banner-slides';
 export function PageHero({
   title,
   subtitle,
   eyebrow = 'THAISERKIT SUPPLY',
   action,
   imageUrl,
+  slides,
 }: {
   title: string;
   subtitle?: string;
   eyebrow?: string;
   action?: { label: string; href: string };
   imageUrl?: string;
+  /** Pictures from ตั้งค่าเว็บไซต์ → แบนเนอร์หน้าเว็บ; several slide on their own. */
+  slides?: CarouselSlide[];
 }) {
   return (
     <section className="site-page-hero text-white">
-      {imageUrl ? (
+      {slides?.length ? (
+        <BannerCarousel background slides={slides} />
+      ) : imageUrl ? (
         // รูป hero ต้องมาจาก CMS/หลังบ้านเท่านั้น — ไม่ใส่ fallback จาก source code
         // biome-ignore lint/performance/noImgElement: CMS stores arbitrary CDN/data URLs
         <img className="site-page-hero__media" src={imageUrl} alt="" aria-hidden="true" />

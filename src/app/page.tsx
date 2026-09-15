@@ -1,6 +1,8 @@
 import type { ComponentProps } from 'react';
 import { ProductCard } from '@/components/commerce/product-card';
+import { BannerCarousel } from '@/components/content/banner-carousel';
 import { ArticleCard } from '@/components/home/article-card';
+import { AutoRail } from '@/components/home/auto-rail';
 import { BrandItem } from '@/components/home/brand-item';
 import { CategoryGrid } from '@/components/home/category-grid';
 import { DealerRegisterSection } from '@/components/home/dealer-register-section';
@@ -18,7 +20,6 @@ import { PromoBanners } from '@/components/home/promo-banners';
 import { PromoRail } from '@/components/home/promo-rail';
 import { SaleCountdown } from '@/components/home/sale-countdown';
 import { SectionTitle } from '@/components/home/section-title';
-import { ServiceBenefits } from '@/components/home/service-benefits';
 import { DYNAMIC_SECTIONS, emptyHomepageData, getHomepageData } from '@/server/homepage';
 
 /**
@@ -100,14 +101,19 @@ export default async function HomePage() {
       {/* 5. FEATURED_PRODUCTS — DYNAMIC_DATA (Supabase: products) */}
       <section className="mx-auto max-w-7xl px-4 pb-12 lg:px-6" aria-label="สินค้าขายดี สินค้าแนะนำ">
         <SectionTitle eyebrow="BEST SELLER" title="สินค้าขายดี / สินค้าแนะนำ" href="/products" />
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
+        <AutoRail
+          label="สินค้าขายดี"
+          mobileOnly
+          itemClassName="w-[46%] shrink-0 sm:w-auto"
+          desktopClassName="sm:grid sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5"
+        >
           {home.featured.map((p) => (
             <ProductCard key={p.id} product={p} badge="ขายดี" cta />
           ))}
           {placeholderIds(missingFeatured, 'featured-ph').map((id) => (
             <ProductCardPlaceholder key={id} />
           ))}
-        </div>
+        </AutoRail>
       </section>
 
       {/* 6. FLASH_SALE — DYNAMIC_DATA (Supabase: products / promotions) */}
@@ -119,13 +125,12 @@ export default async function HomePage() {
           {home.flashBackground && (
             <>
               {/* Full-box picture from the admin (เนื้อหา → พื้นหลัง Flash Sale); the colour band stays as fallback. */}
-              {/* biome-ignore lint/performance/noImgElement: CMS stores arbitrary CDN URLs */}
-              <img
-                src={home.flashBackground}
-                alt=""
-                loading="lazy"
-                decoding="async"
-                className="absolute inset-0 -z-10 h-full w-full object-cover"
+              {/* Every active picture slides behind the box. */}
+              <BannerCarousel
+                background
+                slides={(home.flashBackgrounds.length ? home.flashBackgrounds : [home.flashBackground]).map(
+                  (src) => ({ src }),
+                )}
               />
               <div className="absolute inset-0 -z-10 bg-gradient-to-r from-black/60 via-black/25 to-black/10" />
             </>
@@ -138,14 +143,19 @@ export default async function HomePage() {
               <SaleCountdown endsAt={home.flash.endsAt} />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 xl:grid-cols-4">
+          <AutoRail
+            label="Flash Sale"
+            mobileOnly
+            itemClassName="w-[46%] shrink-0 sm:w-auto"
+            desktopClassName="sm:grid sm:grid-cols-3 sm:gap-3 xl:grid-cols-4"
+          >
             {home.flash.items.map((item) => (
               <FlashSaleCard key={item.product.id} item={item} />
             ))}
             {placeholderIds(missingFlash, 'flash-ph').map((id) => (
               <FlashSaleCardPlaceholder key={id} />
             ))}
-          </div>
+          </AutoRail>
         </div>
       </section>
 
@@ -155,25 +165,35 @@ export default async function HomePage() {
       {/* 7. ARTICLE_SECTION — DYNAMIC_DATA (Supabase: articles) */}
       <section className="mx-auto max-w-7xl px-4 py-10 lg:px-6" aria-label="บทความและเคล็ดลับ">
         <SectionTitle eyebrow="TIPS & ARTICLES" title="บทความ & เคล็ดลับ" href="/news" />
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <AutoRail
+          label="บทความ"
+          mobileOnly
+          itemClassName="w-[78%] shrink-0 sm:w-auto"
+          desktopClassName="sm:grid sm:grid-cols-2 xl:grid-cols-4"
+        >
           {home.articles.map((article) => (
             <ArticleCard key={article.id} article={article} />
           ))}
           {placeholderIds(missingArticles, 'article-ph').map((id) => (
             <ArticleCardPlaceholder key={id} />
           ))}
-        </div>
+        </AutoRail>
       </section>
 
       {/* 8. BRAND_SECTION — DYNAMIC_DATA (Supabase: brands): โลโก้ล้วนไร้กรอบ เลื่อนออโต้สมูท + ลากได้ */}
       <section className="mx-auto max-w-7xl px-4 pb-12 lg:px-6" aria-label="แบรนด์">
         <SectionTitle eyebrow="TOP BRANDS" title="แบรนด์" href="/brands" />
         {home.brands.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
+          <AutoRail
+            label="แบรนด์"
+            mobileOnly
+            itemClassName="w-[34%] shrink-0 sm:w-auto"
+            desktopClassName="sm:grid sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8"
+          >
             {home.brands.map((brand) => (
               <BrandItem key={brand.id} brand={brand} />
             ))}
-          </div>
+          </AutoRail>
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {placeholderIds(brandSlots, 'brand-ph').map((id) => (
@@ -184,10 +204,12 @@ export default async function HomePage() {
       </section>
 
       {/* 9. DEALER_REGISTER — STATIC_UI + FORM (Supabase: dealer_applications) */}
-      <DealerRegisterSection backgroundImage={home.dealerBackground} />
+      <DealerRegisterSection
+        backgroundImage={home.dealerBackground}
+        backgroundImages={home.dealerBackgrounds}
+      />
 
-      {/* 10. SERVICE_BENEFITS — STATIC_UI */}
-      <ServiceBenefits />
+      {/* 10. SERVICE_BENEFITS — shown once for every page by TrustStrip in the site chrome */}
     </>
   );
 }

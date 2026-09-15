@@ -5,6 +5,7 @@ import { PageHero } from '@/components/content/page-hero';
 import { BrandLogo } from '@/components/home/brand-logo';
 import { Input } from '@/components/ui/input';
 import { getBrands } from '@/server/catalog';
+import { getPageBanners } from '@/server/page-banners';
 
 export const metadata: Metadata = {
   title: 'แบรนด์สินค้า',
@@ -34,9 +35,10 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
         .includes(q),
   );
 
+  const slides = await getPageBanners('brands');
   return (
     <>
-      <PageHero title="แบรนด์สินค้า" subtitle="เลือกดูสินค้าแยกตามแบรนด์ที่เราจำหน่าย" />
+      <PageHero title="แบรนด์สินค้า" subtitle="เลือกดูสินค้าแยกตามแบรนด์ที่เราจำหน่าย" slides={slides} />
       <div className="mx-auto max-w-7xl px-4 py-10">
         <search aria-label="ค้นหาแบรนด์">
           <form method="get" action="/brands" className="mx-auto flex max-w-md gap-2">

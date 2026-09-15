@@ -371,6 +371,7 @@ export function ContentManager({
                 <div className="grid gap-3 md:grid-cols-2">
                   <label className="grid gap-1 text-sm">
                     <span className="font-semibold">รูปภาพ</span>
+                    <span className="text-xs font-semibold text-emerald-800">{currentBannerMeta.size}</span>
                     <input
                       type="file"
                       accept="image/png,image/jpeg,image/webp,image/gif,image/avif"

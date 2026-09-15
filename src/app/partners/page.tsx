@@ -2,6 +2,7 @@ import { CircleDollarSign, PackageCheck, Store } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { PageHero } from '@/components/content/page-hero';
+import { getPageBanners } from '@/server/page-banners';
 
 export const metadata: Metadata = {
   title: 'สมัครตัวแทนจำหน่าย | THAISERKIT SUPPLY',
@@ -41,10 +42,12 @@ const FAQS = [
   { q: 'ใช้เวลาอนุมัตินานแค่ไหน?', a: 'โดยทั่วไปภายใน 1-2 วันทำการ ทีมงานจะติดต่อกลับตามเบอร์ที่แจ้งไว้' },
 ];
 
-export default function Page() {
+export default async function Page() {
+  const slides = await getPageBanners('partners');
   return (
     <>
       <PageHero
+        slides={slides}
         title="สมัครเป็นตัวแทนจำหน่าย"
         subtitle="เปลี่ยนการแนะนำสินค้าให้เป็นรายได้ประจำ ไม่ต้องลงทุนสต๊อก ไม่ต้องแพ็คของ บริษัทดูแลให้ทั้งหมด"
         action={{ label: 'สมัครเป็นตัวแทน', href: '/partner-register' }}

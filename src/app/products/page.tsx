@@ -9,7 +9,9 @@ import {
   ProductFilters,
   SortSelect,
 } from '@/components/commerce/product-filters';
+import { BannerCarousel } from '@/components/content/banner-carousel';
 import { getBrands, getCatalogCategories, getProducts } from '@/server/catalog';
+import { getPageBanners } from '@/server/page-banners';
 
 export const metadata: Metadata = {
   title: 'สินค้าทั้งหมด | THAISERKIT SUPPLY',
@@ -54,6 +56,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
   if (maxPrice) params.max_price = maxPrice;
 
   // หมวดต้องตรงกับ bar/header — ใช้แหล่งเดียวกับ header (มี fallback ชุดเดียวกัน)
+  const bannerSlidesLoad = getPageBanners('products');
   const [result, categories, brands] = await Promise.all([
     getProducts(params),
     getCatalogCategories(),
@@ -128,18 +131,30 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
   const visible = Array.from({ length: Math.min(5, pages) }, (_, i) => start + i);
   const lastVisible = visible[visible.length - 1] || 1;
 
+  const bannerSlides = await bannerSlidesLoad;
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6 lg:py-10">
-      <section className="relative mb-6 overflow-hidden rounded-3xl bg-emerald-950" aria-label="สินค้าคุณภาพ">
-        <Image
-          src="/legacy-assets/banners/1.webp"
-          alt=""
-          fill
-          priority={false}
-          className="object-cover opacity-60"
-          unoptimized
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/90 via-emerald-950/50 to-transparent" />
+      <section
+        className="relative isolate mb-6 overflow-hidden rounded-3xl bg-emerald-950"
+        aria-label="สินค้าคุณภาพ"
+      >
+        {bannerSlides.length ? (
+          <BannerCarousel
+            background
+            slides={bannerSlides}
+            imgClassName="h-full w-full object-cover opacity-60"
+          />
+        ) : (
+          <Image
+            src="/legacy-assets/banners/1.webp"
+            alt=""
+            fill
+            priority={false}
+            className="-z-10 object-cover opacity-60"
+            unoptimized
+          />
+        )}
+        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-emerald-950/90 via-emerald-950/50 to-transparent" />
         <div className="relative p-6 sm:p-8">
           <h2 className="max-w-xl text-2xl font-black leading-snug text-white sm:text-3xl">
             เครื่องมือคุณภาพ เพื่อทุกงานมืออาชีพ

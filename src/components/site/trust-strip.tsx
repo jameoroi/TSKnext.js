@@ -1,16 +1,17 @@
-import { Headphones, ShieldCheck, Truck, Wrench } from 'lucide-react';
+import { Headphones, ShieldCheck, Truck, Undo2, Wallet } from 'lucide-react';
 
 const TRUST_ITEMS = [
-  { title: 'จัดส่งทั่วไทย รวดเร็ว', note: 'รองรับขนส่งทั่วประเทศ', Icon: Truck },
-  { title: 'ของแท้ 100%', note: 'สินค้าคุณภาพและการรับประกัน', Icon: ShieldCheck },
-  { title: 'บริการหลังการขาย', note: 'ทีมงานพร้อมช่วยทุกปัญหา', Icon: Headphones },
-  { title: 'เครื่องมือครบ จบในที่เดียว', note: 'งานช่าง เกษตร และอุตสาหกรรม', Icon: Wrench },
+  { title: 'จัดส่งทั่วไทย 1–3 วัน', note: 'รองรับขนส่งทั่วประเทศ', Icon: Truck },
+  { title: 'สินค้าแท้ 100%', note: 'คุณภาพและการรับประกัน', Icon: ShieldCheck },
+  { title: 'คืนสินค้าใน 7 วัน', note: 'ยินดีเปลี่ยนใหม่', Icon: Undo2 },
+  { title: 'ทีมงานผู้เชี่ยวชาญ', note: 'พร้อมช่วยทุกปัญหาหลังการขาย', Icon: Headphones },
+  { title: 'ชำระเงินปลอดภัย', note: 'หลากหลายช่องทาง', Icon: Wallet },
 ] as const;
 
 export function TrustStrip() {
   return (
     <section className="border-y border-slate-200 bg-slate-50" aria-label="บริการของเรา">
-      <div className="mx-auto grid max-w-7xl grid-cols-2 gap-px px-4 py-5 sm:grid-cols-4 lg:px-6">
+      <div className="mx-auto grid max-w-7xl grid-cols-2 gap-px px-4 py-5 sm:grid-cols-3 lg:grid-cols-5 lg:px-6">
         {TRUST_ITEMS.map(({ title, note, Icon }) => (
           <div key={title} className="flex items-center gap-3 px-2 py-3 sm:px-4">
             <span className="grid size-10 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-900">

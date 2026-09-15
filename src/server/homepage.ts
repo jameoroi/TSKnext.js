@@ -94,6 +94,9 @@ export type HomepageData = {
   /** Full-box background pictures set in the admin; empty keeps the colour band. */
   flashBackground: string;
   dealerBackground: string;
+  /** All active pictures for each box, in the admin order; they slide on the home page. */
+  flashBackgrounds: string[];
+  dealerBackgrounds: string[];
   categories: HomeCategory[];
   featured: Product[];
   flash: { items: FlashSaleItem[]; endsAt: string };
@@ -109,6 +112,8 @@ export function emptyHomepageData(): HomepageData {
     articleBanners: [],
     flashBackground: '',
     dealerBackground: '',
+    flashBackgrounds: [],
+    dealerBackgrounds: [],
     categories: [],
     featured: [],
     flash: { items: [], endsAt: '' },
@@ -232,6 +237,10 @@ export async function getHomepageData(): Promise<HomepageData> {
     const row = bannerRows(value).find((item) => text(item.img || item.image_url));
     return row ? text(row.img || row.image_url) : '';
   };
+  const allImages = (value: unknown) =>
+    bannerRows(value)
+      .map((item) => text(item.img || item.image_url))
+      .filter(Boolean);
 
   const categories = (Array.isArray(categoryRows) ? categoryRows : [])
     .filter((row): row is Record<string, unknown> => Boolean(row && typeof row === 'object'))
@@ -278,6 +287,8 @@ export async function getHomepageData(): Promise<HomepageData> {
     articleBanners,
     flashBackground: firstImage(site.flash_sale_backgrounds),
     dealerBackground: firstImage(site.dealer_backgrounds),
+    flashBackgrounds: allImages(site.flash_sale_backgrounds),
+    dealerBackgrounds: allImages(site.dealer_backgrounds),
     categories,
     featured,
     flash: { items: fallbackFlashItems, endsAt: text(site.flash_sale_ends_at) },

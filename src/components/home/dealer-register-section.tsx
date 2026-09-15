@@ -3,6 +3,7 @@
 import { Handshake } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { BannerCarousel } from '@/components/content/banner-carousel';
 import { ProvinceCombobox } from '@/components/forms/province-combobox';
 import { Button } from '@/components/ui/button';
 import { Field, Textarea } from '@/components/ui/field';
@@ -21,7 +22,13 @@ import { Input } from '@/components/ui/input';
  */
 const BENEFITS = ['ราคาพิเศษสำหรับตัวแทน', 'มีทีมงานให้คำปรึกษา', 'พร้อมเปิดใบกำกับภาษี', 'สร้างรายได้เสริม'];
 
-export function DealerRegisterSection({ backgroundImage = '' }: { backgroundImage?: string } = {}) {
+export function DealerRegisterSection({
+  backgroundImage = '',
+  backgroundImages = [],
+}: {
+  backgroundImage?: string;
+  backgroundImages?: string[];
+} = {}) {
   const router = useRouter();
   const [fullName, setFullName] = useState('');
   const [shopName, setShopName] = useState('');
@@ -56,16 +63,14 @@ export function DealerRegisterSection({ backgroundImage = '' }: { backgroundImag
   return (
     <section className="mx-auto max-w-7xl px-4 pb-12 lg:px-6" aria-label="สมัครตัวแทนจำหน่าย">
       <div className="relative isolate grid items-center gap-8 overflow-hidden rounded-3xl bg-emerald-950 px-4 py-12 text-white sm:px-6 lg:grid-cols-2 lg:px-8">
-        {backgroundImage && (
+        {(backgroundImages.length > 0 || backgroundImage) && (
           <>
             {/* Full-box picture from the admin (เนื้อหา → พื้นหลังสมัครตัวแทน); dark green stays as fallback. */}
-            {/* biome-ignore lint/performance/noImgElement: CMS stores arbitrary CDN URLs */}
-            <img
-              src={backgroundImage}
-              alt=""
-              loading="lazy"
-              decoding="async"
-              className="absolute inset-0 -z-10 h-full w-full object-cover"
+            <BannerCarousel
+              background
+              slides={(backgroundImages.length ? backgroundImages : [backgroundImage]).map((src) => ({
+                src,
+              }))}
             />
             <div className="absolute inset-0 -z-10 bg-gradient-to-r from-emerald-950/85 via-emerald-950/55 to-emerald-950/30" />
           </>

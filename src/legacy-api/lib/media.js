@@ -97,6 +97,27 @@ export async function presignUpload({filename,mime_type,owner_type='product',own
   }
   return {key,upload_url,public_url:mediaPublicUrl(key),expires_in:900,headers:{'content-type':contentType},owner_type,owner_id,created_by};
 }
+/**
+ * The first bytes of a stored object, for the image check in commitMedia.
+ *
+ * With R2 the public address is this shop's own domain (/media), and a Worker
+ * fetching its own custom domain does not reach itself: the request failed, so
+ * every admin upload ended in media_content_unreadable (HTTP 500). The object
+ * is read from the bucket with a short-lived signed GET instead, which never
+ * goes through the zone. The public address stays as the fallback, and is the
+ * only path for Supabase storage.
+ */
+async function readMediaHead(key,publicUrl){
+  const c=cfg();
+  if(s3MediaEnabled(c)){
+    const signed=await presignS3Url({endpoint:c.endpoint,region:c.region,bucket:c.bucket,accessKeyId:c.accessKeyId,secretAccessKey:c.secretAccessKey,key,method:'GET',expiresIn:300,forcePathStyle:c.forcePathStyle});
+    const res=await fetch(signed,{headers:{Range:'bytes=0-31'}}).catch(()=>null);
+    if(res&&(res.ok||res.status===206)) return new Uint8Array(await res.arrayBuffer());
+  }
+  const res=await fetch(publicUrl,{headers:{Range:'bytes=0-31'}});
+  if(!res.ok) throw new Error('media_content_unreadable');
+  return new Uint8Array(await res.arrayBuffer());
+}
 export async function commitMedia(meta){
   const declared=String(meta.mime_type||'').toLowerCase();
   const allowed=['image/png','image/jpeg','image/webp','image/gif','image/avif'];
@@ -109,7 +130,7 @@ export async function commitMedia(meta){
   // exact value anyway, so nothing legitimate changes.
   const url=String(mediaPublicUrl(meta.key)||'');
   if(url){
-    const res=await fetch(url,{headers:{Range:'bytes=0-31'}}); if(!res.ok) throw new Error('media_content_unreadable'); const bytes=new Uint8Array(await res.arrayBuffer());
+    const bytes=await readMediaHead(meta.key,url);
     if(!imageMagicMatches(declared,bytes)) throw new Error('media_magic_bytes_mismatch');
   }
   const ds=persistentStore('tsk-media');
