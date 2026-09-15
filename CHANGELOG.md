@@ -2,6 +2,8 @@
 
 ## 6.0.0
 
+- feat(quality): modern account forms, upload sizes on every admin image, lighter cards, star ratings (c1a00c6)
+- docs(changelog): update generated changelog (6cfc9b5)
 - feat(quality): SEO, accessibility and ops batch toward the 95+ audit, and one image ratio per slot (3d66f4b)
 - docs(changelog): update generated changelog (a6884d5)
 - fix(motion): pop means movement only, no added backgrounds, borders or shadows (ec1ea80)
