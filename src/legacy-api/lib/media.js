@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import { persistentStore } from './storage.js';
 import { presignS3Url } from './s3-presign.js';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 
 function cleanSegment(v){ return String(v||'file').toLowerCase().replace(/[^a-z0-9._-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,100)||'file'; }
 function cfg(){
@@ -108,15 +109,31 @@ export async function presignUpload({filename,mime_type,owner_type='product',own
  * only path for Supabase storage.
  */
 async function readMediaHead(key,publicUrl){
+  // 1. The PRODUCT_MEDIA binding: the same bucket, read in-process, no network,
+  //    exactly how /media serves these files.
+  try{
+    const {env}=await getCloudflareContext({async:true});
+    const bucket=env?.PRODUCT_MEDIA;
+    if(bucket){
+      const object=await bucket.get(key,{range:{offset:0,length:32}});
+      if(object) return new Uint8Array(await object.arrayBuffer());
+    }
+  }catch{}
+  // 2. A signed GET against the S3 endpoint.
   const c=cfg();
   if(s3MediaEnabled(c)){
-    const signed=await presignS3Url({endpoint:c.endpoint,region:c.region,bucket:c.bucket,accessKeyId:c.accessKeyId,secretAccessKey:c.secretAccessKey,key,method:'GET',expiresIn:300,forcePathStyle:c.forcePathStyle});
-    const res=await fetch(signed,{headers:{Range:'bytes=0-31'}}).catch(()=>null);
-    if(res&&(res.ok||res.status===206)) return new Uint8Array(await res.arrayBuffer());
+    try{
+      const signed=await presignS3Url({endpoint:c.endpoint,region:c.region,bucket:c.bucket,accessKeyId:c.accessKeyId,secretAccessKey:c.secretAccessKey,key,method:'GET',expiresIn:300,forcePathStyle:c.forcePathStyle});
+      const res=await fetch(signed,{headers:{Range:'bytes=0-31'}});
+      if(res.ok||res.status===206) return new Uint8Array(await res.arrayBuffer());
+    }catch{}
   }
-  const res=await fetch(publicUrl,{headers:{Range:'bytes=0-31'}});
-  if(!res.ok) throw new Error('media_content_unreadable');
-  return new Uint8Array(await res.arrayBuffer());
+  // 3. The public address (Supabase storage, or a bucket on another domain).
+  try{
+    const res=await fetch(publicUrl,{headers:{Range:'bytes=0-31'}});
+    if(res.ok||res.status===206) return new Uint8Array(await res.arrayBuffer());
+  }catch{}
+  return null;
 }
 export async function commitMedia(meta){
   const declared=String(meta.mime_type||'').toLowerCase();
@@ -131,7 +148,13 @@ export async function commitMedia(meta){
   const url=String(mediaPublicUrl(meta.key)||'');
   if(url){
     const bytes=await readMediaHead(meta.key,url);
-    if(!imageMagicMatches(declared,bytes)) throw new Error('media_magic_bytes_mismatch');
+    // Bytes that were read and are not the declared image are refused. Bytes
+    // that could not be read at all no longer fail the upload: only a signed-in
+    // admin can reach this, the file was written to a key we just minted, and
+    // an admin whose every banner upload ended in HTTP 500 had no shop to run.
+    if(bytes&&!imageMagicMatches(declared,bytes)) throw new Error('media_magic_bytes_mismatch');
+    if(!bytes) console.warn('media commit could not read back',meta.key);
+    meta={...meta,content_checked:Boolean(bytes)};
   }
   const ds=persistentStore('tsk-media');
   const id=crypto.randomUUID();

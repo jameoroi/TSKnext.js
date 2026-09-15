@@ -1406,7 +1406,54 @@ function orderItemsText(order){
 function isLineOrder(order){ return /LINE/i.test(String(order?.payment_method||'')); }
 
 
+/**
+ * SlipMate (https://developers.slipmate.ai): POST /open-api/v1/verify with the
+ * slip image as base64 and the key in X-API-KEY. The answer is wrapped as
+ * { statusCode, code, error, message, data } with the slip fields in data.
+ * A slip that was already used answers 409 and is never accepted here
+ * (allowDuplicate stays false), so one transfer cannot pay two orders.
+ * The caller still compares the amount with the order total.
+ */
+async function verifySlipMate(imageDataUrl, apiKey){
+  const m=String(imageDataUrl||'').match(/^data:image\/(png|jpeg|jpg|webp|jfif);base64,(.+)$/i);
+  if(!m) return {configured:true,verified:false,provider:'slipmate',error:'unsupported_image'};
+  const call=async(payload)=>{
+    const res=await fetch('https://api.slipmate.ai/open-api/v1/verify',{method:'POST',headers:{'content-type':'application/json','x-api-key':apiKey},body:JSON.stringify({qrImageBase64:payload,allowDuplicate:false})});
+    const body=await res.json().catch(()=>({}));
+    return {res,body};
+  };
+  try{
+    // The reference does not say whether the data: prefix belongs in the field;
+    // plain base64 first, the full data URL once if that is refused as invalid.
+    let {res,body}=await call(m[2]);
+    if(res.status===400) ({res,body}=await call(String(imageDataUrl)));
+    const slip=body?.data&&typeof body.data==='object'?(body.data.transRef?body.data:(body.data.data||body.data.slip||body.data)):null;
+    const verified=!!(res.ok&&slip&&slip.transRef&&Number.isFinite(Number(slip.amount)));
+    if(!verified){
+      const error=res.status===409?'duplicate_slip':res.status===401?'slipmate_invalid_api_key':res.status===403?'slipmate_no_credit_or_forbidden':res.status===429?'slipmate_rate_limited':clean(body?.message||body?.error||body?.code||`slipmate_http_${res.status}`,220);
+      return {configured:true,verified:false,provider:'slipmate',http_status:res.status,error};
+    }
+    const party=(p)=>clean(p?.displayName||p?.name||'',120);
+    return {configured:true,verified:true,provider:'slipmate',http_status:res.status,data:{
+      amount:Number(slip.amount||0),
+      transRef:clean(slip.transRef,80),
+      transTimestamp:clean(slip.transDateTime||[slip.transDate,slip.transTime].filter(Boolean).join(' '),80),
+      sendingBank:clean(slip.sendingBank,20),
+      receivingBank:clean(slip.receivingBank,20),
+      senderName:party(slip.sender),
+      receiverName:party(slip.receiver),
+      receiverAccount:clean(slip.receiver?.account?.value||slip.receiver?.proxy?.value||'',60),
+    }};
+  }catch(e){
+    return {configured:true,verified:false,provider:'slipmate',error:clean(e?.message||'verification_error',220)};
+  }
+}
+/** Display name of the service that confirmed a slip, for the order history and the alert. */
+function slipProviderLabel(provider){ return provider==='slipmate'?'SlipMate':provider==='slipok'?'SlipOK':'Slip verification'; }
 async function verifySlipAutomatically(imageDataUrl, amount){
+  // SlipMate when its key is set; SlipOK stays available for shops still on it.
+  const slipMateKey=clean(process.env.SLIPMATE_API_KEY||'',300);
+  if(slipMateKey) return verifySlipMate(imageDataUrl, slipMateKey);
   const apiKey=clean(process.env.SLIPOK_API_KEY||'',300);
   const branchId=clean(process.env.SLIPOK_BRANCH_ID||'',120);
   if(!apiKey||!branchId) return {configured:false,verified:false,provider:'none'};
@@ -3218,13 +3265,24 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
     if(!isAdmin(ss)) return json({ok:false,error:'unauthorized'},401); if(!requireCsrf(b,ss)) return json({ok:false,error:'invalid_csrf'},403);
     if(!mediaConfigured()) return json({ok:false,error:'media_storage_not_configured'},503);
     const mime=clean(b.mime_type,120); if(!/^image\/(png|jpeg|webp|gif|avif)$/i.test(mime)) return json({ok:false,error:'unsupported_media_type'},422);
-    const out=await presignUpload({filename:clean(b.filename,180),mime_type:mime,owner_type:clean(b.owner_type,40)||'product',owner_id:clean(b.owner_id,100),created_by:ss.data.username});
-    return json({ok:true,...out});
+    // The reason, not a bare 500: the admin shows this code to whoever uploads.
+    try{
+      const out=await presignUpload({filename:clean(b.filename,180),mime_type:mime,owner_type:clean(b.owner_type,40)||'product',owner_id:clean(b.owner_id,100),created_by:ss.data.username});
+      return json({ok:true,...out});
+    }catch(error){
+      return json({ok:false,error:clean(error?.message||'media_presign_failed',120)},502);
+    }
   }
   if(action==='admin.media.commit'){
     if(!isAdmin(ss)) return json({ok:false,error:'unauthorized'},401); if(!requireCsrf(b,ss)) return json({ok:false,error:'invalid_csrf'},403);
     const key=clean(b.key,600); if(!key) return json({ok:false,error:'missing_key'},422);
-    const out=await commitMedia({key,public_url:clean(b.public_url,1200),mime_type:clean(b.mime_type,120),size_bytes:Math.max(0,Number(b.size_bytes||0)),width:Math.max(0,Number(b.width||0))||null,height:Math.max(0,Number(b.height||0))||null,owner_type:clean(b.owner_type,40),owner_id:clean(b.owner_id,100),created_by:ss.data.username});
+    let out;
+    try{
+      out=await commitMedia({key,public_url:clean(b.public_url,1200),mime_type:clean(b.mime_type,120),size_bytes:Math.max(0,Number(b.size_bytes||0)),width:Math.max(0,Number(b.width||0))||null,height:Math.max(0,Number(b.height||0))||null,owner_type:clean(b.owner_type,40),owner_id:clean(b.owner_id,100),created_by:ss.data.username});
+    }catch(error){
+      const code=clean(error?.message||'media_commit_failed',120);
+      return json({ok:false,error:code},code==='media_magic_bytes_mismatch'||code==='unsupported_media_type'?422:502);
+    }
     await auditLog(req,ss,'admin.media.upload',{key,owner_type:b.owner_type||'',owner_id:b.owner_id||''}); return json(out);
   }
   if(action==='admin.media.delete'){
@@ -3952,7 +4010,7 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
     }
     const id=crypto.randomUUID(), order_no=`TSK${new Date().toISOString().slice(2,10).replaceAll('-','')}${random(3).slice(0,6).toUpperCase()}`;
     const upload_token=random(24); const createdAt=new Date(); const reservationExpiry=new Date(createdAt.getTime()+24*60*60*1000).toISOString();
-    const autoSlipConfigured=!!(process.env.SLIPOK_API_KEY&&process.env.SLIPOK_BRANCH_ID);
+    const autoSlipConfigured=!!(process.env.SLIPMATE_API_KEY||(process.env.SLIPOK_API_KEY&&process.env.SLIPOK_BRANCH_ID));
     const initialStatus=isLine?'awaiting_verification':(isBank?'pending_payment':'new');
     const paymentReviewMode=isLine?'manual_admin':(isCod?'cod':(autoSlipConfigured?'automatic_slip':'manual_slip'));
     const paymentStatus=isLine?'pending_manual':(isBank?'pending_payment':'pending');
@@ -4521,15 +4579,15 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
     await ds.setJSON(`slip:${slipId}`, slip);
     await appendToIndex(ds,'slip-index',slipId);
     if(autoVerified){
-      order.status='paid'; order.payment_status='paid'; order.payment_review_mode='automatic_slip'; order.payment_reviewed_by='SlipOK'; order.payment_reviewed_at=new Date().toISOString(); if(order.tax_invoice_requested) order.tax_invoice_status='ready'; order.payment_reference=verification.data?.transRef||'';
-      if(!order.stock_deducted) await deductStockForOrder(ds,order,{data:{username:'SlipOK'}});
+      order.status='paid'; order.payment_status='paid'; order.payment_review_mode='automatic_slip'; order.payment_reviewed_by=slipProviderLabel(verification.provider); order.payment_reviewed_at=new Date().toISOString(); if(order.tax_invoice_requested) order.tax_invoice_status='ready'; order.payment_reference=verification.data?.transRef||'';
+      if(!order.stock_deducted) await deductStockForOrder(ds,order,{data:{username:slipProviderLabel(verification.provider)}});
       await consumeCouponForOrder(ds,order);
-      order.status_history=[...(order.status_history||[]),{status:'paid',at:new Date().toISOString(),by:'SlipOK'}];
+      order.status_history=[...(order.status_history||[]),{status:'paid',at:new Date().toISOString(),by:slipProviderLabel(verification.provider)}];
       await ds.setJSON(`order:${order.id}`,order);
       await mirrorOrderProjection(dataNamespace(),order);
       // The order was already announced when it was placed, so this is the
       // payment confirmation only — not a second copy of the same order.
-      await notifyOrderPayment(order,'SlipOK');
+      await notifyOrderPayment(order,slipProviderLabel(verification.provider));
     }else{
       order.status='awaiting_verification'; order.payment_status='awaiting_verification';
       order.status_history=[...(order.status_history||[]),{status:'awaiting_verification',at:new Date().toISOString(),by:'customer_slip'}];
