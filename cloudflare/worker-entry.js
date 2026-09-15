@@ -186,6 +186,25 @@ export default {
 
     const response = await openNext.fetch(request, env, ctx);
     if (!storable(response)) return response;
+    const type = response.headers.get('content-type') || '';
+    if (type.includes('text/html')) {
+      // Store the page before answering. The home page render runs close to the
+      // CPU limit, and a store left to waitUntil was cut off with the invocation,
+      // so the page was never cached and every visitor paid for a full render.
+      const html = await response.text();
+      const copy = () => new Response(html, { status: response.status, headers: response.headers });
+      const stored = await store(cache, key, copy()).catch(() => false);
+      if (stored) {
+        ctx.waitUntil(
+          storeLastGood(env.PRODUCT_MEDIA, objectKey, copy(), env.CF_VERSION_METADATA?.id).catch(
+            () => undefined,
+          ),
+        );
+      }
+      const htmlHeaders = new Headers(response.headers);
+      htmlHeaders.set('x-tsk-edge-cache', 'MISS');
+      return new Response(html, { status: response.status, headers: htmlHeaders });
+    }
     const forCache = response.clone();
     const forR2 = response.clone();
     ctx.waitUntil(

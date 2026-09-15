@@ -200,8 +200,9 @@ export async function getHomepageData(): Promise<HomepageData> {
       getSiteSettings(),
       getCategories(),
       getBrands(),
-      getProducts({ featured: 1, per_page: 10 }),
-      getProducts({ status: 'สินค้าลดราคา', per_page: 60 }),
+      getProducts({ featured: 1, per_page: DYNAMIC_SECTIONS.FEATURED_PRODUCTS.slots }),
+      // Enough on-sale products to pick the deepest discounts for the shelf, not sixty.
+      getProducts({ status: 'สินค้าลดราคา', per_page: 24 }),
       safePublicLegacy<{ items?: unknown }>('content.list', { kind: 'article' }, { items: [] }),
     ]);
   const site = siteResult.status === 'fulfilled' ? siteResult.value : {};
