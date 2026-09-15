@@ -101,7 +101,11 @@ export default async function ProductPage({ params }: Props) {
   if (payload.error === 'moved' && payload.moved_to)
     permanentRedirect(`/products/${encodeURIComponent(payload.moved_to)}`);
   const product = payload.product;
-  if (!product) notFound();
+  if (!product) {
+    // Storage or quota failures must not tell shoppers the product is gone.
+    if (payload.error === 'unavailable') throw new Error('product_unavailable');
+    notFound();
+  }
 
   const [recommendations, session] = await Promise.all([
     safeLegacy<any>('products.recommend', { id: product.id, limit: 8 }, { recommendations: [] }),

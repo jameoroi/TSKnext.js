@@ -1,7 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "thaiserxtra",
-  "main": ".open-next/worker.js",
+  "main": "cloudflare/worker-entry.js",
   "compatibility_date": "2026-09-01",
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,

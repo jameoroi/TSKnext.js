@@ -2,6 +2,7 @@ import 'server-only';
 
 import { and, desc, eq, notInArray, or, sql } from 'drizzle-orm';
 import { headers } from 'next/headers';
+import { cache } from 'react';
 import type { Product } from '@/features/catalog/types';
 import { resolveTenant } from '@/legacy-api/lib/tenants.js';
 import { databaseConfigured, withDb } from '@/server/db/client';
@@ -178,7 +179,7 @@ export async function getProducts(params: Record<string, unknown> = {}): Promise
   return relational || normalized;
 }
 
-export async function getProduct(idOrSlug: string) {
+async function loadProduct(idOrSlug: string) {
   if (databaseConfigured()) {
     const tid = await tenantId();
     if (tid) {
@@ -209,8 +210,23 @@ export async function getProduct(idOrSlug: string) {
     'products.get',
     { id: idOrSlug, slug: idOrSlug },
     { product: null },
+    { notFound: 'return' },
   );
 }
+
+/**
+ * One product lookup per request, shared by generateMetadata and the page.
+ *
+ * Next renders metadata and the page body concurrently, so each made its own
+ * compatibility-API call; when the second one failed the page rendered "not
+ * found" under the real product's title. React's request cache dedupes them, and
+ * a transient failure is retried once before the page gives up.
+ */
+export const getProduct = cache(async (idOrSlug: string) => {
+  const first = await loadProduct(idOrSlug);
+  if (first.product || first.error !== 'unavailable') return first;
+  return loadProduct(idOrSlug);
+});
 
 export async function getBrands() {
   if (databaseConfigured()) {

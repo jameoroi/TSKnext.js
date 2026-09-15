@@ -331,7 +331,10 @@ export function Header() {
     const update = () => {
       ticking = false;
       const y = window.scrollY;
-      setHeaderCompact(y > 90);
+      // Hysteresis wider than the utility bar it hides (~32px): a single
+      // threshold made the page shrink back under it and the header toggled
+      // compact/full on every frame, which shoppers saw as shaking.
+      setHeaderCompact((compact) => (compact ? y > 40 : y > 160));
       if (y < 160) setHeaderAway(false);
       else if (y - lastY > 7) setHeaderAway(true);
       else if (lastY - y > 7) setHeaderAway(false);

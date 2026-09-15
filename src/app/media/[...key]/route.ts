@@ -57,13 +57,41 @@ async function fromSupabase(key: string) {
   return upstream;
 }
 
-export async function GET(_request: Request, { params }: { params: Promise<{ key: string[] }> }) {
+// Keys are immutable (a new upload gets a new key), so a colo-local copy in the
+// Workers Cache API can answer repeat requests without reading R2 again.
+type EdgeCache = {
+  match(request: Request): Promise<Response | undefined>;
+  put(request: Request, response: Response): Promise<void>;
+};
+function edgeCache() {
+  return (globalThis as unknown as { caches?: { default?: EdgeCache } }).caches?.default;
+}
+
+export async function GET(request: Request, { params }: { params: Promise<{ key: string[] }> }) {
   const { key: parts } = await params;
   const key = (parts || []).join('/').replace(/^\/+/, '');
   if (!isMediaKey(key)) return NextResponse.json({ ok: false, error: 'bad_media_key' }, { status: 400 });
 
+  const cache = edgeCache();
+  const cacheKey = new Request(new URL(`/media/${key}`, request.url).toString());
+  if (cache) {
+    const hit = await cache.match(cacheKey).catch(() => undefined);
+    if (hit) return hit;
+  }
+
   const fromBinding = await fromR2Binding(key);
-  if (fromBinding) return fromBinding;
+  if (fromBinding) {
+    if (cache) {
+      const stored = cache.put(cacheKey, fromBinding.clone()).catch(() => undefined);
+      try {
+        const { ctx } = await getCloudflareContext({ async: true });
+        ctx.waitUntil(stored);
+      } catch {
+        await stored;
+      }
+    }
+    return fromBinding;
+  }
 
   const endpoint = String(process.env.MEDIA_S3_ENDPOINT || process.env.S3_ENDPOINT || '').replace(/\/$/, '');
   const bucket = String(process.env.MEDIA_BUCKET || process.env.S3_BUCKET || '');

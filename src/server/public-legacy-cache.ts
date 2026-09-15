@@ -98,6 +98,7 @@ export async function safePublicLegacy<T>(
   action: string,
   params: Record<string, unknown> = {},
   fallback: T,
+  options: { notFound?: 'return' } = {},
 ): Promise<T> {
   try {
     const origin = await requestOrigin();
@@ -120,6 +121,13 @@ export async function safePublicLegacy<T>(
     return out;
   } catch (error) {
     console.warn(`[next-cache] ${action} failed`, error instanceof Error ? error.message : error);
+    if (options.notFound === 'return') {
+      // A real "not found" (or "moved") answer is data the page must act on;
+      // any other failure is an outage, never a missing product.
+      const { status, data } = error as { status?: number; data?: T };
+      if (status === 404 && data) return data;
+      return { ...(fallback as object), error: 'unavailable' } as T;
+    }
     return fallback;
   }
 }
