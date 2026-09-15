@@ -2,6 +2,8 @@
 
 ## 6.0.0
 
+- feat(motion): one spring pop for every storefront card, and links that move instead of underlining (4735b03)
+- docs(changelog): update generated changelog (c3560a2)
 - fix(edge): scope cached HTML to the deployment that rendered it (4be4e14)
 - docs(changelog): update generated changelog (4c29b88)
 - fix(images): allow quality 90 for the product zoom and full-view source (c61ca2f)
