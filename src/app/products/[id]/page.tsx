@@ -14,6 +14,17 @@ import { safeLegacy } from '@/server/safe-legacy';
 
 type Props = { params: Promise<{ id: string }> };
 
+// Thai slugs can arrive still percent-encoded (dewalt-%E0%B8%9B...), which the
+// catalogue lookup cannot match, so those product links rendered "not found"
+// while the same product opened fine by its ASCII id.
+function routeParam(value: string) {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
 function seoDescription(product: Product) {
   const written = String(product.description || (product as any).desc || '')
     .replace(/\s+/g, ' ')
@@ -63,7 +74,7 @@ function productInStock(product: Product) {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id } = await params;
+  const id = routeParam((await params).id);
   const [payload, origin] = await Promise.all([getProduct(id), requestOrigin()]);
   if (!payload.product) return { title: 'ไม่พบสินค้า', robots: { index: false, follow: false } };
   const product = payload.product;
@@ -96,7 +107,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ProductPage({ params }: Props) {
-  const { id } = await params;
+  const id = routeParam((await params).id);
   const [payload, origin] = await Promise.all([getProduct(id), requestOrigin()]);
   if (payload.error === 'moved' && payload.moved_to)
     permanentRedirect(`/products/${encodeURIComponent(payload.moved_to)}`);

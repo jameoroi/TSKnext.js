@@ -327,6 +327,7 @@ export function Header() {
 
   useEffect(() => {
     let lastY = window.scrollY;
+    let travel = 0;
     let ticking = false;
     const update = () => {
       ticking = false;
@@ -335,9 +336,18 @@ export function Header() {
       // threshold made the page shrink back under it and the header toggled
       // compact/full on every frame, which shoppers saw as shaking.
       setHeaderCompact((compact) => (compact ? y > 40 : y > 160));
-      if (y < 160) setHeaderAway(false);
-      else if (y - lastY > 7) setHeaderAway(true);
-      else if (lastY - y > 7) setHeaderAway(false);
+      // Hide or reveal only after a deliberate scroll in one direction. A 7px
+      // step flipped the header on every jitter of a finger or trackpad, and
+      // each flip animated for 300ms — which read as the bar shaking.
+      if (y < 160) {
+        travel = 0;
+        setHeaderAway(false);
+      } else {
+        const step = y - lastY;
+        travel = Math.sign(step) === Math.sign(travel) ? travel + step : step;
+        if (travel > 48) setHeaderAway(true);
+        else if (travel < -48) setHeaderAway(false);
+      }
       lastY = y;
     };
     const onScroll = () => {
