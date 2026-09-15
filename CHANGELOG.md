@@ -2,6 +2,8 @@
 
 ## 6.0.0
 
+- fix(storefront): overlays take turns with the moving rows; home shelves no longer render empty (881cc17)
+- docs(changelog): update generated changelog (383f236)
 - fix(media): admin uploads read back through the R2 binding; feat(payments): SlipMate slip verification (1293d8f)
 - docs(changelog): update generated changelog (d2dfd5f)
 - feat(i18n): Thai / English switch for the storefront (0bc249c)
@@ -91,5 +93,3 @@
 - docs(changelog): update generated changelog (0fce925)
 - fix(e2e): make kit entry SSR-visible, pin sw version, keep failure traces (c89598e)
 - docs(changelog): update generated changelog (d8531dc)
-- fix(ci): remove 2 dead legacy modules blocking legacy import audit (99f492f)
-- docs(changelog): update generated changelog (2a70cfe)
