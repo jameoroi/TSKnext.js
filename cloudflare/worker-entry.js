@@ -19,7 +19,13 @@
  */
 import openNext from '../.open-next/worker.js';
 import { SECURITY_HEADERS } from '../src/shared/security-headers.mjs';
-import { cacheable, cacheKeyUrl, lastGoodObjectKey, versionedKey } from './edge-cache-key.mjs';
+import {
+  cacheable,
+  cacheKeyUrl,
+  lastGoodObjectKey,
+  staticAssetPaths,
+  versionedKey,
+} from './edge-cache-key.mjs';
 
 export { BucketCachePurge, DOQueueHandler, DOShardedTagCache } from '../.open-next/worker.js';
 
@@ -73,27 +79,51 @@ async function store(cache, key, response) {
   return true;
 }
 
-async function storeLastGood(bucket, objectKey, response) {
+async function storeLastGood(bucket, objectKey, response, build) {
   if (!bucket) return;
   const head = await bucket.head(objectKey).catch(() => null);
   const storedAt = Number(head?.customMetadata?.storedAt || 0);
-  if (head && Date.now() - storedAt < LAST_GOOD_WRITE_EVERY_MS) return;
+  const sameBuild = (head?.customMetadata?.build || '') === (build || '');
+  // A copy from an older build is replaced as soon as this build renders the page.
+  if (head && sameBuild && Date.now() - storedAt < LAST_GOOD_WRITE_EVERY_MS) return;
   await bucket.put(objectKey, await response.arrayBuffer(), {
     httpMetadata: { contentType: response.headers.get('content-type') || 'text/html; charset=utf-8' },
-    customMetadata: { storedAt: String(Date.now()) },
+    customMetadata: { storedAt: String(Date.now()), build: build || '' },
   });
 }
 
-async function readLastGood(bucket, objectKey) {
+/**
+ * Last-good copies outlive deploys. A copy from this build is served as is; a copy
+ * from an earlier build only when every /_next/static asset it loads still exists
+ * in this deploy (content-hashed names), otherwise the page would not hydrate.
+ */
+async function readLastGood(bucket, objectKey, env, url) {
   if (!bucket) return null;
   const object = await bucket.get(objectKey).catch(() => null);
   if (!object) return null;
   const storedAt = Number(object.customMetadata?.storedAt || 0);
   if (!storedAt || Date.now() - storedAt > LAST_GOOD_MAX_AGE_MS) return null;
+  const type = object.httpMetadata?.contentType || 'text/html; charset=utf-8';
+  const build = env.CF_VERSION_METADATA?.id || '';
+  let body = object.body;
+  if ((object.customMetadata?.build || '') !== build && type.includes('text/html')) {
+    if (!env.ASSETS) return null;
+    const html = await object.text();
+    const paths = staticAssetPaths(html);
+    const checks = await Promise.all(
+      paths.map((path) =>
+        env.ASSETS.fetch(new Request(new URL(path, url.origin).toString(), { method: 'HEAD' }))
+          .then((res) => res.ok)
+          .catch(() => false),
+      ),
+    );
+    if (checks.includes(false)) return null;
+    body = html;
+  }
   const headers = new Headers(SECURITY_HEADERS);
-  headers.set('content-type', object.httpMetadata?.contentType || 'text/html; charset=utf-8');
+  headers.set('content-type', type);
   headers.set(STORED_AT, String(storedAt));
-  return new Response(object.body, { status: 200, headers });
+  return new Response(body, { status: 200, headers });
 }
 
 function forVisitor(cached, state) {
@@ -111,7 +141,8 @@ function refresh(request, url, env, ctx, cache, key, objectKey) {
     .then(async (fresh) => {
       if (!storable(fresh)) return;
       const copy = fresh.clone();
-      if (await store(cache, key, fresh)) await storeLastGood(env.PRODUCT_MEDIA, objectKey, copy);
+      if (await store(cache, key, fresh))
+        await storeLastGood(env.PRODUCT_MEDIA, objectKey, copy, env.CF_VERSION_METADATA?.id);
     })
     .catch(() => undefined);
 }
@@ -124,9 +155,11 @@ export default {
 
     // Scoped to this deployment: HTML from a previous build references
     // /_next/static chunks that the new deploy removed (404, no hydration).
-    const keyUrl = versionedKey(cacheKeyUrl(url), env.CF_VERSION_METADATA?.id);
+    const pageUrl = cacheKeyUrl(url);
+    const keyUrl = versionedKey(pageUrl, env.CF_VERSION_METADATA?.id);
     const key = new Request(keyUrl.toString(), { method: 'GET' });
-    const objectKey = await lastGoodObjectKey(keyUrl);
+    // The R2 copy is keyed by page only, so it survives deploys (see readLastGood).
+    const objectKey = await lastGoodObjectKey(pageUrl);
     const cached = await cache.match(key).catch(() => undefined);
     if (cached) {
       const age = (Date.now() - Number(cached.headers.get(STORED_AT) || 0)) / 1000;
@@ -139,7 +172,7 @@ export default {
 
     // Nothing usable in this colo: answer with the last-good copy if there is one,
     // seed the colo cache with it, and render in the background.
-    const lastGood = await readLastGood(env.PRODUCT_MEDIA, objectKey);
+    const lastGood = await readLastGood(env.PRODUCT_MEDIA, objectKey, env, url);
     if (lastGood) {
       const seeded = lastGood.clone();
       ctx.waitUntil(
@@ -157,7 +190,9 @@ export default {
     const forR2 = response.clone();
     ctx.waitUntil(
       store(cache, key, forCache)
-        .then((ok) => (ok ? storeLastGood(env.PRODUCT_MEDIA, objectKey, forR2) : undefined))
+        .then((ok) =>
+          ok ? storeLastGood(env.PRODUCT_MEDIA, objectKey, forR2, env.CF_VERSION_METADATA?.id) : undefined,
+        )
         .catch(() => undefined),
     );
     const headers = new Headers(response.headers);

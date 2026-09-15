@@ -132,7 +132,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
     <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6 lg:py-10">
       <section className="relative mb-6 overflow-hidden rounded-3xl bg-emerald-950" aria-label="สินค้าคุณภาพ">
         <Image
-          src="/legacy-assets/banners/1.png"
+          src="/legacy-assets/banners/1.webp"
           alt=""
           fill
           priority={false}

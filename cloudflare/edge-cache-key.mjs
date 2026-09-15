@@ -110,3 +110,21 @@ export function versionedKey(keyUrl, version) {
   if (version) key.searchParams.set('__build', String(version));
   return key;
 }
+
+/**
+ * The build assets a cached HTML page loads (/_next/static/...), without query
+ * strings, de-duplicated. A copy rendered by an earlier deploy is only safe to
+ * serve when every one of these still exists: chunk names are content hashes,
+ * so unchanged code keeps its name across deploys and changed code does not.
+ * @param {string} html
+ */
+export function staticAssetPaths(html) {
+  const found = new Set();
+  for (const match of String(html).matchAll(
+    /\/_next\/static\/[A-Za-z0-9_\-./%~]+?\.(?:js|css|woff2?)(?=[\\"'\s)?#]|$)/g,
+  )) {
+    found.add(match[0]);
+    if (found.size >= 80) break;
+  }
+  return [...found];
+}

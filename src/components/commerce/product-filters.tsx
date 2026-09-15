@@ -68,7 +68,9 @@ export function ProductFilters(props: Props) {
 
   const sliderValue = Number(maxPrice) || PRICE_CEILING;
 
-  const body = (
+  // Rendered twice (mobile drawer + desktop aside) from one instance: each copy needs its
+  // own ids, or the labels only attach to the first copy.
+  const body = (copy: 'm' | 'd') => (
     <div className="space-y-5">
       <search aria-label="ค้นหาในหน้าสินค้า">
         <form
@@ -78,13 +80,13 @@ export function ProductFilters(props: Props) {
           }}
           className="flex gap-2"
         >
-          <label className="sr-only" htmlFor={`${uid}-q`}>
+          <label className="sr-only" htmlFor={`${uid}-${copy}-q`}>
             ค้นหาสินค้า
           </label>
           <div className="relative min-w-0 flex-1">
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
             <Input
-              id={`${uid}-q`}
+              id={`${uid}-${copy}-q`}
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="ค้นหาสินค้า…"
@@ -236,11 +238,11 @@ export function ProductFilters(props: Props) {
             <div className="mt-2 space-y-3">
               <div className="flex items-center gap-2">
                 <div className="min-w-0 flex-1">
-                  <label className="sr-only" htmlFor={`${uid}-min`}>
+                  <label className="sr-only" htmlFor={`${uid}-${copy}-min`}>
                     ราคาต่ำสุด
                   </label>
                   <Input
-                    id={`${uid}-min`}
+                    id={`${uid}-${copy}-min`}
                     value={minPrice}
                     onChange={(e) => setMinPrice(e.target.value.replace(/[^0-9]/g, ''))}
                     inputMode="numeric"
@@ -251,11 +253,11 @@ export function ProductFilters(props: Props) {
                   –
                 </span>
                 <div className="min-w-0 flex-1">
-                  <label className="sr-only" htmlFor={`${uid}-max`}>
+                  <label className="sr-only" htmlFor={`${uid}-${copy}-max`}>
                     ราคาสูงสุด
                   </label>
                   <Input
-                    id={`${uid}-max`}
+                    id={`${uid}-${copy}-max`}
                     value={maxPrice}
                     onChange={(e) => setMaxPrice(e.target.value.replace(/[^0-9]/g, ''))}
                     inputMode="numeric"
@@ -264,11 +266,11 @@ export function ProductFilters(props: Props) {
                 </div>
               </div>
               <div>
-                <label className="sr-only" htmlFor={`${uid}-ceiling`}>
+                <label className="sr-only" htmlFor={`${uid}-${copy}-ceiling`}>
                   เพดานราคาสูงสุด
                 </label>
                 <input
-                  id={`${uid}-ceiling`}
+                  id={`${uid}-${copy}-ceiling`}
                   type="range"
                   min={0}
                   max={PRICE_CEILING}
@@ -303,11 +305,11 @@ export function ProductFilters(props: Props) {
           </Collapsible.Trigger>
           {groups.status && (
             <div className="mt-2">
-              <label className="sr-only" htmlFor={`${uid}-status`}>
+              <label className="sr-only" htmlFor={`${uid}-${copy}-status`}>
                 สถานะสินค้า
               </label>
               <Select
-                id={`${uid}-status`}
+                id={`${uid}-${copy}-status`}
                 value={status}
                 onChange={(e) => {
                   setStatus(e.target.value);
@@ -341,10 +343,10 @@ export function ProductFilters(props: Props) {
           <SlidersHorizontal className="size-4" />
           กรองสินค้า
         </summary>
-        <div className="mt-4">{body}</div>
+        <div className="mt-4">{body('m')}</div>
       </details>
       <aside className="hidden lg:block" aria-label="ตัวกรองสินค้า">
-        {body}
+        {body('d')}
       </aside>
     </>
   );

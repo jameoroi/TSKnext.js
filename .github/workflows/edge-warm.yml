@@ -20,7 +20,7 @@ concurrency:
 jobs:
   warm:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 9
     steps:
       - name: Warm key public pages
         env:
@@ -52,3 +52,44 @@ jobs:
             echo "::error::${failed} key pages could not be rendered; production is likely down (error 1102)"
             exit 1
           fi
+
+      - name: Warm a rotating slice of product pages
+        # Every product page gets a last-good copy in R2 within a few hours of rotation,
+        # so a shopper landing on it is answered from that copy instead of a render
+        # that can exceed the Workers Free CPU limit.
+        env:
+          PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
+          AUTOMATION_TOKEN: ${{ secrets.AUTOMATION_TOKEN }}
+          RUN_NUMBER: ${{ github.run_number }}
+        shell: bash
+        run: |
+          set -uo pipefail
+          base="${PRODUCTION_URL:-https://jayxtsk.shop}"
+          base="${base%/}"
+          ua='Mozilla/5.0 (compatible; TSK-EdgeWarm/1.0; +https://github.com/jameoroi/TSKnext.js)'
+          curl -sS -m 60 -A "$ua" -H "x-tsk-automation: ${AUTOMATION_TOKEN:-}" "${base}/sitemap.xml" \
+            | grep -oE '<loc>[^<]*/products/[^<]+</loc>' | sed -E 's#</?loc>##g' > products.txt || true
+          total=$(wc -l < products.txt | tr -d ' ')
+          if [[ "$total" == "0" ]]; then
+            echo "::warning::sitemap returned no product URLs (bot challenge or outage); skipping"
+            exit 0
+          fi
+          size=150
+          slices=$(( (total + size - 1) / size ))
+          slice=$(( RUN_NUMBER % slices ))
+          start=$(( slice * size + 1 ))
+          sed -n "${start},$((start + size - 1))p" products.txt > slice.txt
+          echo "Warming slice $((slice + 1))/${slices}: $(wc -l < slice.txt | tr -d ' ') of ${total} product pages"
+          export ua AUTOMATION_TOKEN
+          warm_one() {
+            for attempt in 1 2 3; do
+              code=$(curl -sS -m 40 -A "$ua" -H "x-tsk-automation: ${AUTOMATION_TOKEN:-}" -o /dev/null -w '%{http_code}' "$1" || echo 000)
+              [[ "$code" == "200" ]] && { echo ok; return; }
+              sleep $((attempt * 3))
+            done
+            echo "fail $code $1"
+          }
+          export -f warm_one
+          xargs -P 4 -I{} bash -c 'warm_one "$@"' _ {} < slice.txt > results.txt
+          echo "ok: $(grep -c '^ok' results.txt) · failed: $(grep -c '^fail' results.txt)"
+          grep '^fail' results.txt | head -5 || true
