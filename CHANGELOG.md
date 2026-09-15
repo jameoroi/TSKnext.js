@@ -2,6 +2,10 @@
 
 ## 6.0.0
 
+- fix(deploy): keep dashboard variables on Workers Builds deploys (10d1387)
+- feat(ui): Radix primitives across the storefront (c8b7d49)
+- fix(config): read public keys and media settings at runtime on Workers (6751ffc)
+- docs(changelog): update generated changelog (befa143)
 - fix: open products by Thai slug and stop header flicker on small scrolls (9673af1)
 - fix: edge-cache public pages on Workers Free, stop false 404s and header shake (cb01eb4)
 - fix(mobile): pin recently-viewed bar to the bottom and fit flash sale cards (f63614b)
