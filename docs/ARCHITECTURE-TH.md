@@ -1,4 +1,4 @@
-# Architecture — THAISERKIT SUPPLY Next.js 16.3.4
+# Architecture — THAISERKIT SUPPLY Next.js 16.3.5
 
 ## High-level
 

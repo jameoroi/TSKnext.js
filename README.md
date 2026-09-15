@@ -1,6 +1,6 @@
 # THAISERKIT SUPPLY — Next.js Commerce Platform v6.0.0
 
-ระบบ E-Commerce / Marketplace / Multi-Tenant แบบ Next.js เต็มระบบบน **Next.js 16.3.4 + React 19 + TypeScript**
+ระบบ E-Commerce / Marketplace / Multi-Tenant แบบ Next.js เต็มระบบบน **Next.js 16.3.5 + React 19 + TypeScript**
 
 ## ระบบหลัก
 

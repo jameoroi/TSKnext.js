@@ -93,7 +93,13 @@ export async function GET(request: NextRequest, ctx: Ctx) {
         db
           .select()
           .from(products)
-          .where(and(eq(products.tenantId, tenantId), or(eq(products.id, key), eq(products.slug, key))))
+          .where(
+            and(
+              eq(products.tenantId, tenantId),
+              notInArray(products.status, [...HIDDEN_STATES]),
+              or(eq(products.id, key), eq(products.slug, key)),
+            ),
+          )
           .limit(1),
       );
       if (!row) return fail('not_found', 404, key);
@@ -155,7 +161,13 @@ export async function GET(request: NextRequest, ctx: Ctx) {
             status: products.status,
           })
           .from(products)
-          .where(and(eq(products.tenantId, tenantId), or(eq(products.id, key), eq(products.slug, key))))
+          .where(
+            and(
+              eq(products.tenantId, tenantId),
+              notInArray(products.status, [...HIDDEN_STATES]),
+              or(eq(products.id, key), eq(products.slug, key)),
+            ),
+          )
           .limit(1),
       );
       if (!row) return fail('not_found', 404, key);

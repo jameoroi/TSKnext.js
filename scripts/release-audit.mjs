@@ -15,7 +15,7 @@ const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
 
 pass(
   'Next.js exact stable baseline',
-  pkg.dependencies?.next === '16.3.4',
+  pkg.dependencies?.next === '16.3.5',
   String(pkg.dependencies?.next || 'missing'),
 );
 pass('Application version', pkg.version === '6.0.0', String(pkg.version || 'missing'));
@@ -66,9 +66,7 @@ const packageNeeds = [
   'react',
   'typescript',
   'tailwindcss',
-  'radix-ui',
   '@radix-ui/react-dialog',
-  '@mui/material',
   'motion',
   'lucide-react',
   '@tanstack/react-query',
@@ -91,7 +89,6 @@ const packageNeeds = [
   'resend',
   '@react-email/components',
   '@aws-sdk/client-s3',
-  'sharp',
   '@playwright/test',
   'vitest',
   '@testing-library/react',
@@ -100,6 +97,10 @@ const packageNeeds = [
 ];
 for (const name of packageNeeds)
   pass(`Package ${name}`, Boolean(pkg.dependencies?.[name] || pkg.devDependencies?.[name]));
+
+const workerPkg = JSON.parse(read('workers/package.json'));
+pass('Worker image optimizer package', workerPkg.dependencies?.sharp === '^0.35.4');
+pass('Sharp isolated from application graph', !pkg.dependencies?.sharp && !pkg.devDependencies?.sharp);
 
 const header = read('src/components/site/header.tsx');
 for (const text of [

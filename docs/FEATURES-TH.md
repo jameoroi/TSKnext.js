@@ -29,7 +29,7 @@ Dashboard, products, import/export, categories, brands, inventory/warehouses, or
 Agent Center, commission/payout/store settings/catalog selection; Supplier fulfillment/tracking/settlement; Owner production status/backup/restore/system health.
 
 ## Native API and Runtime
-Next.js Route Handlers, React Server Components, Server Actions, tenant-aware Cache Components, signed equipment-set quote, PostgreSQL/Drizzle catalogue APIs, Meilisearch fallback, Redis/BullMQ, S3/R2, Sentry, OpenTelemetry, Pino, PostHog and health/readiness checks.
+Next.js 16.3.5 Route Handlers, React Server Components, Server Actions, React Compiler, offline mutation resilience with an online/offline recovery banner, tenant-aware Cache Components (disabled for the Workers target), signed equipment-set quote, PostgreSQL/Drizzle catalogue APIs, Meilisearch fallback, Redis/BullMQ, S3/R2, Sentry, OpenTelemetry, Pino, PostHog and health/readiness checks.
 
 ## Storefront parity / navigation
 - Header มีข้อความ Login/Register ชัดเจนทั้ง desktop/mobile

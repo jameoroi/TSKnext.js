@@ -28,35 +28,27 @@
   padding: 0 20px;
 }
 .report-brand-mark {
+  position: relative;
   width: 190px;
-  color: #fff;
+  height: 36px;
+  color: #17243d;
   font-weight: 900;
   font-size: 14px;
   display: flex;
   align-items: center;
   gap: 9px;
 }
-.report-brand-mark:first-letter {
-  color: #fff;
-}
-.report-brand-mark {
-  color: #fff;
-}
-.report-brand-mark:before {
-  content: "";
-  position: absolute;
-}
-.report-brand-mark {
-  background: #087c61;
+.report-brand-mark > span:first-child {
   width: 36px;
   height: 36px;
-  border-radius: 50%;
-  justify-content: center;
   flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #087c61;
+  color: #fff;
 }
-.report-brand-mark span {
-  position: absolute;
-  margin-left: 162px;
+.report-brand-mark > span:last-child {
   color: #17243d;
   font-size: 13px;
   white-space: nowrap;
@@ -770,7 +762,7 @@
     grid-column: 1 / -1;
   }
   .report-search {
-    margin-left: 165px;
+    margin-left: 0;
   }
 }
 @media (max-width: 900px) {
@@ -780,9 +772,6 @@
   }
   .report-search {
     display: none;
-  }
-  .report-brand-mark span {
-    margin-left: 155px;
   }
   .report-topbar-actions {
     margin-left: auto;
@@ -797,8 +786,10 @@
     padding: 0 12px;
     height: 58px;
   }
-  .report-brand-mark span {
-    margin-left: 145px;
+  .report-brand-mark {
+    width: auto;
+  }
+  .report-brand-mark > span:last-child {
     font-size: 11px;
   }
   .report-account,

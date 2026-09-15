@@ -4,10 +4,29 @@ import { SECURITY_HEADERS } from './src/shared/security-headers.mjs';
 
 const nextConfig: NextConfig = {
   output: 'standalone',
-  // sharp (native image lib) cannot run on Workers. `/_next/image` is served
-  // by OpenNext's own handler, so keep sharp external and never bundle it.
-  serverExternalPackages: ['sharp'],
+  // sharp is used only by the separate BullMQ Node worker. Do not mark it as
+  // a Next server external: OpenNext would copy its Windows-native .node
+  // binaries into the Worker bundle. The Worker path uses unoptimized image
+  // URLs, while the Node worker keeps sharp available for image.optimize jobs.
+  outputFileTracingExcludes: {
+    '/*': [
+      './node_modules/sharp/**/*',
+      './node_modules/@img/sharp-*/**/*',
+      './node_modules/.pnpm/sharp@*/**/*',
+      './node_modules/.pnpm/@img+sharp-*/**/*',
+      './node_modules/.pnpm/**/node_modules/sharp/**/*',
+      './node_modules/.pnpm/**/node_modules/@img/sharp-*/**/*',
+      './node_modules/next/dist/server/image-optimizer.js',
+      './node_modules/next/dist/server/image-optimizer.js.map',
+      './node_modules/.pnpm/**/node_modules/next/dist/server/image-optimizer.js',
+      './node_modules/.pnpm/**/node_modules/next/dist/server/image-optimizer.js.map',
+    ],
+  },
   reactStrictMode: true,
+  // Next 16 stable React Compiler: reduce avoidable client re-renders.
+  // The compiler plugin is pinned in devDependencies and is compatible with
+  // the existing webpack/OpenNext build path.
+  reactCompiler: true,
   poweredByHeader: false,
   compress: true,
   // NOTE (Cloudflare Workers): Cache Components rely on setTimeout()
@@ -15,6 +34,8 @@ const nextConfig: NextConfig = {
   // page. Keep it off on this target; dynamic routes use force-dynamic.
   cacheComponents: false,
   images: {
+    // OpenNext routes image optimization to the Cloudflare Images binding
+    // configured as IMAGES in wrangler.jsonc.
     formats: ['image/avif', 'image/webp'],
     // Deliberately open until the media-mirroring backfill completes:
     // supplier CSV rows and legacy records hotlink arbitrary image hosts,
@@ -26,6 +47,9 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     optimizePackageImports: ['lucide-react', 'motion', 'echarts'],
+    // Keep mutations pending and retry them after connectivity returns.
+    // The UI banner below exposes this state to shoppers.
+    useOffline: true,
   },
   // pnpm's isolated dependency links can point Webpack at a partially
   // materialized package when a local install is interrupted. Resolve the

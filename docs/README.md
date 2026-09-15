@@ -1,6 +1,6 @@
 # THAISERKIT Next.js Documentation
 
-เอกสารชุดนี้อธิบายระบบปัจจุบันในฐานะ **Next.js 16.3.4 application** โดยตรง ไม่มี changelog หรือเอกสารการย้าย framework เก่าอยู่ในชุดส่งมอบ
+เอกสารชุดนี้อธิบายระบบปัจจุบันในฐานะ **Next.js 16.3.5 application** โดยตรง ไม่มี changelog หรือเอกสารการย้าย framework เก่าอยู่ในชุดส่งมอบ
 
 เอกสารหลัก:
 

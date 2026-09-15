@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: 26
           cache: pnpm
-      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm install --frozen-lockfile
       - run: pnpm migration:audit
       - run: pnpm audit:source
       - run: pnpm audit:release

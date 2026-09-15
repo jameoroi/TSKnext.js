@@ -57,6 +57,30 @@ export type ReservationResult =
   | { ok: false; error: 'unknown_product'; productId: string }
   | { ok: false; error: 'invalid_quantity'; productId: string };
 
+export type AggregatedReservationResult =
+  | { ok: true; lines: ReservationLine[] }
+  | { ok: false; error: 'invalid_quantity'; productId: string };
+
+/**
+ * Normalize a basket before it enters the database transaction.
+ * Duplicate product lines must be one quantity, otherwise each line could be
+ * checked against the same available stock independently.
+ */
+export function aggregateReservationLines(lines: ReservationLine[]): AggregatedReservationResult {
+  const wanted = new Map<string, number>();
+  for (const line of lines) {
+    const quantity = Math.trunc(Number(line.quantity));
+    if (!Number.isFinite(quantity) || quantity <= 0) {
+      return { ok: false, error: 'invalid_quantity', productId: line.productId };
+    }
+    wanted.set(line.productId, (wanted.get(line.productId) || 0) + quantity);
+  }
+  return {
+    ok: true,
+    lines: [...wanted.keys()].sort().map((productId) => ({ productId, quantity: wanted.get(productId)! })),
+  };
+}
+
 /**
  * Hold stock for an order, or hold nothing and say why.
  *
@@ -69,20 +93,12 @@ export async function reserveStock(
   orderId: string,
   lines: ReservationLine[],
 ): Promise<ReservationResult> {
-  // Collapse a basket that names the same product twice: two lines of one is a
-  // reservation of two, and checking them separately would pass both against
-  // the same single unit.
-  const wanted = new Map<string, number>();
-  for (const line of lines) {
-    const quantity = Math.trunc(Number(line.quantity));
-    if (!Number.isFinite(quantity) || quantity <= 0) {
-      return { ok: false, error: 'invalid_quantity', productId: line.productId };
-    }
-    wanted.set(line.productId, (wanted.get(line.productId) || 0) + quantity);
-  }
+  const aggregated = aggregateReservationLines(lines);
+  if (!aggregated.ok) return aggregated;
+  const wanted = new Map(aggregated.lines.map((line) => [line.productId, line.quantity]));
 
   // The fixed order that stops two baskets deadlocking against each other.
-  const ids = [...wanted.keys()].sort();
+  const ids = aggregated.lines.map((line) => line.productId);
 
   return db.transaction(async (tx) => {
     // Bound as an array parameter, not interpolated. The previous version

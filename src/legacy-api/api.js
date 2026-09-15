@@ -1732,6 +1732,10 @@ function stockAvailable(p){
   return Math.max(0, Number(p.stock||0)-Number(p.reserved||0));
 }
 function publicAvailable(v){ return Number.isFinite(v) ? Math.max(0,Math.floor(v)) : null; }
+function minOrderQuantity(product){
+  const value=Math.floor(Number(product?.min_order_qty||1));
+  return Number.isFinite(value)?Math.max(1,Math.min(999,value)):1;
+}
 
 
 async function ensureWarehouses(ds){
@@ -2857,7 +2861,12 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
   // its first characters against `git rev-parse --short HEAD` settles it in one
   // request. It is a public commit id on a repository the owner controls, not
   // a secret.
-  if(action==='health') return json({ok:true,platform:'cloudflare-pages',build:clean(process.env.CF_PAGES_COMMIT_SHA,40).slice(0,12)||'unknown',branch:clean(process.env.CF_PAGES_BRANCH,60)||'unknown',storage:storageBackend(),database:postgresEnabled()?'postgres-mirror':'not-enabled',edge_cache:edgeCache?'bound':'not-bound',media_storage:process.env.MEDIA_BUCKET?'s3-compatible':'not-configured',admin_configured:!!(process.env.ADMIN_USERNAME&&process.env.ADMIN_PASSWORD),tenant:tenant.id,time:new Date().toISOString()});
+  if(action==='health'){
+    const runtimeCaches=globalThis.caches;
+    const mediaReady=Boolean(((process.env.MEDIA_S3_ENDPOINT||process.env.S3_ENDPOINT)&&(process.env.MEDIA_BUCKET||process.env.S3_BUCKET))||(process.env.SUPABASE_URL&&process.env.SUPABASE_SECRET_KEY));
+    const build=clean(process.env.CF_PAGES_COMMIT_SHA||process.env.GIT_COMMIT_SHA||process.env.COMMIT_SHA,40).slice(0,12)||'unknown';
+    return json({ok:true,platform:process.env.CF_PAGES?'cloudflare-pages':'cloudflare-workers',build,branch:clean(process.env.CF_PAGES_BRANCH||process.env.GIT_BRANCH,60)||'unknown',storage:storageBackend(),database:postgresEnabled()?'postgres-mirror':'not-enabled',edge_cache:runtimeCaches?.default?'available':'not-available',media_storage:mediaReady?'configured':'not-configured',admin_configured:!!(process.env.ADMIN_USERNAME&&process.env.ADMIN_PASSWORD),tenant:tenant.id,time:new Date().toISOString()});
+  }
   // Server-side proxy keeps the n8n webhook and secret out of the browser.
   if(action==='ai.n8n' && req.method==='POST'){
     const message=String(b?.message||'').trim().slice(0,2000);
@@ -3596,6 +3605,8 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
         problems.push({type:'product_unavailable',product_id:pid,sku,name:clean(raw?.name,180)||sku||pid||'สินค้า'});
         continue;
       }
+      const minimum=minOrderQuantity(prod);
+      if(qty<minimum){problems.push({type:'minimum_order_quantity',product_id:prod.id,variant_id:variantId,requested:qty,minimum});continue;}
       const normalized=normalizeProductInventory(prod);const variant=findProductVariant(normalized,variantId,sku,barcode);
       if(!variant||variant.state!=='active'){problems.push({type:'variant_unavailable',product_id:prod.id,variant_id:variantId,sku,name:prod.name});continue;}
       const available=variantAvailable(variant);
@@ -3636,6 +3647,8 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
       const pid=clean(raw?.id,80), sku=clean(raw?.sku,120),barcode=clean(raw?.barcode,120),variantId=clean(raw?.variant_id,80); const qty=Math.max(1,Math.min(999,Math.floor(Number(raw?.qty)||0)));
       const prod=await findProductByIdOrCode(ds,pid,sku,barcode,true);
       if(!prod || prod.state!=='active') return json({ok:false,error:'product_unavailable',product_id:pid,sku},409);
+      const minimum=minOrderQuantity(prod);
+      if(qty<minimum)return json({ok:false,error:'minimum_order_quantity',product_id:prod.id,requested:qty,minimum},409);
       const normalized=normalizeProductInventory(prod);const variant=findProductVariant(normalized,variantId,sku,barcode);
       if(!variant||variant.state!=='active')return json({ok:false,error:'variant_unavailable',product_id:prod.id,variant_id:variantId,sku},409);
       const available=variantAvailable(variant);
@@ -6724,7 +6737,7 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
     if(!isAdmin(ss))return json({ok:false,error:'unauthorized'},401);if(!requireCsrf(b,ss))return json({ok:false,error:'invalid_csrf'},403);const allowed=['requested','approved','rejected','received','refunded','closed'];const status=clean(b.status,30);if(!allowed.includes(status))return json({ok:false,error:'invalid_status'},422);const ds=dataStore(),id=clean(b.id,80),r=await getJSON(ds,`return:${id}`);if(!r)return json({ok:false,error:'not_found'},404);r.status=status;r.admin_note=clean(b.admin_note,2000)||r.admin_note||'';r.history=[...(r.history||[]),{status,at:new Date().toISOString(),by:ss.data.username}];await ds.setJSON(`return:${id}`,r);await auditLog(req,ss,'admin.returns.status',{id,status});return json({ok:true,return_request:r});
   }
   if(action==='admin.newsletter.send'){
-    if(!maySuperAdmin(ss,'admin.newsletter.send'))return json({ok:false,error:'forbidden_super_admin_only'},403);if(!requireCsrf(b,ss))return json({ok:false,error:'invalid_csrf'},403);const subject=clean(b.subject,180),message=clean(b.message,12000);if(!subject||!message)return json({ok:false,error:'invalid_input'},422);const settings=await getBusinessSettings(),mailer=await buildMailer(settings);if(!mailer)return json({ok:false,error:'smtp_not_configured'},422);const ds=dataStore();const emails=(await listJSONByPrefix(ds,'subscriber:','subscriber-index')).filter(x=>x?.status==='active'&&x.email).map(x=>x.email);let sent=0;const from=`"${settings.email.from_name}" <${settings.email.from_email||settings.email.smtp_user}>`;for(let i=0;i<emails.length;i+=50){const batch=emails.slice(i,i+50);await mailer.sendMail({from,to:settings.email.from_email||settings.email.smtp_user,bcc:batch,subject,text:message}).catch(()=>{});sent+=batch.length;}await auditLog(req,ss,'admin.newsletter.send',{sent,subject});return json({ok:true,sent});
+if(!maySuperAdmin(ss,'admin.newsletter.send'))return json({ok:false,error:'forbidden_super_admin_only'},403);if(!requireCsrf(b,ss))return json({ok:false,error:'invalid_csrf'},403);const subject=clean(b.subject,180),message=clean(b.message,12000);if(!subject||!message)return json({ok:false,error:'invalid_input'},422);const settings=await getBusinessSettings(),mailer=await buildMailer(settings);if(!mailer)return json({ok:false,error:'smtp_not_configured'},422);const ds=dataStore();const emails=(await listJSONByPrefix(ds,'subscriber:','subscriber-index')).filter(x=>x?.status==='active'&&x.email).map(x=>x.email);let sent=0,failed=0;const from=`"${settings.email.from_name}" <${settings.email.from_email||settings.email.smtp_user}>`;for(let i=0;i<emails.length;i+=50){const batch=emails.slice(i,i+50);try{await mailer.sendMail({from,to:settings.email.from_email||settings.email.smtp_user,bcc:batch,subject,text:message});sent+=batch.length;}catch(error){failed+=batch.length;console.warn('newsletter batch failed',error?.message||'unknown_error');}}await auditLog(req,ss,'admin.newsletter.send',{sent,failed,subject});return json({ok:failed===0,sent,failed,error:failed?'newsletter_delivery_failed':undefined},failed?502:200);
   }
 
 

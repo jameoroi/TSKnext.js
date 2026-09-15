@@ -190,13 +190,13 @@ function routeFromPage(file) {
     .filter(Boolean)
     .filter((x) => !(x.startsWith('(') && x.endsWith(')')))
     .map((x) => (x.startsWith('[') && x.endsWith(']') ? `:${x.slice(1, -1)}` : x));
-  return '/' + parts.join('/');
+  return `/${parts.join('/')}`;
 }
 function routeFromApi(file) {
   let rel = path.relative(path.join(root, 'src/app'), file).replaceAll('\\', '/');
   if (!rel.endsWith('/route.ts')) return null;
   rel = rel.slice(0, -'/route.ts'.length);
-  return '/' + rel;
+  return `/${rel}`;
 }
 
 const files = walk(root);
@@ -218,7 +218,7 @@ const apiRoutes = new Set(
 );
 pass('58 application routes', pageRoutes.size === 58, `${pageRoutes.size}`);
 for (const route of expectedPages) pass(`Page ${route}`, pageRoutes.has(route));
-pass('17 API routes', apiRoutes.size === 17, `${apiRoutes.size}`);
+pass('18 API routes', apiRoutes.size === 18, `${apiRoutes.size}`);
 for (const route of expectedApis) pass(`API ${route}`, apiRoutes.has(route));
 
 const apiSource = read('src/legacy-api/api.js');
@@ -298,7 +298,7 @@ for (const forbidden of [
 
 const pkg = JSON.parse(read('package.json'));
 pass('Release version', pkg.version === '6.0.0', pkg.version);
-pass('Next.js 16.3.4', pkg.dependencies?.next === '16.3.4', pkg.dependencies?.next || 'missing');
+pass('Next.js 16.3.5', pkg.dependencies?.next === '16.3.5', pkg.dependencies?.next || 'missing');
 pass(
   'React 19.2',
   String(pkg.dependencies?.react || '').startsWith('19.2'),
@@ -311,6 +311,8 @@ for (const check of checks)
 console.log(`\n${checks.filter((x) => x.ok).length}/${checks.length} checks passed`);
 if (problems.length) {
   console.error('\nSource audit failed:');
-  problems.forEach((p) => console.error(`- ${p}`));
+  problems.forEach((p) => {
+    console.error(`- ${p}`);
+  });
   process.exit(1);
 }

@@ -1,7 +1,5 @@
 'use client';
 
-import Chip from '@mui/material/Chip';
-import LinearProgress from '@mui/material/LinearProgress';
 import { AlertTriangle, CheckCircle2, Database, RefreshCcw, ServerCog } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -81,9 +79,10 @@ export function BackendStatus() {
       aria-label="สถานะระบบข้อมูล"
     >
       {loading && (
-        <LinearProgress
-          color={degraded ? 'warning' : 'success'}
-          sx={{ position: 'absolute', insetInline: 0, top: 0, height: 2 }}
+        <div
+          className={`absolute inset-x-0 top-0 h-0.5 ${degraded ? 'bg-amber-500' : 'bg-emerald-500'}`}
+          role="progressbar"
+          aria-label="กำลังตรวจสอบสถานะระบบ"
         />
       )}
       <div className="mx-auto flex max-w-[1600px] flex-wrap items-center gap-2 text-xs">
@@ -133,13 +132,11 @@ export function BackendStatus() {
                   {key === 'database' ? <Database size={14} /> : <ServerCog size={14} />}
                   <div className="min-w-0">
                     <p className="truncate font-bold">{LABELS[key] || key}</p>
-                    <Chip
-                      size="small"
-                      variant="outlined"
-                      color={ok ? 'success' : 'warning'}
-                      label={typeof value === 'string' ? value : ok ? 'พร้อม' : 'ยังไม่ตั้งค่า'}
-                      sx={{ mt: 0.25, height: 20, fontSize: '0.65rem', '& .MuiChip-label': { px: 0.75 } }}
-                    />
+                    <span
+                      className={`mt-1 inline-flex min-h-5 items-center rounded-full border px-2 text-[10px] font-semibold ${ok ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-amber-200 bg-amber-50 text-amber-800'}`}
+                    >
+                      {typeof value === 'string' ? value : ok ? 'พร้อม' : 'ยังไม่ตั้งค่า'}
+                    </span>
                   </div>
                 </div>
               );

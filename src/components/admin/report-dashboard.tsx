@@ -426,7 +426,8 @@ function ReportTopbar({
   return (
     <div className="report-topbar">
       <div className="report-brand-mark">
-        TS<span>THAISERKIT SUPPLY</span>
+        <span aria-hidden="true">TS</span>
+        <span>THAISERKIT SUPPLY</span>
       </div>
       <label className="report-search">
         <Search size={17} />

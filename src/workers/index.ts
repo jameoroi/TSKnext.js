@@ -1,9 +1,9 @@
 import { Worker } from 'bullmq/dist/esm/classes/worker.js';
-import sharp from 'sharp';
 import { resendClient } from '@/lib/email';
 import { logger } from '@/lib/logger';
 import { getRedis } from '@/lib/redis';
 import { PRODUCT_INDEX, searchClient } from '@/lib/search';
+import { optimizeImage } from '../../workers/image-optimizer';
 import { createDatabaseBackup, restoreDatabaseBackup } from './database-backup';
 
 const connection = getRedis();
@@ -21,11 +21,7 @@ const worker = new Worker(
     }
     if (job.name === 'image.optimize') {
       const input = Buffer.from(String(job.data.base64 || ''), 'base64');
-      const output = await sharp(input)
-        .rotate()
-        .resize({ width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true })
-        .webp({ quality: 84 })
-        .toBuffer();
+      const output = await optimizeImage(input);
       return { bytes: output.length, base64: output.toString('base64') };
     }
     if (job.name === 'email.order') {

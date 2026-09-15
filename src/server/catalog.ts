@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { and, desc, eq, or, sql } from 'drizzle-orm';
+import { and, desc, eq, notInArray, or, sql } from 'drizzle-orm';
 import { headers } from 'next/headers';
 import type { Product } from '@/features/catalog/types';
 import { resolveTenant } from '@/legacy-api/lib/tenants.js';
@@ -11,6 +11,7 @@ import {
   products as productTable,
 } from '@/server/db/schema';
 import { FALLBACK_CATEGORIES } from '@/shared/categories';
+import { HIDDEN_STATES } from '@/shared/product-visibility.mjs';
 import { safePublicLegacy } from './public-legacy-cache';
 
 export type SiteSettings = {
@@ -189,6 +190,7 @@ export async function getProduct(idOrSlug: string) {
             .where(
               and(
                 eq(productTable.tenantId, tid),
+                notInArray(productTable.status, [...HIDDEN_STATES]),
                 or(eq(productTable.id, idOrSlug), eq(productTable.slug, idOrSlug))!,
               ),
             )

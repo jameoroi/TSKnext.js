@@ -37,7 +37,7 @@ export async function scaleImageFile(file: File, maxEdge: number): Promise<File>
       canvas.toBlob(
         (blob) => {
           if (!blob || blob.type !== 'image/webp' || blob.size >= file.size) return resolve(file);
-          const name = (file.name || 'image').replace(/\.[^.]+$/, '') + '.webp';
+          const name = `${(file.name || 'image').replace(/\.[^.]+$/, '')}.webp`;
           resolve(new File([blob], name, { type: 'image/webp', lastModified: Date.now() }));
         },
         'image/webp',

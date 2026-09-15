@@ -17,9 +17,11 @@ async function rowsByIndex(store,indexKey,prefix,limit=20000){
 }
 function chunks(rows,size){const out=[];for(let i=0;i<rows.length;i+=size)out.push(rows.slice(i,i+size));return out;}
 async function invokeBackgroundBackup(req,day,jobToken,tenantId){
+  const cronSecret=String(process.env.CRON_SECRET||'').trim();
+  if(!cronSecret)return false;
   const configured=String(process.env.URL||'').replace(/\/$/,'');
   const origin=configured||new URL(req.url).origin;
-  const response=await fetch(`${origin}/.api/maintenance-backup`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({day,job_token:jobToken,tenant_id:tenantId})});
+  const response=await fetch(`${origin}/api/internal/maintenance-backup`,{method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${cronSecret}`},body:JSON.stringify({day,job_token:jobToken,tenant_id:tenantId})});
   return response.ok;
 }
 async function notifyLowStock(items){
@@ -73,6 +75,19 @@ export async function runBackup(day=new Date().toISOString().slice(0,10),tenantI
   let snapshots=await getJSON(backup,'snapshot-index')||[];snapshots=[...snapshots.filter(x=>x.day!==day),{day,manifest_key:`${prefix}:manifest`}].sort((a,b)=>a.day.localeCompare(b.day));
   while(snapshots.length>14){const old=snapshots.shift(),oldManifest=await getJSON(backup,old.manifest_key);for(const key of oldManifest?.keys||[])await backup.delete(key);}
   await backup.setJSON('snapshot-index',snapshots);await ds.setJSON('backup-meta',{last_backup_at:manifest.completed_at,last_backup_started_at:started.toISOString(),last_backup_by:'background',status:'complete',complete:true,counts:manifest.counts,retention_days:14});await notifyLowStock(low);
+  return manifest;
+}
+
+/** Consume a short-lived scheduled-job token and run only that tenant's backup. */
+export async function runBackupJob({day='',jobToken='',tenantId=''}){
+  const tenant=tenantById(tenantId);
+  if(!tenant)throw new Error(`unknown_backup_tenant:${tenantId}`);
+  const ds=dataStore(tenant),job=await getJSON(ds,`backup-job:${jobToken}`);
+  if(!job||job.tenant_id!==tenant.id||job.day!==day||Number(job.expires_at||0)<Date.now()){
+    throw new Error('invalid_backup_job');
+  }
+  const manifest=await runBackup(day,tenant.id);
+  await ds.delete(`backup-job:${jobToken}`);
   return manifest;
 }
 

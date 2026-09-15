@@ -6,6 +6,7 @@
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
   "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
+  "images": { "binding": "IMAGES" },
   "routes": [
     { "pattern": "jayxtsk.shop", "custom_domain": true },
     { "pattern": "www.jayxtsk.shop", "custom_domain": true }

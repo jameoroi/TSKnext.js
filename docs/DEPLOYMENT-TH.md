@@ -5,7 +5,7 @@
 1. Configure environment variables.
 2. รัน `pnpm db:migrate` เพื่อ apply SQL migrations แบบ checksum-verified.
 3. Deploy Next.js application.
-4. Run worker service separately when BullMQ jobs are enabled.
+4. Run `pnpm worker:install` once, then run the worker service separately when BullMQ jobs are enabled. The worker keeps native `sharp` in `workers/`; it is intentionally excluded from the Next/OpenNext dependency graph.
 5. Configure Cloudflare DNS/WAF/CDN in front if required.
 
 ## Cloudflare/OpenNext

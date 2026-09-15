@@ -4,7 +4,7 @@
 
 | Technology | Role |
 |---|---|
-| Next.js 16.3.4 | Full-stack framework / App Router / RSC / Route Handlers / Server Actions |
+| Next.js 16.3.5 | Full-stack framework / App Router / RSC / Route Handlers / Server Actions |
 | React 19.2.x | UI / Server Components / Suspense |
 | TypeScript 5.9.x | Type safety |
 | Turbopack | Development/build pipeline |

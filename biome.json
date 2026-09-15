@@ -8,6 +8,7 @@
       "!**/.next",
       "!**/.open-next",
       "!**/coverage",
+      "!test-results",
       "!next-env.d.ts",
       "!src/legacy-reference",
       "!src/legacy-api",

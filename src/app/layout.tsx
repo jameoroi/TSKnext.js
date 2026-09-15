@@ -3,6 +3,7 @@ import { Kanit } from 'next/font/google';
 import { Suspense } from 'react';
 import { BusinessStructuredData } from '@/components/seo/business-structured-data';
 import { SiteChrome } from '@/components/site/chrome';
+import { OfflineBanner } from '@/components/site/offline-banner';
 import { getSiteSettings } from '@/server/catalog';
 import { requestOrigin } from '@/server/public-legacy-cache';
 import { Providers } from './providers';
@@ -46,6 +47,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         />
       </head>
       <body className={`${kanit.className} min-h-screen antialiased`}>
+        <OfflineBanner />
         <BusinessStructuredData />
         <Providers>
           <SiteChrome>{children}</SiteChrome>

@@ -11,7 +11,7 @@ export default defineConfig({
     // DevTools renderers, zero page errors on every page — while SSR serves
     // fine), so every interaction test fails there regardless of app code.
     // Testing the production artifact is also what shoppers actually get.
-    command: 'pnpm build && pnpm start',
+    command: 'pnpm build && node scripts/prepare-standalone.mjs && node .next/standalone/server.js',
     url: 'http://127.0.0.1:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 420000,

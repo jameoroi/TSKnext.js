@@ -1,3 +1,6 @@
+packages:
+  - '.'
+
 allowBuilds:
   '@sentry/cli': true
   core-js: true
@@ -6,6 +9,9 @@ allowBuilds:
   msw: true
   protobufjs: true
   workerd: true
+
+ignoredOptionalDependencies:
+  - sharp
 
 overrides:
   undici@5: '>=6.27.0'

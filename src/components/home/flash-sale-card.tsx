@@ -73,7 +73,7 @@ export function FlashSaleCard({ item }: { item: FlashSaleItem }) {
         ) : null}
         {startsAt || endsAt ? (
           <p className="text-[11px] text-slate-400">
-            {[startsAt ? 'เริ่ม ' + startsAt : '', endsAt ? 'ถึง ' + endsAt : ''].filter(Boolean).join(' · ')}
+            {[startsAt ? `เริ่ม ${startsAt}` : '', endsAt ? `ถึง ${endsAt}` : ''].filter(Boolean).join(' · ')}
           </p>
         ) : null}
         <Button className="w-full bg-rose-600 hover:bg-rose-500" onClick={addNow} aria-label="เพิ่มลงตะกร้า">

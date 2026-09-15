@@ -25,6 +25,14 @@ async function requireAdmin(req){
 }
 function csrfOk(b,admin){ return !!admin?.csrf && String(b?.csrf||'')===admin.csrf; }
 function random(n=24){ return crypto.randomBytes(n).toString('hex'); }
+async function marketplaceResponse(res,provider){
+  const payload=await res.json().catch(()=>null);
+  if(!res.ok)throw new Error(`${provider}_http_${res.status}`);
+  if(!payload||typeof payload!=='object')throw new Error(`${provider}_invalid_response`);
+  if(payload.error)throw new Error(`${provider}_upstream_error`);
+  if(payload.code&&String(payload.code)!=='0')throw new Error(`${provider}_upstream_${String(payload.code).slice(0,40)}`);
+  return payload;
+}
 
 async function getBusinessSettings(){
   const saved = await getJSON(dataStore(),'business-settings')||{};
@@ -63,7 +71,7 @@ async function shopeeExchangeToken(cfg, code, shopId){
     method:'POST', headers:{'content-type':'application/json'},
     body: JSON.stringify({ code, shop_id: Number(shopId), partner_id: Number(cfg.partner_id) })
   });
-  return res.json();
+  return marketplaceResponse(res,'shopee');
 }
 async function shopeeRefreshToken(cfg,token){
   const timestamp=Math.floor(Date.now()/1000),path='/api/v2/auth/access_token/get',base=`${cfg.partner_id}${path}${timestamp}`,sign=shopeeSign(cfg.partner_key,base),qs=new URLSearchParams({partner_id:cfg.partner_id,timestamp,sign});
@@ -77,7 +85,7 @@ async function shopeeCall(cfg, token, apiPath, extraQuery={}, method='GET', body
   const opt = { method, headers:{'content-type':'application/json'} };
   if(method==='POST') opt.body = JSON.stringify(body||{});
   const res = await fetch(`${SHOPEE_HOST}${apiPath}?${qs}`, opt);
-  return res.json();
+  return marketplaceResponse(res,'shopee');
 }
 
 // Shopee: push a new stock number for one item (model_id=0 if the product has no variations)
@@ -106,7 +114,7 @@ async function lazadaExchangeToken(cfg, code){
   const params = { app_key: cfg.app_key, timestamp: String(Date.now()), sign_method:'sha256', code };
   params.sign = lazadaSign(cfg.app_secret, path, params);
   const res = await fetch(`${LAZADA_HOST}${path}?${new URLSearchParams(params)}`);
-  return res.json();
+  return marketplaceResponse(res,'lazada');
 }
 async function lazadaRefreshToken(cfg,refreshToken){
   const path='/auth/token/refresh',params={app_key:cfg.app_key,timestamp:String(Date.now()),sign_method:'sha256',refresh_token:refreshToken};params.sign=lazadaSign(cfg.app_secret,path,params);const res=await fetch(`${LAZADA_HOST}${path}?${new URLSearchParams(params)}`);return res.json();
@@ -115,7 +123,7 @@ async function lazadaCall(cfg, token, apiPath, extraParams={}){
   const params = { app_key: cfg.app_key, timestamp: String(Date.now()), sign_method:'sha256', access_token: token.access_token, ...extraParams };
   params.sign = lazadaSign(cfg.app_secret, apiPath, params);
   const res = await fetch(`${LAZADA_HOST}${apiPath}?${new URLSearchParams(params)}`);
-  return res.json();
+  return marketplaceResponse(res,'lazada');
 }
 function xmlEscape(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 // Upstream OAuth errors are reflected into an HTML page served from the admin
@@ -241,7 +249,7 @@ async function handleMarketplaceRequest(req) {
     const id = String(b.id||'').trim();
     const products = await catalogMarketplaceRows(ds);
     const p = products[id]; if(!p) return json({ok:false,error:'product_not_found'},404);
-    const result = { id, shopee:null, lazada:null };
+    const result = { id, shopee:null, lazada:null }; let failed=false;
     if(p.shopee_item_id){
       const shTok = await validShopeeToken(ds,settings.shopee);
       if(shTok){
@@ -249,7 +257,7 @@ async function handleMarketplaceRequest(req) {
           const r1 = await shopeeUpdateStock(settings.shopee, shTok, p.shopee_item_id, p.shopee_model_id, p.stock);
           const r2 = await shopeeSetActive(settings.shopee, shTok, p.shopee_item_id, p.active);
           result.shopee = { stock_result:r1, active_result:r2 };
-        }catch(e){ result.shopee = { error:String(e) }; }
+        }catch{ failed=true; result.shopee = { error:'shopee_sync_failed' }; }
       } else result.shopee = { error:'shopee_not_connected' };
     }
     if(p.lazada_seller_sku){
@@ -259,10 +267,10 @@ async function handleMarketplaceRequest(req) {
           const r1 = await lazadaUpdateStock(settings.lazada, lzTok, p.lazada_seller_sku, p.stock);
           const r2 = await lazadaSetActive(settings.lazada, lzTok, p.lazada_seller_sku, p.active);
           result.lazada = { stock_result:r1, active_result:r2 };
-        }catch(e){ result.lazada = { error:String(e) }; }
+        }catch{ failed=true; result.lazada = { error:'lazada_sync_failed' }; }
       } else result.lazada = { error:'lazada_not_connected' };
     }
-    return json({ok:true, result});
+    return json({ok:!failed, result, ...(failed?{error:'marketplace_sync_failed'}:{})}, failed?502:200);
   }
   if(action==='products.sync_all' && req.method==='POST'){
     if(!admin) return json({ok:false,error:'unauthorized'},401);
@@ -270,7 +278,7 @@ async function handleMarketplaceRequest(req) {
     const products = await catalogMarketplaceRows(ds);
     const shTok = await validShopeeToken(ds,settings.shopee);
     const lzTok = await validLazadaToken(ds,settings.lazada);
-    const results = [];
+    const results = []; let failed=0;
     for(const id of Object.keys(products)){
       const p = products[id]; const r = { id, shopee:null, lazada:null };
       if(p.shopee_item_id && shTok){
@@ -279,7 +287,7 @@ async function handleMarketplaceRequest(req) {
             stock_result: await shopeeUpdateStock(settings.shopee, shTok, p.shopee_item_id, p.shopee_model_id, p.stock),
             active_result: await shopeeSetActive(settings.shopee, shTok, p.shopee_item_id, p.active)
           };
-        }catch(e){ r.shopee = { error:String(e) }; }
+        }catch{ failed++; r.shopee = { error:'shopee_sync_failed' }; }
       }
       if(p.lazada_seller_sku && lzTok){
         try{
@@ -287,11 +295,11 @@ async function handleMarketplaceRequest(req) {
             stock_result: await lazadaUpdateStock(settings.lazada, lzTok, p.lazada_seller_sku, p.stock),
             active_result: await lazadaSetActive(settings.lazada, lzTok, p.lazada_seller_sku, p.active)
           };
-        }catch(e){ r.lazada = { error:String(e) }; }
+        }catch{ failed++; r.lazada = { error:'lazada_sync_failed' }; }
       }
       results.push(r);
     }
-    return json({ok:true, count:results.length, results});
+    return json({ok:failed===0, count:results.length, failed, results, ...(failed?{error:'marketplace_sync_failed'}:{})}, failed?502:200);
   }
 
   return json({ok:false,error:'not_found'},404);
