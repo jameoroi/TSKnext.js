@@ -47,6 +47,9 @@ const nextConfig: NextConfig = {
     // OpenNext routes image optimization to the Cloudflare Images binding
     // configured as IMAGES in wrangler.jsonc.
     formats: ['image/avif', 'image/webp'],
+    // Next 16 accepts only q=75 unless listed. 90 is the product zoom/full-view
+    // source (product-gallery.tsx); without it those requests were refused.
+    qualities: [75, 90],
     // Deliberately open until the media-mirroring backfill completes:
     // supplier CSV rows and legacy records hotlink arbitrary image hosts,
     // and narrowing this to an allow-list would 400 every unmirrored photo.
