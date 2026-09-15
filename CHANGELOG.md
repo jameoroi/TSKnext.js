@@ -2,6 +2,8 @@
 
 ## 6.0.0
 
+- fix: serve product media from R2 binding and match production config (b0a89db)
+- docs(changelog): update generated changelog (a68cb86)
 - fix: restore Cloudflare Workers build after Node 26 upgrade (bc27e3b)
 - docs(changelog): update generated changelog (2041413)
 - chore: upgrade Next.js and Windows Node 26 support (4d569b4)
