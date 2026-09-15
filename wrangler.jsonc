@@ -7,13 +7,14 @@
   "workers_dev": true,
   "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
   "images": { "binding": "IMAGES" },
+  "r2_buckets": [{ "binding": "PRODUCT_MEDIA", "bucket_name": "product-media" }],
   "routes": [
     { "pattern": "jayxtsk.shop", "custom_domain": true },
     { "pattern": "www.jayxtsk.shop", "custom_domain": true }
   ],
   "vars": {
-    "APP_ORIGIN": "https://thaiserxtra.jame-orori.workers.dev",
-    "NEXT_PUBLIC_APP_ORIGIN": "https://thaiserxtra.jame-orori.workers.dev"
+    "APP_ORIGIN": "https://jayxtsk.shop",
+    "NEXT_PUBLIC_APP_ORIGIN": "https://jayxtsk.shop"
   },
   "observability": { "enabled": true }
 }

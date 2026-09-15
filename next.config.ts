@@ -29,6 +29,12 @@ const nextConfig: NextConfig = {
   // the existing webpack/OpenNext build path.
   reactCompiler: true,
   poweredByHeader: false,
+  // Stamp the deployed commit so /api/health can be matched against GitHub.
+  // Workers Builds injects WORKERS_CI_COMMIT_SHA; GitHub Actions sets GITHUB_SHA.
+  env: {
+    GIT_COMMIT_SHA:
+      process.env.WORKERS_CI_COMMIT_SHA || process.env.GITHUB_SHA || process.env.GIT_COMMIT_SHA || '',
+  },
   compress: true,
   // NOTE (Cloudflare Workers): Cache Components rely on setTimeout()
   // semantics the Workers runtime cannot guarantee, which hangs every SSR

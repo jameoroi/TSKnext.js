@@ -1,3 +1,4 @@
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { NextResponse } from 'next/server';
 import { presignS3Url } from '@/legacy-api/lib/s3-presign.js';
 import { isMediaKey } from '@/shared/media-key.mjs';
@@ -7,6 +8,35 @@ function encodedPath(key: string) {
     .split('/')
     .map((part) => encodeURIComponent(part))
     .join('/');
+}
+
+type R2ObjectBody = {
+  body: ReadableStream;
+  size: number;
+  httpEtag?: string;
+  httpMetadata?: { contentType?: string };
+};
+
+// Workers Builds has no local .env, so the S3 credentials a laptop build inlines
+// are absent in production. The PRODUCT_MEDIA R2 binding (wrangler.jsonc) reads
+// the same bucket without credentials; outside Workers it is simply missing.
+async function fromR2Binding(key: string) {
+  let bucket: { get(key: string): Promise<R2ObjectBody | null> } | undefined;
+  try {
+    const { env } = await getCloudflareContext({ async: true });
+    bucket = (env as unknown as { PRODUCT_MEDIA?: typeof bucket }).PRODUCT_MEDIA;
+  } catch {
+    return null;
+  }
+  if (!bucket) return null;
+  const object = await bucket.get(key);
+  if (!object) return null;
+  const headers = new Headers();
+  headers.set('content-type', object.httpMetadata?.contentType || 'application/octet-stream');
+  headers.set('cache-control', 'public, max-age=31536000, immutable');
+  headers.set('content-length', String(object.size));
+  if (object.httpEtag) headers.set('etag', object.httpEtag);
+  return new Response(object.body, { status: 200, headers });
 }
 
 async function fromSupabase(key: string) {
@@ -31,6 +61,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ key
   const { key: parts } = await params;
   const key = (parts || []).join('/').replace(/^\/+/, '');
   if (!isMediaKey(key)) return NextResponse.json({ ok: false, error: 'bad_media_key' }, { status: 400 });
+
+  const fromBinding = await fromR2Binding(key);
+  if (fromBinding) return fromBinding;
 
   const endpoint = String(process.env.MEDIA_S3_ENDPOINT || process.env.S3_ENDPOINT || '').replace(/\/$/, '');
   const bucket = String(process.env.MEDIA_BUCKET || process.env.S3_BUCKET || '');
