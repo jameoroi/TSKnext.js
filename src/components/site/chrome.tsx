@@ -14,19 +14,14 @@ import { TrustStrip } from './trust-strip';
 
 const APP_PREFIXES = ['/admin', '/report', '/agent', '/supplier', '/owner', '/operations'];
 
+// The page itself is rendered once. This used to sit inside a Suspense whose
+// fallback also rendered `children`, so dynamic pages streamed their content
+// twice (two H1s and two Product JSON-LD blocks per product page) and paid for
+// both renders on the Workers CPU budget. usePathname needs no boundary; the
+// components that read search params (PromoLink in the header, LoginForm in the
+// auth modal) keep their own Suspense boundaries.
 export function SiteChrome({ children }: { children: React.ReactNode }) {
-  return (
-    <Suspense
-      fallback={
-        <>
-          {children}
-          <ToastHost />
-        </>
-      }
-    >
-      <ChromeShell>{children}</ChromeShell>
-    </Suspense>
-  );
+  return <ChromeShell>{children}</ChromeShell>;
 }
 
 function ChromeShell({ children }: { children: React.ReactNode }) {
@@ -47,7 +42,9 @@ function ChromeShell({ children }: { children: React.ReactNode }) {
       <Footer />
       <StorefrontChrome />
       <QuickViewModal />
-      <AuthModal />
+      <Suspense fallback={null}>
+        <AuthModal />
+      </Suspense>
       <CustomerChatWidget />
       <PwaInstallPrompt />
       <ToastHost />

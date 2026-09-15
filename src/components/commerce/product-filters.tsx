@@ -1,10 +1,10 @@
 'use client';
 
-import { RotateCcw, Search, SlidersHorizontal } from 'lucide-react';
+import { Check, ChevronsUpDown, RotateCcw, Search, SlidersHorizontal, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Collapsible } from 'radix-ui';
-import { useState } from 'react';
+import { Collapsible, Popover } from 'radix-ui';
+import { useMemo, useRef, useState } from 'react';
 import { CategoryIcon } from '@/components/site/category-icon';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Field, Select } from '@/components/ui/field';
@@ -207,7 +207,7 @@ export function ProductFilters(props: Props) {
             </span>
           </Collapsible.Trigger>
           {groups.brand && (
-            <BrandCheckboxes
+            <BrandPicker
               brands={props.brands}
               counts={props.brandCounts}
               value={brand}
@@ -349,7 +349,13 @@ export function ProductFilters(props: Props) {
   );
 }
 
-function BrandCheckboxes({
+/**
+ * Searchable brand dropdown (Radix Popover + Tailwind). The trigger shows the
+ * chosen brand; typing filters the list by name, the most-stocked brands come
+ * first, arrow keys move and Enter picks. Single choice, same `brand` URL value
+ * the checkbox list used, so links and the server query are unchanged.
+ */
+function BrandPicker({
   brands,
   counts,
   value,
@@ -360,43 +366,202 @@ function BrandCheckboxes({
   value: string;
   onPick: (next: string) => void;
 }) {
-  const [expanded, setExpanded] = useState(false);
-  const shown = expanded ? brands : brands.slice(0, VISIBLE_BRANDS);
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [cursor, setCursor] = useState(0);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  const sorted = useMemo(
+    () =>
+      [...brands].sort(
+        (a, b) => (counts[b.name] ?? -1) - (counts[a.name] ?? -1) || a.name.localeCompare(b.name, 'th'),
+      ),
+    [brands, counts],
+  );
+  const needle = query.trim().toLocaleLowerCase('th');
+  const matches = needle ? sorted.filter((b) => b.name.toLocaleLowerCase('th').includes(needle)) : sorted;
+  // Row 0 is "all brands"; brand rows follow.
+  const rows = [{ id: '', name: '' }, ...matches];
+
+  const pick = (next: string) => {
+    onPick(next);
+    setOpen(false);
+    setQuery('');
+  };
+  const move = (next: number) => {
+    const index = Math.max(0, Math.min(rows.length - 1, next));
+    setCursor(index);
+    listRef.current
+      ?.querySelector<HTMLElement>(`[data-row="${index}"]`)
+      ?.scrollIntoView({ block: 'nearest' });
+  };
+
   return (
-    <fieldset className="mt-2 grid gap-0.5">
-      <legend className="sr-only">กรองตามแบรนด์</legend>
-      {shown.map((b) => {
-        const checked = value === b.name;
-        const count = counts[b.name];
-        return (
-          <label
-            key={b.id}
-            className={`flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm transition hover:bg-slate-50 ${checked ? 'bg-emerald-50 font-bold text-emerald-800' : 'text-slate-700'}`}
+    <div className="mt-2">
+      <Popover.Root
+        open={open}
+        onOpenChange={(next) => {
+          setOpen(next);
+          if (next)
+            setCursor(
+              Math.max(
+                0,
+                rows.findIndex((row) => row.name === value),
+              ),
+            );
+          else setQuery('');
+        }}
+      >
+        <div className="relative">
+          <Popover.Trigger asChild>
+            <button
+              type="button"
+              aria-label={value ? `แบรนด์: ${value} (เปลี่ยน)` : 'เลือกแบรนด์'}
+              className={cn(
+                'flex h-11 w-full items-center gap-2 rounded-xl border bg-white px-3 text-left text-sm shadow-sm transition hover:border-emerald-600 focus-visible:outline-2 focus-visible:outline-emerald-700 data-[state=open]:border-emerald-700 data-[state=open]:ring-2 data-[state=open]:ring-emerald-700/15',
+                value ? 'pr-16 font-bold text-emerald-900' : 'text-slate-500',
+              )}
+            >
+              <span className="min-w-0 flex-1 truncate">{value || 'ทุกแบรนด์'}</span>
+              {value && counts[value] != null && (
+                <span className="shrink-0 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-800">
+                  {counts[value].toLocaleString('th-TH')}
+                </span>
+              )}
+              <ChevronsUpDown className="size-4 shrink-0 text-slate-400" aria-hidden="true" />
+            </button>
+          </Popover.Trigger>
+          {value && (
+            <button
+              type="button"
+              onClick={() => pick('')}
+              aria-label="ล้างแบรนด์"
+              className="absolute right-9 top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+            >
+              <X className="size-3.5" />
+            </button>
+          )}
+        </div>
+        <Popover.Portal>
+          <Popover.Content
+            align="start"
+            sideOffset={6}
+            collisionPadding={12}
+            className="z-50 w-[var(--radix-popover-trigger-width)] min-w-64 overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-800 shadow-2xl data-[state=open]:animate-in data-[state=open]:fade-in-0"
+            onOpenAutoFocus={(event) => {
+              event.preventDefault();
+              (event.currentTarget as HTMLElement).querySelector<HTMLInputElement>('input')?.focus();
+            }}
           >
-            <input
-              type="checkbox"
-              checked={checked}
-              onChange={() => onPick(checked ? '' : b.name)}
-              className="size-4 shrink-0 accent-emerald-800"
-            />
-            <span className="min-w-0 flex-1 truncate">{b.name}</span>
-            {count != null && (
-              <span className="shrink-0 text-xs text-slate-400">{count.toLocaleString('th-TH')}</span>
-            )}
-          </label>
-        );
-      })}
-      {!brands.length && <p className="px-2 py-1 text-sm text-slate-400">ยังไม่มีแบรนด์</p>}
-      {brands.length > VISIBLE_BRANDS && (
-        <button
-          type="button"
-          onClick={() => setExpanded((v) => !v)}
-          className="mt-1 px-2 py-1 text-left text-sm font-bold text-emerald-800 hover:underline"
-        >
-          {expanded ? 'แสดงน้อยลง ↑' : `แสดงเพิ่มเติม ↓ (${brands.length - VISIBLE_BRANDS})`}
-        </button>
-      )}
-    </fieldset>
+            <div className="relative border-b border-slate-100 p-2">
+              <Search className="pointer-events-none absolute left-5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+              <input
+                value={query}
+                onChange={(event) => {
+                  setQuery(event.target.value);
+                  setCursor(event.target.value.trim() ? 1 : 0);
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === 'ArrowDown') {
+                    event.preventDefault();
+                    move(cursor + 1);
+                  } else if (event.key === 'ArrowUp') {
+                    event.preventDefault();
+                    move(cursor - 1);
+                  } else if (event.key === 'Enter') {
+                    event.preventDefault();
+                    const row = rows[cursor];
+                    if (row) pick(row.name);
+                  }
+                }}
+                placeholder="ค้นหาแบรนด์…"
+                aria-label="ค้นหาแบรนด์"
+                role="combobox"
+                aria-expanded={open}
+                aria-controls="brand-picker-list"
+                aria-activedescendant={`brand-row-${cursor}`}
+                className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 text-sm outline-none focus:border-emerald-700 focus:bg-white"
+              />
+            </div>
+            <div
+              ref={listRef}
+              id="brand-picker-list"
+              role="listbox"
+              aria-label="แบรนด์"
+              className="max-h-72 overflow-y-auto overscroll-contain p-1.5"
+            >
+              {rows.map((row, index) => {
+                const selected = row.name === value;
+                const count = row.name ? counts[row.name] : undefined;
+                return (
+                  <div
+                    key={row.id || '__all'}
+                    id={`brand-row-${index}`}
+                    data-row={index}
+                    role="option"
+                    aria-selected={selected}
+                    tabIndex={-1}
+                    onMouseEnter={() => setCursor(index)}
+                    onClick={() => pick(row.name)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') pick(row.name);
+                    }}
+                    className={cn(
+                      'flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm',
+                      index === cursor && 'bg-emerald-50',
+                      selected ? 'font-bold text-emerald-800' : 'text-slate-700',
+                    )}
+                  >
+                    <Check
+                      className={cn(
+                        'size-4 shrink-0 text-emerald-700',
+                        selected ? 'opacity-100' : 'opacity-0',
+                      )}
+                      aria-hidden="true"
+                    />
+                    <span className="min-w-0 flex-1 truncate">{row.name || 'ทุกแบรนด์'}</span>
+                    {count != null && (
+                      <span className="shrink-0 text-xs text-slate-400">{count.toLocaleString('th-TH')}</span>
+                    )}
+                  </div>
+                );
+              })}
+              {matches.length === 0 && (
+                <p className="px-3 py-6 text-center text-sm text-slate-400">
+                  {brands.length ? `ไม่พบแบรนด์ "${query.trim()}"` : 'ยังไม่มีแบรนด์'}
+                </p>
+              )}
+            </div>
+            <p className="border-t border-slate-100 px-3 py-2 text-[11px] text-slate-400">
+              {matches.length.toLocaleString('th-TH')} จาก {brands.length.toLocaleString('th-TH')} แบรนด์ · ↑↓
+              เลือก · Enter ยืนยัน
+            </p>
+          </Popover.Content>
+        </Popover.Portal>
+      </Popover.Root>
+      {/* The five most-stocked brands stay one tap away under the dropdown. */}
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {sorted.slice(0, VISIBLE_BRANDS).map((b) => {
+          const active = value === b.name;
+          return (
+            <button
+              key={b.id}
+              type="button"
+              onClick={() => pick(active ? '' : b.name)}
+              aria-pressed={active}
+              className={cn(
+                'rounded-full border px-2.5 py-1 text-xs transition',
+                active
+                  ? 'border-emerald-700 bg-emerald-700 font-bold text-white'
+                  : 'border-slate-200 bg-white text-slate-600 hover:border-emerald-600 hover:text-emerald-800',
+              )}
+            >
+              {b.name}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
