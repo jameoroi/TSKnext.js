@@ -41,6 +41,9 @@ const nextConfig: NextConfig = {
   // page. Keep it off on this target; dynamic routes use force-dynamic.
   cacheComponents: false,
   images: {
+    // Own /media images bypass /_next/image (a Worker cannot fetch its own domain).
+    loader: 'custom',
+    loaderFile: './src/lib/image-loader.ts',
     // OpenNext routes image optimization to the Cloudflare Images binding
     // configured as IMAGES in wrangler.jsonc.
     formats: ['image/avif', 'image/webp'],
