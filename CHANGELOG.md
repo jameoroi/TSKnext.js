@@ -2,6 +2,8 @@
 
 ## 6.0.0
 
+- fix(edge): validate an older build's page copy with a sample of assets (1de8470)
+- docs(changelog): update generated changelog (da33ad9)
 - fix(storefront): overlays take turns with the moving rows; home shelves no longer render empty (881cc17)
 - docs(changelog): update generated changelog (383f236)
 - fix(media): admin uploads read back through the R2 binding; feat(payments): SlipMate slip verification (1293d8f)
@@ -91,5 +93,3 @@
 - docs(changelog): update generated changelog (0b6dee3)
 - fix(e2e): referral stub matches the real client contract (GET query) (e999e01)
 - docs(changelog): update generated changelog (0fce925)
-- fix(e2e): make kit entry SSR-visible, pin sw version, keep failure traces (c89598e)
-- docs(changelog): update generated changelog (d8531dc)
