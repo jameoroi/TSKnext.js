@@ -3,6 +3,7 @@
 import { RotateCcw, Search, SlidersHorizontal } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Collapsible } from 'radix-ui';
 import { useState } from 'react';
 import { CategoryIcon } from '@/components/site/category-icon';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -95,231 +96,231 @@ export function ProductFilters(props: Props) {
         </form>
       </search>
 
-      <section>
-        <button
-          type="button"
-          onClick={() => toggle('category')}
-          aria-expanded={groups.category}
-          className="flex w-full items-center justify-between py-1 text-left font-bold"
-        >
-          หมวดหมู่สินค้า
-          <span aria-hidden="true" className={`transition ${groups.category ? '' : '-rotate-90'}`}>
-            ▾
-          </span>
-        </button>
-        {groups.category && (
-          <div className="mt-2 grid gap-1 text-sm">
-            <button
-              type="button"
-              onClick={() => {
-                setCategory('');
-                apply({ category: '' });
-              }}
-              className={`flex items-center justify-between rounded-lg px-2 py-1.5 text-left hover:bg-slate-50 ${!category ? 'font-bold text-emerald-800' : ''}`}
-            >
-              ทั้งหมด
-            </button>
-            {props.categories.map((c) => {
-              const count = props.facetCounts[c.name] ?? c.product_count ?? null;
-              const subs = subcategoriesForKey(c.key);
-              const active = category === c.key;
-              const pickSub = (query: string) => {
-                setQ(query);
-                apply({ q: query });
-              };
-              return (
-                <div key={c.key} className="group/cat relative">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const next = active ? '' : c.key;
-                      setCategory(next);
-                      apply({ category: next });
-                    }}
-                    aria-current={active}
-                    aria-expanded={subs.length > 0 ? active : undefined}
-                    className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left hover:bg-slate-50 ${active ? 'bg-emerald-50 font-bold text-emerald-800' : ''}`}
-                  >
-                    <CategoryIcon
-                      icon={c.icon}
-                      categoryKey={c.key}
-                      className="size-5 shrink-0 text-emerald-700"
-                    />
-                    <span className="min-w-0 flex-1 truncate">{c.name}</span>
-                    <span className="shrink-0 text-xs text-slate-400">
-                      {count != null ? count.toLocaleString('th-TH') : '›'}
-                    </span>
-                  </button>
-                  {/* มือถือ/ทัช: กางหมวดย่อยด้านล่างเมื่อแตะเลือก — เดสก์ท็อปใช้ flyout ด้านขวาแทน */}
-                  {active && subs.length > 0 && (
-                    <div className="ml-3 flex flex-wrap gap-x-3 gap-y-1 border-l border-emerald-100 py-1.5 pl-3 lg:hidden">
-                      {subs.map((s) => (
-                        <button
-                          key={s.query}
-                          type="button"
-                          onClick={() => pickSub(s.query)}
-                          className="text-xs text-slate-500 hover:text-emerald-800 hover:underline"
-                        >
-                          {s.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  {/* เดสก์ท็อป: hover แล้วแผงหมวดย่อยกางออกด้านขวาแบบ bar (mega menu) */}
-                  {subs.length > 0 && (
-                    <div className="invisible absolute left-full top-0 z-30 ml-2 hidden w-60 opacity-0 transition-all duration-150 group-hover/cat:visible group-hover/cat:opacity-100 group-focus-within/cat:visible group-focus-within/cat:opacity-100 lg:block">
-                      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
-                        <p className="border-b border-slate-100 bg-slate-50/70 px-4 py-2.5 text-sm font-black text-emerald-950">
-                          {c.name}
-                        </p>
-                        <div className="grid gap-0.5 p-2">
-                          {subs.map((s) => (
-                            <button
-                              key={s.query}
-                              type="button"
-                              onClick={() => pickSub(s.query)}
-                              className="truncate rounded-lg px-3 py-2 text-left text-sm text-slate-600 transition-colors hover:bg-emerald-50 hover:text-emerald-800"
-                            >
-                              {s.label}
-                            </button>
-                          ))}
+      <Collapsible.Root asChild open={groups.category} onOpenChange={() => toggle('category')}>
+        <section>
+          <Collapsible.Trigger
+            type="button"
+            className="flex w-full items-center justify-between py-1 text-left font-bold"
+          >
+            หมวดหมู่สินค้า
+            <span aria-hidden="true" className={`transition ${groups.category ? '' : '-rotate-90'}`}>
+              ▾
+            </span>
+          </Collapsible.Trigger>
+          {groups.category && (
+            <div className="mt-2 grid gap-1 text-sm">
+              <button
+                type="button"
+                onClick={() => {
+                  setCategory('');
+                  apply({ category: '' });
+                }}
+                className={`flex items-center justify-between rounded-lg px-2 py-1.5 text-left hover:bg-slate-50 ${!category ? 'font-bold text-emerald-800' : ''}`}
+              >
+                ทั้งหมด
+              </button>
+              {props.categories.map((c) => {
+                const count = props.facetCounts[c.name] ?? c.product_count ?? null;
+                const subs = subcategoriesForKey(c.key);
+                const active = category === c.key;
+                const pickSub = (query: string) => {
+                  setQ(query);
+                  apply({ q: query });
+                };
+                return (
+                  <div key={c.key} className="group/cat relative">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = active ? '' : c.key;
+                        setCategory(next);
+                        apply({ category: next });
+                      }}
+                      aria-current={active}
+                      aria-expanded={subs.length > 0 ? active : undefined}
+                      className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left hover:bg-slate-50 ${active ? 'bg-emerald-50 font-bold text-emerald-800' : ''}`}
+                    >
+                      <CategoryIcon
+                        icon={c.icon}
+                        categoryKey={c.key}
+                        className="size-5 shrink-0 text-emerald-700"
+                      />
+                      <span className="min-w-0 flex-1 truncate">{c.name}</span>
+                      <span className="shrink-0 text-xs text-slate-400">
+                        {count != null ? count.toLocaleString('th-TH') : '›'}
+                      </span>
+                    </button>
+                    {/* มือถือ/ทัช: กางหมวดย่อยด้านล่างเมื่อแตะเลือก — เดสก์ท็อปใช้ flyout ด้านขวาแทน */}
+                    {active && subs.length > 0 && (
+                      <div className="ml-3 flex flex-wrap gap-x-3 gap-y-1 border-l border-emerald-100 py-1.5 pl-3 lg:hidden">
+                        {subs.map((s) => (
+                          <button
+                            key={s.query}
+                            type="button"
+                            onClick={() => pickSub(s.query)}
+                            className="text-xs text-slate-500 hover:text-emerald-800 hover:underline"
+                          >
+                            {s.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {/* เดสก์ท็อป: hover แล้วแผงหมวดย่อยกางออกด้านขวาแบบ bar (mega menu) */}
+                    {subs.length > 0 && (
+                      <div className="invisible absolute left-full top-0 z-30 ml-2 hidden w-60 opacity-0 transition-all duration-150 group-hover/cat:visible group-hover/cat:opacity-100 group-focus-within/cat:visible group-focus-within/cat:opacity-100 lg:block">
+                        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+                          <p className="border-b border-slate-100 bg-slate-50/70 px-4 py-2.5 text-sm font-black text-emerald-950">
+                            {c.name}
+                          </p>
+                          <div className="grid gap-0.5 p-2">
+                            {subs.map((s) => (
+                              <button
+                                key={s.query}
+                                type="button"
+                                onClick={() => pickSub(s.query)}
+                                className="truncate rounded-lg px-3 py-2 text-left text-sm text-slate-600 transition-colors hover:bg-emerald-50 hover:text-emerald-800"
+                              >
+                                {s.label}
+                              </button>
+                            ))}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
-
-      <section>
-        <button
-          type="button"
-          onClick={() => toggle('brand')}
-          aria-expanded={groups.brand}
-          className="flex w-full items-center justify-between py-1 text-left font-bold"
-        >
-          แบรนด์
-          <span aria-hidden="true" className={`transition ${groups.brand ? '' : '-rotate-90'}`}>
-            ▾
-          </span>
-        </button>
-        {groups.brand && (
-          <BrandCheckboxes
-            brands={props.brands}
-            counts={props.brandCounts}
-            value={brand}
-            onPick={(next) => {
-              setBrand(next);
-              apply({ brand: next });
-            }}
-          />
-        )}
-      </section>
-
-      <section>
-        <button
-          type="button"
-          onClick={() => toggle('price')}
-          aria-expanded={groups.price}
-          className="flex w-full items-center justify-between py-1 text-left font-bold"
-        >
-          ช่วงราคา (บาท)
-          <span aria-hidden="true" className={`transition ${groups.price ? '' : '-rotate-90'}`}>
-            ▾
-          </span>
-        </button>
-        {groups.price && (
-          <div className="mt-2 space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="min-w-0 flex-1">
-                <label className="sr-only" htmlFor="catalog-min">
-                  ราคาต่ำสุด
-                </label>
-                <Input
-                  id="catalog-min"
-                  value={minPrice}
-                  onChange={(e) => setMinPrice(e.target.value.replace(/[^0-9]/g, ''))}
-                  inputMode="numeric"
-                  placeholder="ขั้นต่ำ"
-                />
-              </div>
-              <span aria-hidden="true" className="text-slate-400">
-                –
-              </span>
-              <div className="min-w-0 flex-1">
-                <label className="sr-only" htmlFor="catalog-max">
-                  ราคาสูงสุด
-                </label>
-                <Input
-                  id="catalog-max"
-                  value={maxPrice}
-                  onChange={(e) => setMaxPrice(e.target.value.replace(/[^0-9]/g, ''))}
-                  inputMode="numeric"
-                  placeholder="สูงสุด"
-                />
-              </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
-            <div>
-              <label className="sr-only" htmlFor="catalog-ceiling">
-                เพดานราคาสูงสุด
-              </label>
-              <input
-                id="catalog-ceiling"
-                type="range"
-                min={0}
-                max={PRICE_CEILING}
-                step={100}
-                value={Math.min(PRICE_CEILING, sliderValue)}
-                onChange={(e) => {
-                  const v = Number(e.target.value);
-                  setMaxPrice(v >= PRICE_CEILING ? '' : String(v));
-                }}
-                className="w-full accent-emerald-800"
-              />
-              <div className="flex justify-between text-[11px] text-slate-400">
-                <span>0</span>
-                <span>{maxPrice ? `≤ ${Number(maxPrice).toLocaleString('th-TH')} ฿` : 'ไม่จำกัด'}</span>
-              </div>
-            </div>
-          </div>
-        )}
-      </section>
+          )}
+        </section>
+      </Collapsible.Root>
 
-      <section>
-        <button
-          type="button"
-          onClick={() => toggle('status')}
-          aria-expanded={groups.status}
-          className="flex w-full items-center justify-between py-1 text-left font-bold"
-        >
-          สถานะ
-          <span aria-hidden="true" className={`transition ${groups.status ? '' : '-rotate-90'}`}>
-            ▾
-          </span>
-        </button>
-        {groups.status && (
-          <div className="mt-2">
-            <label className="sr-only" htmlFor="catalog-status">
-              สถานะสินค้า
-            </label>
-            <Select
-              id="catalog-status"
-              value={status}
-              onChange={(e) => {
-                setStatus(e.target.value);
-                apply({ status: e.target.value });
+      <Collapsible.Root asChild open={groups.brand} onOpenChange={() => toggle('brand')}>
+        <section>
+          <Collapsible.Trigger
+            type="button"
+            className="flex w-full items-center justify-between py-1 text-left font-bold"
+          >
+            แบรนด์
+            <span aria-hidden="true" className={`transition ${groups.brand ? '' : '-rotate-90'}`}>
+              ▾
+            </span>
+          </Collapsible.Trigger>
+          {groups.brand && (
+            <BrandCheckboxes
+              brands={props.brands}
+              counts={props.brandCounts}
+              value={brand}
+              onPick={(next) => {
+                setBrand(next);
+                apply({ brand: next });
               }}
-            >
-              <option value="">ทั้งหมด</option>
-              <option value="สินค้าลดราคา">สินค้าลดราคา</option>
-              <option value="สินค้าใหม่">สินค้าใหม่</option>
-            </Select>
-          </div>
-        )}
-      </section>
+            />
+          )}
+        </section>
+      </Collapsible.Root>
+
+      <Collapsible.Root asChild open={groups.price} onOpenChange={() => toggle('price')}>
+        <section>
+          <Collapsible.Trigger
+            type="button"
+            className="flex w-full items-center justify-between py-1 text-left font-bold"
+          >
+            ช่วงราคา (บาท)
+            <span aria-hidden="true" className={`transition ${groups.price ? '' : '-rotate-90'}`}>
+              ▾
+            </span>
+          </Collapsible.Trigger>
+          {groups.price && (
+            <div className="mt-2 space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="min-w-0 flex-1">
+                  <label className="sr-only" htmlFor="catalog-min">
+                    ราคาต่ำสุด
+                  </label>
+                  <Input
+                    id="catalog-min"
+                    value={minPrice}
+                    onChange={(e) => setMinPrice(e.target.value.replace(/[^0-9]/g, ''))}
+                    inputMode="numeric"
+                    placeholder="ขั้นต่ำ"
+                  />
+                </div>
+                <span aria-hidden="true" className="text-slate-400">
+                  –
+                </span>
+                <div className="min-w-0 flex-1">
+                  <label className="sr-only" htmlFor="catalog-max">
+                    ราคาสูงสุด
+                  </label>
+                  <Input
+                    id="catalog-max"
+                    value={maxPrice}
+                    onChange={(e) => setMaxPrice(e.target.value.replace(/[^0-9]/g, ''))}
+                    inputMode="numeric"
+                    placeholder="สูงสุด"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="sr-only" htmlFor="catalog-ceiling">
+                  เพดานราคาสูงสุด
+                </label>
+                <input
+                  id="catalog-ceiling"
+                  type="range"
+                  min={0}
+                  max={PRICE_CEILING}
+                  step={100}
+                  value={Math.min(PRICE_CEILING, sliderValue)}
+                  onChange={(e) => {
+                    const v = Number(e.target.value);
+                    setMaxPrice(v >= PRICE_CEILING ? '' : String(v));
+                  }}
+                  className="w-full accent-emerald-800"
+                />
+                <div className="flex justify-between text-[11px] text-slate-400">
+                  <span>0</span>
+                  <span>{maxPrice ? `≤ ${Number(maxPrice).toLocaleString('th-TH')} ฿` : 'ไม่จำกัด'}</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
+      </Collapsible.Root>
+
+      <Collapsible.Root asChild open={groups.status} onOpenChange={() => toggle('status')}>
+        <section>
+          <Collapsible.Trigger
+            type="button"
+            className="flex w-full items-center justify-between py-1 text-left font-bold"
+          >
+            สถานะ
+            <span aria-hidden="true" className={`transition ${groups.status ? '' : '-rotate-90'}`}>
+              ▾
+            </span>
+          </Collapsible.Trigger>
+          {groups.status && (
+            <div className="mt-2">
+              <label className="sr-only" htmlFor="catalog-status">
+                สถานะสินค้า
+              </label>
+              <Select
+                id="catalog-status"
+                value={status}
+                onChange={(e) => {
+                  setStatus(e.target.value);
+                  apply({ status: e.target.value });
+                }}
+              >
+                <option value="">ทั้งหมด</option>
+                <option value="สินค้าลดราคา">สินค้าลดราคา</option>
+                <option value="สินค้าใหม่">สินค้าใหม่</option>
+              </Select>
+            </div>
+          )}
+        </section>
+      </Collapsible.Root>
 
       <div className="grid gap-2">
         <Button type="button" disabled={!dirty} onClick={() => apply()}>

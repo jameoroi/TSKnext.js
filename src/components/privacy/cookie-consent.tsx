@@ -1,6 +1,8 @@
 'use client';
 
+import { Check } from 'lucide-react';
 import Link from 'next/link';
+import { Checkbox } from 'radix-ui';
 import { useEffect, useRef, useState } from 'react';
 import { readConsent, writeConsent } from '@/features/privacy/consent';
 
@@ -84,31 +86,48 @@ export function CookieConsent() {
           {detail && (
             <div className="mt-4 grid gap-3 rounded-xl bg-slate-50 p-3">
               <label className="flex items-start gap-3">
-                <input type="checkbox" checked disabled className="mt-1" />
+                <Checkbox.Root
+                  checked
+                  disabled
+                  aria-label="จำเป็นต่อการใช้งาน"
+                  className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-md border border-slate-300 bg-white data-[state=checked]:border-emerald-800 data-[state=checked]:bg-emerald-800 data-[disabled]:opacity-60"
+                >
+                  <Checkbox.Indicator>
+                    <Check className="size-3.5 text-white" strokeWidth={3} />
+                  </Checkbox.Indicator>
+                </Checkbox.Root>
                 <span>
                   <b className="block text-sm">จำเป็นต่อการใช้งาน</b>
                   <small className="text-xs text-slate-500">ตะกร้า เซสชัน และความปลอดภัย ปิดไม่ได้</small>
                 </span>
               </label>
               <label className="flex items-start gap-3">
-                <input
-                  type="checkbox"
+                <Checkbox.Root
                   checked={analytics}
-                  onChange={(event) => setAnalytics(event.target.checked)}
-                  className="mt-1"
-                />
+                  onCheckedChange={(value) => setAnalytics(value === true)}
+                  aria-label="สถิติการใช้งาน"
+                  className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-md border border-slate-300 bg-white data-[state=checked]:border-emerald-800 data-[state=checked]:bg-emerald-800 data-[disabled]:opacity-60"
+                >
+                  <Checkbox.Indicator>
+                    <Check className="size-3.5 text-white" strokeWidth={3} />
+                  </Checkbox.Indicator>
+                </Checkbox.Root>
                 <span>
                   <b className="block text-sm">สถิติการใช้งาน</b>
                   <small className="text-xs text-slate-500">PostHog และสถิติที่ช่วยปรับปรุงประสบการณ์ใช้งาน</small>
                 </span>
               </label>
               <label className="flex items-start gap-3">
-                <input
-                  type="checkbox"
+                <Checkbox.Root
                   checked={marketing}
-                  onChange={(event) => setMarketing(event.target.checked)}
-                  className="mt-1"
-                />
+                  onCheckedChange={(value) => setMarketing(value === true)}
+                  aria-label="โฆษณาและการตลาด"
+                  className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-md border border-slate-300 bg-white data-[state=checked]:border-emerald-800 data-[state=checked]:bg-emerald-800 data-[disabled]:opacity-60"
+                >
+                  <Checkbox.Indicator>
+                    <Check className="size-3.5 text-white" strokeWidth={3} />
+                  </Checkbox.Indicator>
+                </Checkbox.Root>
                 <span>
                   <b className="block text-sm">โฆษณาและการตลาด</b>
                   <small className="text-xs text-slate-500">

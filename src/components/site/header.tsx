@@ -18,6 +18,7 @@ import {
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { Dialog, Popover } from 'radix-ui';
 import { type FormEvent, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuthModalStore } from '@/features/auth/modal-store';
 import { useCartStore } from '@/features/cart/store';
@@ -149,21 +150,28 @@ function CatMenu({
       }}
       onBlur={scheduleClose}
     >
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-haspopup="true"
-        onClick={() => onOpenChange(!open)}
-        className={`my-1.5 flex items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-bold text-white transition ${
-          open ? 'bg-emerald-700' : 'bg-emerald-800 hover:bg-emerald-700'
-        }`}
-      >
-        <Menu className="size-4" />
-        หมวดหมู่สินค้า
-        <ChevronDown className={`size-3.5 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
-      </button>
-      {open && (
-        <div className="mega-in absolute left-0 top-[calc(100%+8px)] z-[90] w-[min(860px,calc(100vw-2rem))] overflow-hidden rounded-2xl border bg-white shadow-2xl">
+      <Popover.Root open={open} onOpenChange={onOpenChange}>
+        <Popover.Trigger asChild>
+          <button
+            type="button"
+            className={`my-1.5 flex items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-bold text-white transition ${
+              open ? 'bg-emerald-700' : 'bg-emerald-800 hover:bg-emerald-700'
+            }`}
+          >
+            <Menu className="size-4" />
+            หมวดหมู่สินค้า
+            <ChevronDown
+              className={`size-3.5 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+            />
+          </button>
+        </Popover.Trigger>
+        <Popover.Content
+          align="start"
+          sideOffset={8}
+          // Hovering opens the menu; keep focus where the pointer is.
+          onOpenAutoFocus={(event) => event.preventDefault()}
+          className="mega-in z-[90] w-[min(860px,calc(100vw-2rem))] overflow-hidden rounded-2xl border bg-white shadow-2xl"
+        >
           <div className="grid md:grid-cols-[250px_1fr]">
             <ul
               className="max-h-[380px] overflow-y-auto border-r border-slate-100 p-2"
@@ -245,8 +253,8 @@ function CatMenu({
               ดูสินค้าทั้งหมด
             </Link>
           </div>
-        </div>
-      )}
+        </Popover.Content>
+      </Popover.Root>
     </section>
   );
 }
