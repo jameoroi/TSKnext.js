@@ -2,6 +2,8 @@
 
 ## 6.0.0
 
+- fix(ui): mount Emotion at the root again, and wire up the jobs Workers never ran (7f19bb1)
+- docs(changelog): update generated changelog (e3ca99b)
 - fix(deploy): keep dashboard variables on Workers Builds deploys (10d1387)
 - feat(ui): Radix primitives across the storefront (c8b7d49)
 - fix(config): read public keys and media settings at runtime on Workers (6751ffc)
