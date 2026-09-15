@@ -8,9 +8,9 @@
 | React 19.2.x | UI / Server Components / Suspense |
 | TypeScript 5.9.x | Type safety |
 | Turbopack | Development server (`pnpm dev`); production builds use webpack for OpenNext |
-| Tailwind CSS 4 | Styling |
-| Radix UI (`radix-ui`) | Primary accessible primitives: Dialog, Tabs and interactive widgets |
-| Material UI (MUI) + Emotion | Component library and CSS-in-JS; Emotion SSR cache mounted once at the root via `MuiProvider` (`@layer mui`, below Tailwind utilities) |
+| Tailwind CSS 4 | Styling for the storefront and the back office |
+| Radix UI (`radix-ui`) | Storefront primitives: Dialog, Tabs, Popover, Checkbox, Collapsible |
+| Material UI (MUI) + Emotion | Back-office component library, scoped to `/admin` via `MuiProvider`; `pnpm audit:release` fails if `@mui`/`@emotion` is imported outside admin |
 | Motion | Animation |
 | Lucide React | Icons |
 

@@ -104,13 +104,15 @@ const packageNeeds = [
 for (const name of packageNeeds)
   pass(`Package ${name}`, Boolean(pkg.dependencies?.[name] || pkg.devDependencies?.[name]));
 
-// Emotion was once dropped from the root while its packages stayed installed,
-// which the package checks above could not see. Check that it is mounted.
+// UI split: the storefront is Radix + Tailwind, the back office is Material UI
+// (with Emotion). Package checks alone cannot see a provider being moved or
+// dropped, so check where it is mounted; the storefront scan is further down.
 pass(
   'Emotion SSR cache provider',
-  read('src/components/ui/mui-provider.tsx').includes('AppRouterCacheProvider'),
+  read('src/components/admin/mui-provider.tsx').includes('AppRouterCacheProvider'),
 );
-pass('Emotion mounted at the root', read('src/app/providers.tsx').includes('<MuiProvider>'));
+pass('Material UI mounted in the admin layout', read('src/app/admin/layout.tsx').includes('<MuiProvider>'));
+pass('Material UI kept off the root providers', !read('src/app/providers.tsx').includes('MuiProvider'));
 
 const workerPkg = JSON.parse(read('workers/package.json'));
 pass('Worker image optimizer package', workerPkg.dependencies?.sharp === '^0.35.4');
@@ -270,6 +272,17 @@ for (const file of activeSource) {
   if (/from\s+['"](?:#app|nuxt|@nuxt)|useNuxt|defineNuxt/.test(source)) nuxtImports += 1;
 }
 pass('No active Nuxt runtime imports', nuxtImports === 0, `${nuxtImports} file(s)`);
+const adminOnly = new RegExp(
+  `${path.sep === '\\' ? '\\\\' : '/'}(?:app|components)${path.sep === '\\' ? '\\\\' : '/'}admin${path.sep === '\\' ? '\\\\' : '/'}`,
+);
+const storefrontMui = activeSource.filter(
+  (file) => !adminOnly.test(file) && /from\s+['"](?:@mui|@emotion)\//.test(fs.readFileSync(file, 'utf8')),
+);
+pass(
+  'Storefront stays on Radix + Tailwind (no @mui/@emotion outside admin)',
+  storefrontMui.length === 0,
+  storefrontMui.map((file) => path.relative(root, file)).join(', '),
+);
 
 console.log(`THAISERKIT Next release audit v${pkg.version}`);
 for (const check of checks)

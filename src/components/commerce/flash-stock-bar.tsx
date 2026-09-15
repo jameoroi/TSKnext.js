@@ -1,44 +1,26 @@
 'use client';
 
-import styled from '@emotion/styled';
-
-const Bar = styled.div({
-  height: 6,
-  overflow: 'hidden',
-  borderRadius: 9999,
-  backgroundColor: '#f1f5f9',
-});
-
-const Fill = styled.div<{ percent: number }>(({ percent }) => ({
-  height: '100%',
-  borderRadius: 9999,
-  width: `${Math.max(6, Math.min(100, percent))}%`,
-  backgroundImage: 'linear-gradient(to right, #f97316, #e11d48)',
-  transition: 'width 0.4s cubic-bezier(0.22, 1, 0.36, 1)',
-}));
-
-const Left = styled.p({
-  marginTop: 4,
-  fontSize: 11,
-  fontWeight: 800,
-  color: '#be123c',
-});
-
-/** แถบสต็อกคงเหลือสำหรับ Flash Sale — สไตล์ด้วย Emotion */
+/** แถบสต็อกคงเหลือสำหรับ Flash Sale */
 export function FlashStockBar({ stock }: { stock: number }) {
   const percent = Math.round((Math.min(30, Math.max(0, stock)) / 30) * 100);
   return (
     <div>
-      <Bar
+      <div
+        className="h-1.5 overflow-hidden rounded-full bg-slate-100"
         role="progressbar"
         aria-valuenow={percent}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-label={`เหลือสินค้า ${stock} ชิ้น`}
       >
-        <Fill percent={percent} />
-      </Bar>
-      <Left>เหลือ {Number(stock).toLocaleString('th-TH')} ชิ้น</Left>
+        <div
+          className="h-full rounded-full bg-gradient-to-r from-orange-500 to-rose-600 transition-[width] duration-500 ease-out"
+          style={{ width: `${Math.max(6, Math.min(100, percent))}%` }}
+        />
+      </div>
+      <p className="mt-1 text-[11px] font-extrabold text-rose-700">
+        เหลือ {Number(stock).toLocaleString('th-TH')} ชิ้น
+      </p>
     </div>
   );
 }

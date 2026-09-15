@@ -7,7 +7,6 @@ import { PwaRegister } from '@/components/platform/pwa-register';
 import { SessionHeartbeat } from '@/components/platform/session-heartbeat';
 import { StorefrontRuntime } from '@/components/platform/storefront-runtime';
 import { CookieConsent } from '@/components/privacy/cookie-consent';
-import { MuiProvider } from '@/components/ui/mui-provider';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [client] = useState(
@@ -17,17 +16,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
       }),
   );
   return (
-    <MuiProvider>
-      <QueryClientProvider client={client}>
-        <PwaRegister />
-        <SessionHeartbeat />
-        <Suspense fallback={null}>
-          <StorefrontRuntime />
-          <MarketingRuntime />
-        </Suspense>
-        {children}
-        <CookieConsent />
-      </QueryClientProvider>
-    </MuiProvider>
+    <QueryClientProvider client={client}>
+      <PwaRegister />
+      <SessionHeartbeat />
+      <Suspense fallback={null}>
+        <StorefrontRuntime />
+        <MarketingRuntime />
+      </Suspense>
+      {children}
+      <CookieConsent />
+    </QueryClientProvider>
   );
 }
