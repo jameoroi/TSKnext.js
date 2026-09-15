@@ -34,14 +34,24 @@ jobs:
           ua='Mozilla/5.0 (compatible; TSK-EdgeWarm/1.0; +https://github.com/jameoroi/TSKnext.js)'
           paths=(/ /products /brands /kits /news /about /contact /sitemap.xml '/api?action=site.settings' '/api?action=categories.list' '/api?action=brands.list')
           failed=0
+          blocked=0
+          # The whole step used to run past the job timeout (six tries of up to 30 s
+          # per page plus back-off), so it was cancelled every run and the product
+          # step never ran. Three short tries per page keep it to a few minutes.
           for path in "${paths[@]}"; do
             state=''
-            for attempt in 1 2 3 4 5 6; do
-              read -r status state < <(curl -sS -m 30 -A "$ua" -H "x-tsk-automation: ${AUTOMATION_TOKEN:-}" -o /dev/null -D - "${base}${path}" \
-                | awk 'BEGIN{IGNORECASE=1} /^HTTP\//{s=$2} /^x-tsk-edge-cache:/{c=$2} END{gsub("\r","",c); print s, (c==""?"-":c)}')
+            for attempt in 1 2 3; do
+              read -r status state mitigated < <(curl -sS -m 25 -A "$ua" -H "x-tsk-automation: ${AUTOMATION_TOKEN:-}" -o /dev/null -D - "${base}${path}" \
+                | awk 'BEGIN{IGNORECASE=1} /^HTTP\//{s=$2} /^x-tsk-edge-cache:/{c=$2} /^cf-mitigated:/{m=$2} END{gsub("\r","",c); gsub("\r","",m); print (s==""?"000":s), (c==""?"-":c), (m==""?"-":m)}')
               if [[ "$status" == "200" ]]; then break; fi
-              sleep $((attempt * 5))
+              # A Cloudflare challenge will not clear by retrying.
+              if [[ "$mitigated" != "-" || "$status" == "403" ]]; then blocked=$((blocked + 1)); break; fi
+              sleep $((attempt * 4))
             done
+            if (( blocked >= 2 )); then
+              echo "::warning::Cloudflare is challenging this job (HTTP ${status}). Add the AUTOMATION_TOKEN secret and a WAF skip rule for the x-tsk-automation header; skipping the rest."
+              exit 0
+            fi
             echo "${path} -> HTTP ${status} edge=${state} (attempts: ${attempt})"
             if [[ "$status" != "200" ]]; then
               echo "::warning::${path} still answered HTTP ${status} after ${attempt} attempts"
@@ -57,6 +67,9 @@ jobs:
         # Every product page gets a last-good copy in R2 within a few hours of rotation,
         # so a shopper landing on it is answered from that copy instead of a render
         # that can exceed the Workers Free CPU limit.
+        # Runs even when a key page failed above: product pages are cached separately.
+        if: ${{ !cancelled() }}
+        timeout-minutes: 6
         env:
           PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
           AUTOMATION_TOKEN: ${{ secrets.AUTOMATION_TOKEN }}
@@ -82,14 +95,16 @@ jobs:
           echo "Warming slice $((slice + 1))/${slices}: $(wc -l < slice.txt | tr -d ' ') of ${total} product pages"
           export ua AUTOMATION_TOKEN
           warm_one() {
-            for attempt in 1 2 3; do
-              code=$(curl -sS -m 40 -A "$ua" -H "x-tsk-automation: ${AUTOMATION_TOKEN:-}" -o /dev/null -w '%{http_code}' "$1" || echo 000)
+            for attempt in 1 2; do
+              code=$(curl -sS -m 25 -A "$ua" -H "x-tsk-automation: ${AUTOMATION_TOKEN:-}" -o /dev/null -w '%{http_code}' "$1" || echo 000)
               [[ "$code" == "200" ]] && { echo ok; return; }
-              sleep $((attempt * 3))
+              # A challenge (403) will not clear on retry.
+              [[ "$code" == "403" ]] && break
+              sleep 3
             done
             echo "fail $code $1"
           }
           export -f warm_one
-          xargs -P 4 -I{} bash -c 'warm_one "$@"' _ {} < slice.txt > results.txt
+          xargs -P 6 -I{} bash -c 'warm_one "$@"' _ {} < slice.txt > results.txt
           echo "ok: $(grep -c '^ok' results.txt) · failed: $(grep -c '^fail' results.txt)"
           grep '^fail' results.txt | head -5 || true
