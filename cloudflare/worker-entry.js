@@ -17,6 +17,7 @@
  * The cache key only includes query parameters a page reads (edge-cache-key.mjs),
  * plus the deployment id, so a new deploy never serves HTML from the old build.
  */
+import { AsyncLocalStorage } from 'node:async_hooks';
 import openNext from '../.open-next/worker.js';
 import { SECURITY_HEADERS } from '../src/shared/security-headers.mjs';
 import {
@@ -38,6 +39,27 @@ const LAST_GOOD_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 // Refresh the R2 copy at most this often per page, to stay well inside R2's free writes.
 const LAST_GOOD_WRITE_EVERY_MS = 5 * 60 * 1000;
 const STORED_AT = 'x-tsk-edge-stored-at';
+
+// Workers Free allows 50 subrequests per invocation. Count them per request, by
+// service domain only (never the full host, path or query), so a MISS response
+// shows which service used the budget.
+const subrequests = new AsyncLocalStorage();
+const baseFetch = globalThis.fetch;
+globalThis.fetch = function countedFetch(input, init) {
+  const tally = subrequests.getStore();
+  if (tally) {
+    let domain = 'other';
+    try {
+      domain = new URL(typeof input === 'string' ? input : input.url).hostname.split('.').slice(-2).join('.');
+    } catch {}
+    tally[domain] = (tally[domain] || 0) + 1;
+  }
+  return baseFetch.call(this, input, init);
+};
+const tallyText = (tally) =>
+  Object.entries(tally)
+    .map(([domain, count]) => `${domain}=${count}`)
+    .join(',') || 'none';
 
 function storable(response) {
   if (response.status !== 200) return false;
@@ -148,7 +170,13 @@ function refresh(request, url, env, ctx, cache, key, objectKey) {
 }
 
 export default {
-  async fetch(request, env, ctx) {
+  fetch(request, env, ctx) {
+    return subrequests.run({}, () => handle(request, env, ctx));
+  },
+};
+
+async function handle(request, env, ctx) {
+  {
     const url = new URL(request.url);
     const cache = globalThis.caches?.default;
     if (!cache || !cacheable(request, url)) return openNext.fetch(request, env, ctx);
@@ -214,6 +242,7 @@ export default {
       htmlHeaders.set('x-tsk-edge-cache', 'MISS');
       // Why a render did not land in the cache (ok | unhealthy | error:...); no secrets involved.
       htmlHeaders.set('x-tsk-edge-store', storeState);
+      htmlHeaders.set('x-tsk-subrequests', tallyText(subrequests.getStore() || {}));
       return new Response(html, { status: response.status, headers: htmlHeaders });
     }
     const forCache = response.clone();
@@ -228,5 +257,5 @@ export default {
     const headers = new Headers(response.headers);
     headers.set('x-tsk-edge-cache', 'MISS');
     return new Response(response.body, { status: response.status, headers });
-  },
-};
+  }
+}
