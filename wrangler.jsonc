@@ -14,7 +14,12 @@
   ],
   "vars": {
     "APP_ORIGIN": "https://jayxtsk.shop",
-    "NEXT_PUBLIC_APP_ORIGIN": "https://jayxtsk.shop"
+    "NEXT_PUBLIC_APP_ORIGIN": "https://jayxtsk.shop",
+    "MEDIA_BUCKET": "product-media",
+    "MEDIA_PUBLIC_BASE_URL": "https://jayxtsk.shop/media",
+    "MEDIA_S3_ENDPOINT": "https://d269fc4d9e8dfe210b8949e81a77e0cb.r2.cloudflarestorage.com",
+    "MEDIA_S3_REGION": "auto",
+    "MEDIA_S3_FORCE_PATH_STYLE": "true"
   },
   "observability": { "enabled": true }
 }

@@ -1,6 +1,7 @@
 'use client';
 import Script from 'next/script';
 import { useEffect, useId, useRef } from 'react';
+import { publicEnv } from '@/lib/public-env';
 
 declare global {
   interface Window {
@@ -11,7 +12,7 @@ declare global {
   }
 }
 export function Turnstile({ onToken, action }: { onToken: (token: string) => void; action: string }) {
-  const sitekey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+  const sitekey = publicEnv('NEXT_PUBLIC_TURNSTILE_SITE_KEY') || undefined;
   const id = useId().replaceAll(':', '');
   const rendered = useRef('');
   function render() {

@@ -4,6 +4,7 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { type ConsentPreferences, onConsentChange, readConsent } from '@/features/privacy/consent';
 import { capturePosthog, loadPosthog } from '@/lib/posthog.client';
+import { publicEnv } from '@/lib/public-env';
 
 const floodlightId = (value: unknown) => {
   const raw = String(value || '')
@@ -34,12 +35,13 @@ export function MarketingRuntime() {
 
   useEffect(() => {
     if (!consent?.analytics || startedAnalytics.current) return;
-    const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+    const key = publicEnv('NEXT_PUBLIC_POSTHOG_KEY') || undefined;
     if (!key) return;
     startedAnalytics.current = true;
-    void loadPosthog(key, process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com').then(() =>
-      capturePosthog('$pageview', { $current_url: window.location.href }),
-    );
+    void loadPosthog(
+      key,
+      publicEnv('NEXT_PUBLIC_POSTHOG_HOST') || undefined || 'https://us.i.posthog.com',
+    ).then(() => capturePosthog('$pageview', { $current_url: window.location.href }));
   }, [consent?.analytics]);
 
   useEffect(() => {

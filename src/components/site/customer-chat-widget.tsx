@@ -20,6 +20,7 @@ import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { onConsentChange, readConsent } from '@/features/privacy/consent';
 import { LegacyApiError, legacyRequest } from '@/lib/legacy-api.client';
+import { publicEnv } from '@/lib/public-env';
 
 type ChatMessage = {
   id: string;
@@ -454,7 +455,7 @@ export function CustomerChatWidget() {
   // visitor consents to marketing/social embeds. The first-party launcher and
   // Telegram/AI chat remain available without that consent.
   useEffect(() => {
-    const pageId = process.env.NEXT_PUBLIC_FB_PAGE_ID?.trim();
+    const pageId = publicEnv('NEXT_PUBLIC_FB_PAGE_ID') || undefined;
     if (!pageId) return;
     let loaded = false;
     const mount = (consent = readConsent()) => {
@@ -487,11 +488,15 @@ export function CustomerChatWidget() {
     return onConsentChange((consent) => mount(consent));
   }, []);
 
-  const lineUrl = publicSetting(settings.line_oa_url) || process.env.NEXT_PUBLIC_LINE_OA_URL || '';
+  const lineUrl =
+    publicSetting(settings.line_oa_url) || publicEnv('NEXT_PUBLIC_LINE_OA_URL') || undefined || '';
   const phone =
-    publicSetting(settings.contact_phone) || process.env.NEXT_PUBLIC_CONTACT_PHONE || '088-2608042';
+    publicSetting(settings.contact_phone) ||
+    publicEnv('NEXT_PUBLIC_CONTACT_PHONE') ||
+    undefined ||
+    '088-2608042';
   const pageUsername =
-    publicSetting(settings.fb_page_username) || process.env.NEXT_PUBLIC_FB_PAGE_USERNAME || '';
+    publicSetting(settings.fb_page_username) || publicEnv('NEXT_PUBLIC_FB_PAGE_USERNAME') || undefined || '';
   const avatar =
     publicSetting(settings.chat_avatar_data_url) || publicSetting(settings.chat_avatar_url) || DEFAULT_AVATAR;
   const channels = useMemo(
@@ -516,8 +521,8 @@ export function CustomerChatWidget() {
   );
   if (hidden) return null;
 
-  const pageId = process.env.NEXT_PUBLIC_FB_PAGE_ID?.trim() || '';
-  const themeColor = process.env.NEXT_PUBLIC_FB_THEME_COLOR?.trim() || '#0B2E22';
+  const pageId = publicEnv('NEXT_PUBLIC_FB_PAGE_ID') || undefined || '';
+  const themeColor = publicEnv('NEXT_PUBLIC_FB_THEME_COLOR') || undefined || '#0B2E22';
 
   return (
     <>

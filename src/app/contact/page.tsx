@@ -2,6 +2,7 @@ import { Clock, Facebook, Mail, MapPin, MessageCircle, Phone } from 'lucide-reac
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ContactForm } from '@/components/forms/contact-form';
+import { publicEnv } from '@/lib/public-env';
 
 export const metadata: Metadata = {
   title: 'ติดต่อเรา | THAISERKIT SUPPLY',
@@ -9,11 +10,11 @@ export const metadata: Metadata = {
 };
 
 const ADDRESS = '89 หมู่ 9 บ้านห้วยบง ต.น้ำแวน อ.เชียงคำ จ.พะเยา 56110';
-const PHONE = process.env.NEXT_PUBLIC_CONTACT_PHONE || '088-2608042';
+const PHONE = publicEnv('NEXT_PUBLIC_CONTACT_PHONE') || undefined || '088-2608042';
 const EMAIL = 'thaiserkit.supply@gmail.com';
 const HOURS = 'จันทร์ – เสาร์ 07.00 – 17.00 น.';
-const LINE_URL = process.env.NEXT_PUBLIC_LINE_OA_URL || '';
-const FB_USER = process.env.NEXT_PUBLIC_FB_PAGE_USERNAME || '';
+const LINE_URL = publicEnv('NEXT_PUBLIC_LINE_OA_URL') || undefined || '';
+const FB_USER = publicEnv('NEXT_PUBLIC_FB_PAGE_USERNAME') || undefined || '';
 
 export default function Page() {
   const channels = [

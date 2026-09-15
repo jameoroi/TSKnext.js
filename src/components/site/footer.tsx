@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { openConsentSettings } from '@/features/privacy/consent';
 import { legacyRequest } from '@/lib/legacy-api.client';
+import { publicEnv } from '@/lib/public-env';
 import { Newsletter } from './newsletter';
 
 function text(value: unknown, fallback = '') {
@@ -50,7 +51,7 @@ export function Footer() {
   const company = text(site.company_name, 'THAISERKIT SUPPLY');
   const subtitle = text(site.company_subtitle, 'เครื่องมือ อุปกรณ์ และโซลูชันสำหรับงานช่าง เกษตร และอุตสาหกรรม');
   const legalName = text(business.legal_name, company);
-  const phone = text(business.phone, process.env.NEXT_PUBLIC_CONTACT_PHONE || '088-2608042');
+  const phone = text(business.phone, publicEnv('NEXT_PUBLIC_CONTACT_PHONE') || undefined || '088-2608042');
   const email = text(business.email, 'thaiserkit.supply@gmail.com');
   const street = text(business.street, '89 หมู่ 9 บ้านห้วยบง ต.น้ำแวน');
   const locality = [
@@ -61,8 +62,8 @@ export function Footer() {
     .filter(Boolean)
     .join(' ');
   const openingHours = text(business.opening_hours, 'จันทร์ – เสาร์ 07.00 – 17.00 น.');
-  const lineUrl = text(process.env.NEXT_PUBLIC_LINE_OA_URL);
-  const facebookUser = text(process.env.NEXT_PUBLIC_FB_PAGE_USERNAME);
+  const lineUrl = text(publicEnv('NEXT_PUBLIC_LINE_OA_URL') || undefined);
+  const facebookUser = text(publicEnv('NEXT_PUBLIC_FB_PAGE_USERNAME') || undefined);
   const facebookUrl = facebookUser ? `https://facebook.com/${facebookUser}` : '';
 
   return (

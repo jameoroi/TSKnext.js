@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { publicEnv } from '@/lib/public-env';
 import { getSiteSettings } from '@/server/catalog';
 
 export const metadata: Metadata = { title: 'เกี่ยวกับเรา | THAISERKIT SUPPLY' };
@@ -26,7 +27,7 @@ export default async function AboutPage() {
   ]
     .filter(Boolean)
     .join(' ');
-  const phone = text(business.phone, process.env.NEXT_PUBLIC_CONTACT_PHONE || '088-2608042');
+  const phone = text(business.phone, publicEnv('NEXT_PUBLIC_CONTACT_PHONE') || undefined || '088-2608042');
   const email = text(business.email, 'thaiserkit.supply@gmail.com');
   const hours = text(business.opening_hours, 'จันทร์ – เสาร์ 07.00 – 17.00 น.');
   const storeImage = text(site.about_image_url || site.store_image_url);

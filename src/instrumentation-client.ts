@@ -1,10 +1,13 @@
-// Sentry is loaded only when a DSN is configured at build time. With no DSN the
-// branch is removed during bundling, so shoppers never download the SDK.
-if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
+import { publicEnv } from '@/lib/public-env';
+
+// Sentry loads only when NEXT_PUBLIC_SENTRY_DSN is set as a Worker secret (read at
+// runtime via window.__TSK_PUBLIC__); without it shoppers never download the SDK.
+const dsn = publicEnv('NEXT_PUBLIC_SENTRY_DSN');
+if (dsn) {
   void import('@sentry/nextjs').then((Sentry) =>
     Sentry.init({
-      dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-      tracesSampleRate: Number(process.env.NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE || 0.05),
+      dsn,
+      tracesSampleRate: Number(publicEnv('NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE') || 0.05),
     }),
   );
 }

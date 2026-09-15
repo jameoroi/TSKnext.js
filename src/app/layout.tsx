@@ -4,6 +4,7 @@ import { Suspense } from 'react';
 import { BusinessStructuredData } from '@/components/seo/business-structured-data';
 import { SiteChrome } from '@/components/site/chrome';
 import { OfflineBanner } from '@/components/site/offline-banner';
+import { publicEnvSnapshot } from '@/lib/public-env';
 import { getSiteSettings } from '@/server/catalog';
 import { requestOrigin } from '@/server/public-legacy-cache';
 import { Providers } from './providers';
@@ -40,6 +41,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="th" suppressHydrationWarning>
       <head>
+        <script
+          // Runtime public keys (Worker secrets) for the browser; see src/lib/public-env.ts.
+          dangerouslySetInnerHTML={{
+            __html: `window.__TSK_PUBLIC__=${JSON.stringify(publicEnvSnapshot()).replace(/</g, '\u003c')};`,
+          }}
+        />
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var m=localStorage.getItem('tsk_color_mode')||'auto';var d=m==='dark'||(m==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.setAttribute('data-theme',d?'dark':'light');document.documentElement.style.colorScheme=d?'dark':'light'}catch(e){}})()`,

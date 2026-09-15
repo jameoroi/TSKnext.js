@@ -1,3 +1,4 @@
+import { publicEnv } from '@/lib/public-env';
 import { getSiteSettings, type SiteSettings } from '@/server/catalog';
 import { requestOrigin } from '@/server/public-legacy-cache';
 import { buildBusinessProfile } from '@/shared/business';
@@ -38,7 +39,8 @@ function profileFromEnvironment(origin: string, settings: SiteSettings) {
     contactPhone:
       settingText(settings, 'contact_phone', 'phone') ||
       process.env.BUSINESS_PHONE ||
-      process.env.NEXT_PUBLIC_CONTACT_PHONE,
+      publicEnv('NEXT_PUBLIC_CONTACT_PHONE') ||
+      undefined,
     businessEmail: settingText(settings, 'contact_email', 'email') || process.env.BUSINESS_EMAIL,
     businessOpeningHours: process.env.BUSINESS_OPENING_HOURS,
     businessOpeningHoursSpec: process.env.BUSINESS_OPENING_HOURS_SPEC,
