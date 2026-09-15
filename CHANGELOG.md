@@ -2,6 +2,8 @@
 
 ## 6.0.0
 
+- feat(home): full-box pictures for flash sale and dealer boxes, and the campaign band back above articles (ef67b70)
+- docs(changelog): update generated changelog (b7d17ee)
 - fix(motion): zoom the whole card, not the picture inside it (2419607)
 - docs(changelog): update generated changelog (09eade7)
 - feat(motion): one spring pop for every storefront card, and links that move instead of underlining (4735b03)
