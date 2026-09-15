@@ -3,6 +3,7 @@
 import { Mail, Megaphone, RefreshCcw, Search, Send, UsersRound } from 'lucide-react';
 import { type FormEvent, useMemo, useState } from 'react';
 import { LegacyApiError, legacyRequest } from '@/lib/legacy-api.client';
+import { RichMessageField } from './rich-message-field';
 
 type Row = Record<string, any>;
 const when = (value: unknown) =>
@@ -15,11 +16,15 @@ function friendly(error: unknown) {
     unauthorized: 'เซสชันหมดอายุหรือไม่มีสิทธิ์ใช้งาน',
     invalid_csrf: 'CSRF token ไม่ถูกต้อง กรุณาเข้าสู่ระบบใหม่',
     invalid_input: 'กรุณากรอกข้อมูลให้ครบและถูกต้อง',
-    smtp_not_configured: 'ยังไม่ได้ตั้งค่า SMTP ในหน้าตั้งค่าระบบ',
+    smtp_not_configured:
+      'ยังส่งอีเมลไม่ได้: ใส่ RESEND_API_KEY (และ EMAIL_FROM ที่ยืนยันโดเมนใน Resend แล้ว) ใน Cloudflare → Settings → Variables',
+    newsletter_delivery_failed: 'ส่ง Newsletter ไม่สำเร็จ',
     send_failed: 'ส่งอีเมลไม่สำเร็จ กรุณาตรวจการตั้งค่า SMTP',
     forbidden_super_admin_only: 'การส่ง Newsletter ใช้ได้เฉพาะ Super Admin',
   };
-  return messages[key] || key;
+  const detail = String((error as any)?.data?.detail || (error as any)?.detail || '');
+  const text = messages[key] || key;
+  return detail ? `${text} — ${detail}` : text;
 }
 
 export function CrmManager({
@@ -44,6 +49,8 @@ export function CrmManager({
   const [newsletterSubject, setNewsletterSubject] = useState('');
   const [newsletterMessage, setNewsletterMessage] = useState('');
   const [busy, setBusy] = useState('');
+  // Which form the last result belongs to, so it shows under that form's button.
+  const [lastForm, setLastForm] = useState<'direct' | 'newsletter' | ''>('');
   const [notice, setNotice] = useState('');
   const [error, setError] = useState(
     initialWarnings.length ? `บางแหล่งข้อมูลยังไม่พร้อม: ${initialWarnings.join(', ')}` : '',
@@ -92,13 +99,14 @@ export function CrmManager({
     event.preventDefault();
     setBusy('direct');
     clearMessages();
+    setLastForm('direct');
     try {
       await legacyRequest(
         'email.send',
         { to: emailTo.trim(), subject: emailSubject.trim(), message: emailMessage.trim(), csrf },
         'POST',
       );
-      setNotice(`ส่งอีเมลไปที่ ${emailTo.trim()} แล้ว`);
+      setNotice(`✅ ส่งอีเมลไปที่ ${emailTo.trim()} สำเร็จ`);
       setEmailSubject('');
       setEmailMessage('');
     } catch (err) {
@@ -122,13 +130,14 @@ export function CrmManager({
       return;
     setBusy('newsletter');
     clearMessages();
+    setLastForm('newsletter');
     try {
       const result = await legacyRequest<any>(
         'admin.newsletter.send',
         { subject: newsletterSubject.trim(), message: newsletterMessage.trim(), csrf },
         'POST',
       );
-      setNotice(`ส่ง Newsletter แล้ว ${Number(result.sent || 0).toLocaleString('th-TH')} อีเมล`);
+      setNotice(`✅ ส่ง Newsletter สำเร็จ ${Number(result.sent || 0).toLocaleString('th-TH')} อีเมล`);
       setNewsletterSubject('');
       setNewsletterMessage('');
     } catch (err) {
@@ -282,12 +291,12 @@ export function CrmManager({
               />
             </Field>
             <Field label="ข้อความ">
-              <textarea
+              <RichMessageField
                 required
                 rows={8}
                 value={emailMessage}
-                onChange={(e) => setEmailMessage(e.target.value)}
-                className="textarea"
+                onChange={setEmailMessage}
+                csrf={csrf}
               />
             </Field>
             <button
@@ -297,6 +306,14 @@ export function CrmManager({
               <Send size={15} />
               {busy === 'direct' ? 'กำลังส่ง…' : 'ส่ง Email'}
             </button>
+            {lastForm === 'direct' && busy !== 'direct' && (notice || error) && (
+              <p
+                role="status"
+                className={`mt-3 rounded-xl border p-3 text-sm font-semibold ${error ? 'border-rose-200 bg-rose-50 text-rose-800' : 'border-emerald-200 bg-emerald-50 text-emerald-800'}`}
+              >
+                {error || notice}
+              </p>
+            )}
           </div>
         </form>
 
@@ -319,12 +336,12 @@ export function CrmManager({
               />
             </Field>
             <Field label="ข้อความ">
-              <textarea
+              <RichMessageField
                 required
                 rows={8}
                 value={newsletterMessage}
-                onChange={(e) => setNewsletterMessage(e.target.value)}
-                className="textarea"
+                onChange={setNewsletterMessage}
+                csrf={csrf}
                 disabled={!owner}
               />
             </Field>
@@ -337,6 +354,14 @@ export function CrmManager({
                 ? 'กำลังส่ง…'
                 : `ส่งถึงสมาชิก Active ${activeSubscribers.length.toLocaleString('th-TH')} ราย`}
             </button>
+            {lastForm === 'newsletter' && busy !== 'newsletter' && (notice || error) && (
+              <p
+                role="status"
+                className={`rounded-xl border p-3 text-sm font-semibold ${error ? 'border-rose-200 bg-rose-50 text-rose-800' : 'border-emerald-200 bg-emerald-50 text-emerald-800'}`}
+              >
+                {error || notice}
+              </p>
+            )}
             {!owner && (
               <p className="text-xs text-amber-700">
                 Manager/Admin ดูรายชื่อได้ แต่การ broadcast ทั้งระบบสงวนสิทธิ์เฉพาะ Super Admin

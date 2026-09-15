@@ -2245,8 +2245,67 @@ function preservedSecret(input,current=''){
   if(!value||/^[•*]+$/.test(value))return String(current||'');
   return value;
 }
+/**
+ * Resend over HTTPS, shaped like a nodemailer transport.
+ *
+ * The admin's email never left this shop: buildMailer refuses SMTP on Workers
+ * (a Worker cannot open the TCP socket nodemailer needs), so the order alert,
+ * the test email, a reply to a customer and the newsletter all stopped at
+ * "smtp_not_configured" with SMTP filled in. Resend is a plain fetch. The
+ * sender must be on a domain verified in Resend: EMAIL_FROM when set, otherwise
+ * the address in the email settings.
+ */
+function resendMailer(apiKey, settings){
+  const verifiedFrom=String(process.env.EMAIL_FROM||'').trim();
+  const list=value=>(Array.isArray(value)?value:[value]).map(item=>String(item||'').trim()).filter(Boolean);
+  return {
+    provider:'resend',
+    async sendMail({from,to,bcc,subject,text,html,replyTo}){
+      const configuredFrom=settings?.email?.from_email?from:'';
+      const body={from:verifiedFrom||configuredFrom||'THAISERKIT SUPPLY <onboarding@resend.dev>',to:list(to),subject:String(subject||''),text:String(text||'')};
+      if(html)body.html=html;
+      const hidden=list(bcc);
+      if(hidden.length)body.bcc=hidden;
+      if(replyTo)body.reply_to=replyTo;
+      const response=await fetch('https://api.resend.com/emails',{method:'POST',headers:{authorization:`Bearer ${apiKey}`,'content-type':'application/json'},body:JSON.stringify(body)});
+      const data=await response.json().catch(()=>({}));
+      if(!response.ok)throw new Error(`resend_${response.status}: ${String(data?.message||data?.name||'send_failed').slice(0,200)}`);
+      return {messageId:String(data?.id||'')};
+    }
+  };
+}
+const EMAIL_IMAGE_LINE=/^https:\/\/\S+\.(?:png|jpe?g|webp|gif|avif)(?:\?\S*)?$|^https:\/\/\S+\/media\/\S+$/i;
+const EMAIL_YOUTUBE=/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/;
+const EMAIL_VIDEO_LINE=/^https:\/\/\S+\.(?:mp4|webm|mov)(?:\?\S*)?$|youtube\.com|youtu\.be|vimeo\.com|facebook\.com\/.*\/videos|tiktok\.com/i;
+/**
+ * The admin's message as email HTML: a line holding only an image address is a
+ * picture, a video link is a clickable thumbnail (mail clients do not play
+ * video), any other https address is a link, and everything else is text,
+ * escaped. Emoji are plain characters and need nothing.
+ */
+function newsletterHtml(subject,message){
+  const esc=value=>String(value??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const blocks=String(message||'').split('\n').map(raw=>{
+    const line=raw.trim();
+    if(!line)return '<div style="height:10px"></div>';
+    if(/^https:\/\/\S+$/i.test(line)){
+      const href=esc(line);
+      if(EMAIL_IMAGE_LINE.test(line))return `<p style="margin:0 0 12px"><img src="${href}" alt="" style="display:block;max-width:100%;height:auto;border-radius:12px"></p>`;
+      const youtube=line.match(EMAIL_YOUTUBE);
+      if(youtube||EMAIL_VIDEO_LINE.test(line)){
+        const thumb=youtube?`<img src="https://img.youtube.com/vi/${esc(youtube[1])}/hqdefault.jpg" alt="" style="display:block;width:100%;height:auto">`:'';
+        return `<p style="margin:0 0 12px"><a href="${href}" style="display:block;border-radius:12px;overflow:hidden;background:#000;text-decoration:none">${thumb}<span style="display:block;background:#065f46;color:#fff;font-weight:700;text-align:center;padding:10px">▶ ดูวิดีโอ</span></a></p>`;
+      }
+      return `<p style="margin:0 0 12px"><a href="${href}" style="color:#047857">${href}</a></p>`;
+    }
+    return `<p style="margin:0 0 8px;line-height:1.7">${esc(raw)}</p>`;
+  }).join('');
+  return `<!doctype html><html><body style="margin:0;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif;color:#0f172a"><div style="max-width:600px;margin:0 auto;padding:24px 16px"><div style="background:#fff;border-radius:16px;padding:24px"><h1 style="margin:0 0 16px;font-size:20px;color:#064e3b">${esc(subject)}</h1>${blocks}</div><p style="margin:16px 0 0;text-align:center;font-size:12px;color:#64748b">THAISERKIT SUPPLY</p></div></body></html>`;
+}
 async function buildMailer(settings){
   const env = process.env;
+  const resendKey=String(env.RESEND_API_KEY||'').trim();
+  if(resendKey) return resendMailer(resendKey, settings);
   const host = settings.email.smtp_host || env.SMTP_HOST;
   const port = Number(settings.email.smtp_port || env.SMTP_PORT || 587);
   const user = settings.email.smtp_user || env.SMTP_USER;
@@ -4345,7 +4404,7 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
     const settings=await getBusinessSettings(); const mailer=await buildMailer(settings);
     if(!mailer) return json({ok:false,error:'smtp_not_configured'},422);
     try{
-      await mailer.sendMail({ from:`"${settings.email.from_name}" <${settings.email.from_email||settings.email.smtp_user}>`, to, subject, text: messageText });
+      await mailer.sendMail({ from:`"${settings.email.from_name}" <${settings.email.from_email||settings.email.smtp_user}>`, to, subject, text: messageText, html: newsletterHtml(subject, messageText) });
       const id=crypto.randomUUID(); await dataStore().setJSON(`email-log:${id}`,{id,to,subject,sent_by:ss.data.username,created_at:new Date().toISOString()});
       return json({ok:true});
     }catch(e){ console.warn('[email] send failed',e?.message||e); return json({ok:false,error:'send_failed'},502); }
@@ -6940,7 +6999,7 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
     if(!isAdmin(ss))return json({ok:false,error:'unauthorized'},401);if(!requireCsrf(b,ss))return json({ok:false,error:'invalid_csrf'},403);const allowed=['requested','approved','rejected','received','refunded','closed'];const status=clean(b.status,30);if(!allowed.includes(status))return json({ok:false,error:'invalid_status'},422);const ds=dataStore(),id=clean(b.id,80),r=await getJSON(ds,`return:${id}`);if(!r)return json({ok:false,error:'not_found'},404);r.status=status;r.admin_note=clean(b.admin_note,2000)||r.admin_note||'';r.history=[...(r.history||[]),{status,at:new Date().toISOString(),by:ss.data.username}];await ds.setJSON(`return:${id}`,r);await auditLog(req,ss,'admin.returns.status',{id,status});return json({ok:true,return_request:r});
   }
   if(action==='admin.newsletter.send'){
-if(!maySuperAdmin(ss,'admin.newsletter.send'))return json({ok:false,error:'forbidden_super_admin_only'},403);if(!requireCsrf(b,ss))return json({ok:false,error:'invalid_csrf'},403);const subject=clean(b.subject,180),message=clean(b.message,12000);if(!subject||!message)return json({ok:false,error:'invalid_input'},422);const settings=await getBusinessSettings(),mailer=await buildMailer(settings);if(!mailer)return json({ok:false,error:'smtp_not_configured'},422);const ds=dataStore();const emails=(await listJSONByPrefix(ds,'subscriber:','subscriber-index')).filter(x=>x?.status==='active'&&x.email).map(x=>x.email);let sent=0,failed=0;const from=`"${settings.email.from_name}" <${settings.email.from_email||settings.email.smtp_user}>`;for(let i=0;i<emails.length;i+=50){const batch=emails.slice(i,i+50);try{await mailer.sendMail({from,to:settings.email.from_email||settings.email.smtp_user,bcc:batch,subject,text:message});sent+=batch.length;}catch(error){failed+=batch.length;console.warn('newsletter batch failed',error?.message||'unknown_error');}}await auditLog(req,ss,'admin.newsletter.send',{sent,failed,subject});return json({ok:failed===0,sent,failed,error:failed?'newsletter_delivery_failed':undefined},failed?502:200);
+if(!maySuperAdmin(ss,'admin.newsletter.send'))return json({ok:false,error:'forbidden_super_admin_only'},403);if(!requireCsrf(b,ss))return json({ok:false,error:'invalid_csrf'},403);const subject=clean(b.subject,180),message=clean(b.message,12000);if(!subject||!message)return json({ok:false,error:'invalid_input'},422);const settings=await getBusinessSettings(),mailer=await buildMailer(settings);if(!mailer)return json({ok:false,error:'smtp_not_configured'},422);const ds=dataStore();const emails=(await listJSONByPrefix(ds,'subscriber:','subscriber-index')).filter(x=>x?.status==='active'&&x.email).map(x=>x.email);let sent=0,failed=0,firstError='';const from=`"${settings.email.from_name}" <${settings.email.from_email||settings.email.smtp_user}>`;for(let i=0;i<emails.length;i+=50){const batch=emails.slice(i,i+50);try{const own=settings.email.from_email||settings.email.smtp_user||'';await mailer.sendMail({from,to:own||batch[0],bcc:own?batch:batch.slice(1),subject,text:message,html:newsletterHtml(subject,message)});sent+=batch.length;}catch(error){failed+=batch.length;firstError=firstError||String(error?.message||'unknown_error');console.warn('newsletter batch failed',error?.message||'unknown_error');}}await auditLog(req,ss,'admin.newsletter.send',{sent,failed,subject});return json({ok:failed===0,sent,failed,error:failed?'newsletter_delivery_failed':undefined,detail:failed?firstError.slice(0,240):undefined},failed?502:200);
   }
 
 
