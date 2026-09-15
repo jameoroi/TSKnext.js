@@ -170,7 +170,11 @@ export function LoginForm({ compact = false, initialTab, redirectTo = '', onSucc
     setRateSeconds(0);
   }
 
-  function finish() {
+  async function finish() {
+    // Mirror the new commerce login into an Auth.js session that carries the
+    // role (see the tsk-session provider in src/auth.ts). Failure never blocks
+    // the login itself: tsk_session remains the session of record.
+    await signIn('tsk-session', { redirect: false }).catch(() => undefined);
     onSuccess?.();
     router.replace(redirect);
     router.refresh();
