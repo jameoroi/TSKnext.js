@@ -652,6 +652,32 @@ async function cachedPublicRead(name, loader, ttl = SITE_SETTINGS_TTL_MS){
 }
 /** Drops one cached read for this tenant, after a write that changes it. */
 function forgetPublicRead(name){ publicReadCache.delete(`${dataNamespace()}:${name}`); }
+/**
+ * Every sellable product, read once per isolate per minute for public pages.
+ *
+ * Without a relational database, a filtered listing (sale shelf, price sort,
+ * Thai search), a slug lookup miss or a recommendation falls back to reading
+ * the whole catalogue. Doing that on every request is what pushed the Worker
+ * past its CPU limit (error 1102) under ordinary traffic. Public reads share
+ * this snapshot instead; admin reads stay live, and every product write calls
+ * forgetPublicCatalogue so an edit is visible on the next request.
+ */
+const PUBLIC_CATALOGUE_TTL_MS=60_000;
+async function publicCatalogue(ds){
+  return cachedPublicRead('catalogue.public', async () => (await listJSONByPrefix(ds,'product:','product-index')).filter(Boolean), PUBLIC_CATALOGUE_TTL_MS);
+}
+function forgetPublicCatalogue(){ forgetPublicRead('catalogue.public'); }
+// stockAvailable() deep-clones every product with variants. Sorting a listing
+// calls it once per product, so the sold-out ordering alone cloned the whole
+// catalogue on every request. Snapshot rows are never mutated (public paths
+// only read them, writes replace the snapshot), so their availability is safe
+// to remember per object. Live rows used by checkout keep calling stockAvailable.
+const snapshotAvailability=new WeakMap();
+function snapshotStockAvailable(row){
+  if(!row||typeof row!=='object') return stockAvailable(row);
+  if(!snapshotAvailability.has(row)) snapshotAvailability.set(row,stockAvailable(row));
+  return snapshotAvailability.get(row);
+}
 
 async function readSiteSettings(store){
   return cachedPublicRead('site-settings', async () => await getJSON(store,'site-settings') || {});
@@ -1816,13 +1842,13 @@ async function atomicProductMutation(productId, mutator, retries=8){
     if(result?.ok===false) return result;
     const next=result?.value||result||current; next.updated_at=new Date().toISOString();
     const write=await store.setJSON(key,next,{onlyIfMatch:entry.etag});
-    if(write?.modified){await mirrorJSON(dataNamespace(),key,next);return {ok:true,product:next,meta:result?.meta||null};}
+    if(write?.modified){forgetPublicCatalogue();await mirrorJSON(dataNamespace(),key,next);return {ok:true,product:next,meta:result?.meta||null};}
   }
   return {ok:false,error:'inventory_conflict'};
 }
 async function atomicProductCreate(product){
   const store=rawBlobStore(dataNamespace()),write=await store.setJSON(`product:${product.id}`,product,{onlyIfNew:true});
-  if(write?.modified)await mirrorJSON(dataNamespace(),`product:${product.id}`,product);
+  if(write?.modified){forgetPublicCatalogue();await mirrorJSON(dataNamespace(),`product:${product.id}`,product);}
   return write?.modified===true;
 }
 async function atomicReservedDelta(productId,delta){
@@ -2987,7 +3013,7 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
     if(!maySuperAdmin(ss,'admin.suppliers.assign_products')||!requireCsrf(b,ss))return json({ok:false,error:'unauthorized'},401);
     const ds=dataStore(), supplier=await supplierById(ds,clean(b.supplier_id,80));if(!supplier||supplier.status!=='active')return json({ok:false,error:'supplier_not_active'},422);
     const ids=Array.isArray(b.product_ids)?b.product_ids.map(x=>clean(x,80)).filter(Boolean).slice(0,500):[];if(!ids.length)return json({ok:false,error:'product_ids_required'},422);
-    const updated=[];for(const id of ids){const p=await getJSON(ds,`product:${id}`);if(!p)continue;p.supplier_id=supplier.id;p.supplier_name=supplier.name;p.updated_at=new Date().toISOString();await ds.setJSON(`product:${id}`,p);updated.push(id);}await auditLog(req,ss,'admin.suppliers.assign_products',{supplier_id:supplier.id,count:updated.length});return json({ok:true,updated});
+    const updated=[];for(const id of ids){const p=await getJSON(ds,`product:${id}`);if(!p)continue;p.supplier_id=supplier.id;p.supplier_name=supplier.name;p.updated_at=new Date().toISOString();await ds.setJSON(`product:${id}`,p);forgetPublicCatalogue();updated.push(id);}await auditLog(req,ss,'admin.suppliers.assign_products',{supplier_id:supplier.id,count:updated.length});return json({ok:true,updated});
   }
   if(action==='admin.settlements.action'){
     if(!maySuperAdmin(ss,'admin.settlements.action')||!requireCsrf(b,ss))return json({ok:false,error:'unauthorized'},401);
@@ -4835,7 +4861,7 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
   if(action==='admin.brands.migrate_products'){
     if(!isAdmin(ss)) return json({ok:false,error:'unauthorized'},401); if(!requireCsrf(b,ss)) return json({ok:false,error:'invalid_csrf'},403);
     const ds=dataStore();const idx=await productIdsFromStore(ds);let linked=0,unmatched=0,already=0;
-    for(const pid of idx){const p=await getJSON(ds,`product:${pid}`);if(!p)continue;if(p.brand_id&&await getJSON(ds,`brand:${p.brand_id}`)){already++;continue;}const bd=await resolveBrand(ds,p.brand||p.name||'');if(bd){p.brand_id=bd.id;p.brand=bd.name;p.brand_logo=bd.logo_data_url||'';p.updated_at=new Date().toISOString();await ds.setJSON(`product:${pid}`,p);linked++;}else unmatched++;}
+    for(const pid of idx){const p=await getJSON(ds,`product:${pid}`);if(!p)continue;if(p.brand_id&&await getJSON(ds,`brand:${p.brand_id}`)){already++;continue;}const bd=await resolveBrand(ds,p.brand||p.name||'');if(bd){p.brand_id=bd.id;p.brand=bd.name;p.brand_logo=bd.logo_data_url||'';p.updated_at=new Date().toISOString();await ds.setJSON(`product:${pid}`,p);forgetPublicCatalogue();linked++;}else unmatched++;}
     await auditLog(req,ss,'admin.brands.migrate_products',{linked,unmatched,already});return json({ok:true,linked,unmatched,already,total:idx.length});
   }
 
@@ -4897,10 +4923,10 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
       let existing=null;
       for(const pid of idx){const p=await getJSON(ds,`product:${pid}`);if(!p)continue;if((x.source_id&&p.marketplace_source===source&&p.marketplace_source_id===x.source_id)||(x.sku&&p.sku===x.sku)){existing=p;break;}}
       const fields=await normalizeProductInput({...x,active:b.publish===true},existing,ds);if(!fields){skipped++;continue;}
-      if(existing){const p={...existing,...fields,marketplace_source:source,marketplace_source_id:x.source_id,mapping_status:x.mapping_status,updated_at:new Date().toISOString()};await ds.setJSON(`product:${p.id}`,p);updated++;}
-      else{const id=crypto.randomUUID();const p={id,...fields,marketplace_source:source,marketplace_source_id:x.source_id,mapping_status:x.mapping_status,created_at:new Date().toISOString(),updated_at:new Date().toISOString()};await ds.setJSON(`product:${id}`,p);idx.push(id);created++;}
+      if(existing){const p={...existing,...fields,marketplace_source:source,marketplace_source_id:x.source_id,mapping_status:x.mapping_status,updated_at:new Date().toISOString()};await ds.setJSON(`product:${p.id}`,p);forgetPublicCatalogue();updated++;}
+      else{const id=crypto.randomUUID();const p={id,...fields,marketplace_source:source,marketplace_source_id:x.source_id,mapping_status:x.mapping_status,created_at:new Date().toISOString(),updated_at:new Date().toISOString()};await ds.setJSON(`product:${id}`,p);forgetPublicCatalogue();idx.push(id);created++;}
     }
-    await mutateIndexAtomically(ds,'product-index',(current)=>[...new Set([...current,...idx])]);
+    await mutateIndexAtomically(ds,'product-index',(current)=>[...new Set([...current,...idx])]);forgetPublicCatalogue();
     await auditLog(req,ss,'admin.marketplace.import.commit',{source,created,updated,skipped});
     return json({ok:true,created,updated,skipped});
   }
@@ -5052,7 +5078,7 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
     const fast=await queryProductsPostgres({category,brandId:rb?.id||'',brandName:rb?'':brand,q,status,minPrice,maxPrice,sort,page,perPage,admin:false,facets:includeFacets,expectedTotal:productIndex.length});
     // Same rule as above: an empty result for a real search is not an answer.
     if(fast && !(brand&&fast.total===0) && (!q || (!hasThai(q) && fast.total>0))) return json({ok:true,products:fast.products.map(productCardView),total:fast.total,page,per_page:perPage,facets:fast.facets||undefined,source:'postgres'},200,{'cache-control':'public, max-age=30, stale-while-revalidate=120'});
-    let list=(await listJSONByPrefix(ds,'product:','product-index')).filter(p=>p && p.state!=='hidden' && p.state!=='discontinued');
+    let list=(await publicCatalogue(ds)).filter(p=>p && p.state!=='hidden' && p.state!=='discontinued');
     if(category) list=list.filter(p=>p.category===category);
     if(brand){
       const wanted=new Set(brandNames.map(normalizeBrandToken).filter(Boolean));
@@ -5106,7 +5132,7 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
      * The out-of-stock products are still listed, still findable, still
      * indexed; they are last, which is the only claim being made here.
      */
-    const soldOut=new Map(list.map((row)=>[row,stockAvailable(row)>0?0:1]));
+    const soldOut=new Map(list.map((row)=>[row,snapshotStockAvailable(row)>0?0:1]));
     list.sort((a,z)=>soldOut.get(a)-soldOut.get(z));
     const total=list.length; const start=(page-1)*perPage;
     const paged=list.slice(start,start+perPage).map(productCardView);
@@ -5115,7 +5141,7 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
       // ไม่กรองอะไรเลย = list ชุดนี้คือทั้งร้านอยู่แล้ว นับจากของที่มีได้เลย
       // ไม่ต้องสแกนแค็ตตาล็อกซ้ำอีกรอบ (ประหยัด subrequests ครึ่งหนึ่งของ worst case)
       const unfiltered=!category&&!brand&&!q&&!status&&!Number.isFinite(minPrice)&&!Number.isFinite(maxPrice);
-      const all=unfiltered?list:(await listJSONByPrefix(ds,'product:','product-index')).filter(p=>p&&p.state!=='hidden'&&p.state!=='discontinued');
+      const all=unfiltered?list:(await publicCatalogue(ds)).filter(p=>p&&p.state!=='hidden'&&p.state!=='discontinued');
       productFacets={categories:{},brands:{}};for(const p of all){productFacets.categories[p.category||'']=(productFacets.categories[p.category||'']||0)+1;productFacets.brands[p.brand||'']=(productFacets.brands[p.brand||'']||0)+1;}
     }
     return json({ok:true, products:paged, total, page, per_page:perPage,facets:productFacets,source:'blobs'},200,{'cache-control':'public, max-age=15, stale-while-revalidate=60'});
@@ -5148,7 +5174,7 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
       }
     }
     if(!p && slug && postgresEnabled()){ try{const result=await database().pool.query(`SELECT value FROM app_kv WHERE namespace=$1 AND key LIKE 'product:%' AND value->>'slug'=$2 LIMIT 1`,[dataNamespace(),slug]);p=result.rows[0]?.value||null;}catch{} }
-    if(!p && slug){ for(const cand of await listJSONByPrefix(ds,'product:','product-index')){ if(cand?.slug===slug){ p=cand; break; } } }
+    if(!p && slug){ for(const cand of await publicCatalogue(ds)){ if(cand?.slug===slug){ p=cand; break; } } }
     // Whatever path found it, the index knows next time.
     if(p&&p.slug&&p.slug===slug){ try{ await syncSlugIndex(ds,String(p.id),p.slug); }catch{} }
     /*
@@ -5183,7 +5209,7 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
     if(postgresEnabled()){
       try{const result=await database().pool.query(`SELECT value FROM app_kv WHERE namespace=$1 AND key LIKE 'product:%' AND key<>$2 AND COALESCE(value->>'state','active')='active' AND (value->>'category'=$3 OR ($4<>'' AND LOWER(COALESCE(value->>'brand',''))=$4)) ORDER BY updated_at DESC LIMIT 100`,[dataNamespace(),`product:${id}`,source.category||'',String(source.brand||'').toLowerCase()]);candidates=result.rows.map(row=>row.value).filter(Boolean);}catch{}
     }
-    if(!candidates.length){for(const candidate of await listJSONByPrefix(ds,'product:','product-index')){if(candidate?.id===id)continue;if(candidate?.state==='active')candidates.push(candidate);if(candidates.length>=100)break;}}
+    if(!candidates.length){for(const candidate of await publicCatalogue(ds)){if(candidate?.id===id)continue;if(candidate?.state==='active')candidates.push(candidate);if(candidates.length>=100)break;}}
     const sourceTerms=new Set(Object.entries(source.specs||{}).flatMap(([key,value])=>`${key} ${value}`.toLowerCase().split(/[^a-z0-9ก-๙]+/)).filter(term=>term.length>2)),ranked=[];
     for(const candidate of candidates){if(stockAvailable(candidate)<=0)continue;let score=0;const reasons=[];if(candidate.category&&candidate.category===source.category){score+=30;reasons.push('หมวดเดียวกัน');}if((candidate.brand_id&&candidate.brand_id===source.brand_id)||(!candidate.brand_id&&candidate.brand&&candidate.brand===source.brand)){score+=18;reasons.push('แบรนด์เดียวกัน');}const candidateTerms=new Set(Object.entries(candidate.specs||{}).flatMap(([key,value])=>`${key} ${value}`.toLowerCase().split(/[^a-z0-9ก-๙]+/)).filter(term=>term.length>2)),overlap=[...sourceTerms].filter(term=>candidateTerms.has(term)).length;if(overlap){score+=Math.min(20,overlap*4);reasons.push('สเปกใกล้เคียง');}const together=Number(coPurchase.get(candidate.id)||0),popular=Number(popularity.get(candidate.id)||0);if(together){score+=Math.min(40,together*8);reasons.unshift('ลูกค้ามักซื้อด้วยกัน');}score+=Math.min(15,Math.log2(popular+1)*3);if(candidate.price&&source.price)score+=(Math.min(candidate.price,source.price)/Math.max(candidate.price,source.price))*5;ranked.push({score,reason:reasons[0]||'สินค้ายอดนิยม',product:candidate});}
     ranked.sort((a,z)=>z.score-a.score||String(a.product.name||'').localeCompare(String(z.product.name||''),'th'));
@@ -5629,7 +5655,7 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
         let ok=await atomicProductCreate(record);
         for(let attempt=1;attempt<5&&!ok;attempt++){id=crypto.randomUUID();record={...record,id};ok=await atomicProductCreate(record);}
         if(!ok){createFailures.push({line:plan.line,error:'product_create_conflict'});continue;}
-        await mutateIndexAtomically(ds,'product-index',(idx)=>[...new Set([...idx,id])]);
+        await mutateIndexAtomically(ds,'product-index',(idx)=>[...new Set([...idx,id])]);forgetPublicCatalogue();
         await syncSlugIndex(ds,id,record.slug);
         await syncFeaturedIndex(ds,id,record.home_featured===true);
         created++;
@@ -5805,7 +5831,7 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
       // idempotent retry repairs the index instead of leaving an orphan record.
       idx.add(id);
     }
-    await mutateIndexAtomically(ds,'product-index',(current)=>[...new Set([...current,...idx])]);
+    await mutateIndexAtomically(ds,'product-index',(current)=>[...new Set([...current,...idx])]);forgetPublicCatalogue();
     await auditLog(req,ss,'admin.products.bulk_import',{received:items.length,created,updated,skipped,publish:b.publish===true&&maySuperAdmin(ss,'admin.products.bulk_import')});
     const result={ok:true,received:items.length,created,updated,skipped,held_for_stock,rewritten_skus,cleared_barcodes,errors:errors.slice(0,20),import_id:importId||undefined,next_offset:offset+items.length};
     if(importJobKey){importJob.cursor=offset+items.length;importJob.updated_at=new Date().toISOString();importJob.complete=importJob.cursor>=importJob.total;importJob.batches={...(importJob.batches||{}),[String(offset)]:result};await ds.setJSON(importJobKey,importJob);}
@@ -5816,7 +5842,7 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
     if(!requireCsrf(b,ss)) return json({ok:false,error:'invalid_csrf'},403);
     const ds=dataStore(); const fields=await normalizeProductInput(b,null,ds); if(!fields) return json({ok:false,error:'invalid_input'},422);
     let id=crypto.randomUUID(),p={id,...fields,created_at:new Date().toISOString(),updated_at:new Date().toISOString()};const codeError=await uniqueProductCodeError(ds,p);if(codeError)return json({ok:false,...codeError},409);let created=await atomicProductCreate(p);for(let attempt=1;attempt<5&&!created;attempt++){id=crypto.randomUUID();p={...p,id};created=await atomicProductCreate(p);}if(!created)return json({ok:false,error:'product_create_conflict'},409);
-    const known=await productIdsFromStore(ds); await mutateIndexAtomically(ds,'product-index',(idx)=>[...new Set([...idx,...known,id])]);
+    const known=await productIdsFromStore(ds); await mutateIndexAtomically(ds,'product-index',(idx)=>[...new Set([...idx,...known,id])]);forgetPublicCatalogue();
     await syncFeaturedIndex(ds,id,p.home_featured===true);
     await syncSlugIndex(ds,id,p.slug);
     await auditLog(req,ss,'admin.products.create',{id,name:p.name,sku:p.sku});
@@ -5971,7 +5997,7 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
       if(patch.price_delta_percent!==undefined){const factor=1+Number(patch.price_delta_percent)/100,round=value=>Math.max(0,Math.round(Number(value||0)*factor*100)/100);next.price=round(next.price);next.variants=(next.variants||[]).map(variant=>({...variant,price:round(variant.price)}));}
       if(patch.stock!==undefined){const variant=findProductVariant(next),stock=Math.max(0,Math.round(Number(patch.stock)||0));if(variant){const level=variant.inventory[DEFAULT_WAREHOUSE.id]||normalizeLevel();variant.inventory[DEFAULT_WAREHOUSE.id]=level;if(level.on_hand!==null)level.on_hand=Math.max(Number(level.reserved||0),stock);}}
       next=syncProductAggregates(next);next.updated_at=new Date().toISOString();
-      await ds.setJSON(`product:${id}`, next);
+      await ds.setJSON(`product:${id}`, next);forgetPublicCatalogue();
       if(Number(current.stock||0)!==Number(next.stock||0)){
         const logId=crypto.randomUUID(); const log={id:logId,product_id:id,sku:next.sku||'',delta:Number(next.stock||0)-Number(current.stock||0),before:Number(current.stock||0),after:Number(next.stock||0),reason:'bulk_update',order_no:null,admin:ss.data.username,at:new Date().toISOString()};
         await ds.setJSON(`inventory-log:${logId}`,log); await appendToIndex(ds,'inventory-log-index',logId,{unique:false,cap:3000});

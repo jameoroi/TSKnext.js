@@ -1,9 +1,9 @@
 'use client';
 
 import { usePathname, useSearchParams } from 'next/navigation';
-import posthog from 'posthog-js';
 import { useEffect, useRef, useState } from 'react';
 import { type ConsentPreferences, onConsentChange, readConsent } from '@/features/privacy/consent';
+import { capturePosthog, loadPosthog } from '@/lib/posthog.client';
 
 const floodlightId = (value: unknown) => {
   const raw = String(value || '')
@@ -36,14 +36,10 @@ export function MarketingRuntime() {
     if (!consent?.analytics || startedAnalytics.current) return;
     const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
     if (!key) return;
-    if (!posthog.__loaded)
-      posthog.init(key, {
-        api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
-        capture_pageview: false,
-        autocapture: true,
-        persistence: 'localStorage+cookie',
-      });
     startedAnalytics.current = true;
+    void loadPosthog(key, process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com').then(() =>
+      capturePosthog('$pageview', { $current_url: window.location.href }),
+    );
   }, [consent?.analytics]);
 
   useEffect(() => {
@@ -128,8 +124,8 @@ export function MarketingRuntime() {
   }, [consent?.marketing]);
 
   useEffect(() => {
-    if (consent?.analytics && startedAnalytics.current && posthog.__loaded)
-      posthog.capture('$pageview', { $current_url: window.location.href });
+    if (consent?.analytics && startedAnalytics.current)
+      capturePosthog('$pageview', { $current_url: window.location.href });
     if (consent?.marketing && startedMarketing.current) sendPageView();
   }, [pathname, search, consent?.analytics, consent?.marketing]);
 
