@@ -2,6 +2,8 @@
 
 ## 6.0.0
 
+- fix(products): answer the sale filter with counts from the database path (95f6199)
+- docs(changelog): update generated changelog (fe5c5d9)
 - ci(edge-warm): finish inside the job timeout so product pages get warmed (98e5c9d)
 - docs(changelog): update generated changelog (2982ed0)
 - fix(home): keep the home render inside the Workers Free subrequest and CPU limits (528849e)
