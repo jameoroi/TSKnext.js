@@ -2,6 +2,8 @@
 
 ## 6.0.0
 
+- feat(banners): multi-picture sliding banners everywhere, mobile rails, settings banner tab; fix admin uploads (a6434de)
+- docs(changelog): update generated changelog (01b793b)
 - fix(edge): stop full catalogue reads from exhausting Worker memory (1102) (7b61c64)
 - docs(changelog): update generated changelog (0b3490f)
 - fix(products): answer the sale filter with counts from the database path (95f6199)
@@ -90,4 +92,3 @@
 - hardening: production security/commerce/tenant fixes, audit re-baseline, LF normalization (ff63f89)
 - docs(changelog): update generated changelog (b194c12)
 - fix(admin): integrate reports into admin navigation (376c9e0)
-- docs(changelog): update generated changelog (41c6ba9)
