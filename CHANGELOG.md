@@ -2,6 +2,13 @@
 
 ## 6.0.0
 
+- fix(security): resolve CodeQL alerts and add page metadata (0334d18)
+- fix(orders): take coupon uses atomically so usage limits hold (d8efc24)
+- fix: give server-rendered catalogue reads the visitor's rate-limit identity (d88dfa7)
+- fix(images): serve own media directly and keep the hero carousel alive (1906a82)
+- perf: stop full-catalogue work per request and lazy-load analytics SDKs (a4fe79b)
+- feat(ui): restore Radix UI, Tailwind and Material UI as the core UI stack (04053f8)
+- docs(changelog): update generated changelog (67cc8e1)
 - fix: serve product media from R2 binding and match production config (b0a89db)
 - docs(changelog): update generated changelog (a68cb86)
 - fix: restore Cloudflare Workers build after Node 26 upgrade (bc27e3b)
