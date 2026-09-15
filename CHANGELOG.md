@@ -2,6 +2,8 @@
 
 ## 6.0.0
 
+- fix(images): allow quality 90 for the product zoom and full-view source (c61ca2f)
+- docs(changelog): update generated changelog (22eebb3)
 - fix(storefront): render page content once, and a searchable brand dropdown (badcab6)
 - docs(changelog): update generated changelog (64173e3)
 - fix(edge): keep the shop up when renders exceed the Workers Free CPU limit (c66ab00)
