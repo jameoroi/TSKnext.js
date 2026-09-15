@@ -89,6 +89,11 @@ export type HomepageData = {
   entryPopup: Record<string, unknown> | null;
   banners: Array<Record<string, unknown>>;
   promoBanners: Array<Record<string, unknown>>;
+  /** The wide campaign band above the articles (admin: แบนเนอร์บทความ, 6:1). */
+  articleBanners: Array<Record<string, unknown>>;
+  /** Full-box background pictures set in the admin; empty keeps the colour band. */
+  flashBackground: string;
+  dealerBackground: string;
   categories: HomeCategory[];
   featured: Product[];
   flash: { items: FlashSaleItem[]; endsAt: string };
@@ -101,6 +106,9 @@ export function emptyHomepageData(): HomepageData {
     entryPopup: null,
     banners: [],
     promoBanners: [],
+    articleBanners: [],
+    flashBackground: '',
+    dealerBackground: '',
     categories: [],
     featured: [],
     flash: { items: [], endsAt: '' },
@@ -212,6 +220,18 @@ export async function getHomepageData(): Promise<HomepageData> {
       )
     : [];
 
+  const bannerRows = (value: unknown) =>
+    (Array.isArray(value) ? value : []).filter(
+      (row): row is Record<string, unknown> =>
+        Boolean(row && typeof row === 'object') && (row as Record<string, unknown>).active !== false,
+    );
+  const articleBanners = bannerRows(site.article_banners).filter((row) => text(row.img || row.image_url));
+  // One picture per box: the first active one the admin uploaded.
+  const firstImage = (value: unknown) => {
+    const row = bannerRows(value).find((item) => text(item.img || item.image_url));
+    return row ? text(row.img || row.image_url) : '';
+  };
+
   const categories = (Array.isArray(categoryRows) ? categoryRows : [])
     .filter((row): row is Record<string, unknown> => Boolean(row && typeof row === 'object'))
     .map(mapCategory)
@@ -254,6 +274,9 @@ export async function getHomepageData(): Promise<HomepageData> {
         : null,
     banners,
     promoBanners: promoBanners.slice(0, DYNAMIC_SECTIONS.PROMOTION_BANNERS.slots),
+    articleBanners,
+    flashBackground: firstImage(site.flash_sale_backgrounds),
+    dealerBackground: firstImage(site.dealer_backgrounds),
     categories,
     featured,
     flash: { items: fallbackFlashItems, endsAt: text(site.flash_sale_ends_at) },

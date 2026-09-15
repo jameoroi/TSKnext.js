@@ -178,6 +178,13 @@ const DEFAULT_SITE_SETTINGS = {
    */
   article_banners: [],
   /**
+   * One full-box picture behind the flash sale band and one behind the dealer
+   * sign-up box on the home page. Stored as banner lists so the same upload,
+   * bucket and cleanup path serves them; the home page reads the first active row.
+   */
+  flash_sale_backgrounds: [],
+  dealer_backgrounds: [],
+  /**
    * The pictures on the two introduction cards on the home page.
    *
    * They were line-art icons hard-coded into the template — a water drop for
@@ -503,7 +510,7 @@ function normalizeManagedBanners(input,current=[]){
  * list. The bytes leave the payload the same way the logo's have always left
  * it: an address that fetches them, cached hard by the row's own timestamp.
  */
-const BANNER_LISTS={banners:'banners',promo:'promo_banners',article:'article_banners'};
+const BANNER_LISTS={banners:'banners',promo:'promo_banners',article:'article_banners',flash_bg:'flash_sale_backgrounds',dealer_bg:'dealer_backgrounds'};
 function bannerAddresses(rows,list,version){
   return rows.map(row=>/^data:image\//i.test(String(row.img||''))
     ? {...row,img:`/api?action=site.banner-image&list=${list}&id=${encodeURIComponent(row.id||'')}&v=${version}`}
@@ -3077,7 +3084,7 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
 
   if(action==='site.settings'){
     const saved=await readSiteSettings(dataStore());
-    const settings={...DEFAULT_SITE_SETTINGS,...saved,entry_popup:normalizeEntryPopup(saved.entry_popup),banners:normalizeManagedBanners(saved.banners),promo_banners:normalizeManagedBanners(saved.promo_banners),article_banners:normalizeManagedBanners(saved.article_banners),home_cards:normalizeHomeCards(saved.home_cards),theme:{...DEFAULT_SITE_SETTINGS.theme,...(saved.theme||{})},
+    const settings={...DEFAULT_SITE_SETTINGS,...saved,entry_popup:normalizeEntryPopup(saved.entry_popup),banners:normalizeManagedBanners(saved.banners),promo_banners:normalizeManagedBanners(saved.promo_banners),article_banners:normalizeManagedBanners(saved.article_banners),flash_sale_backgrounds:normalizeManagedBanners(saved.flash_sale_backgrounds),dealer_backgrounds:normalizeManagedBanners(saved.dealer_backgrounds),home_cards:normalizeHomeCards(saved.home_cards),theme:{...DEFAULT_SITE_SETTINGS.theme,...(saved.theme||{})},
       /*
        * Normalised here rather than in one of the two responses below, because
        * doing it in one of them is how a field removed from the code kept being
@@ -3114,6 +3121,8 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
         banners:bannerAddresses(settings.banners,'banners',version),
         promo_banners:bannerAddresses(settings.promo_banners,'promo',version),
         article_banners:bannerAddresses(settings.article_banners,'article',version),
+        flash_sale_backgrounds:bannerAddresses(settings.flash_sale_backgrounds,'flash_bg',version),
+        dealer_backgrounds:bannerAddresses(settings.dealer_backgrounds,'dealer_bg',version),
         // Addresses, never the bytes: the home page fetches this payload on
         // every visit, and two data URLs would put megabytes of base64 into a
         // response that is cached and re-parsed on each one. R112 is about
@@ -3350,6 +3359,8 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
     }
     const promo_banners=await bucketBanners(normalizeManagedBanners(b.promo_banners!==undefined?resolveBannerAddresses(b.promo_banners,current.promo_banners):current.promo_banners),'site-promo-banner',ss);
     const article_banners=await bucketBanners(normalizeManagedBanners(b.article_banners!==undefined?resolveBannerAddresses(b.article_banners,current.article_banners):current.article_banners),'site-article-banner',ss);
+    const flash_sale_backgrounds=await bucketBanners(normalizeManagedBanners(b.flash_sale_backgrounds!==undefined?resolveBannerAddresses(b.flash_sale_backgrounds,current.flash_sale_backgrounds):current.flash_sale_backgrounds),'site-flash-background',ss);
+    const dealer_backgrounds=await bucketBanners(normalizeManagedBanners(b.dealer_backgrounds!==undefined?resolveBannerAddresses(b.dealer_backgrounds,current.dealer_backgrounds):current.dealer_backgrounds),'site-dealer-background',ss);
     // Same check the logo and the favicon get. These are rendered on the home
     // page of a public shop; whatever is stored here is served to everyone.
     if(!validImage(home_cards.featured_image_url)||!validImage(home_cards.articles_image_url)) return json({ok:false,error:'invalid_image'},422);
@@ -3423,12 +3434,12 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
     const home_headings=b.home_headings!==undefined
       ? {bestseller:clean(b.home_headings?.bestseller,60).trim(),flash:clean(b.home_headings?.flash,60).trim(),promotion:clean(b.home_headings?.promotion,60).trim()}
       : {...DEFAULT_SITE_SETTINGS.home_headings,...(current.home_headings||{})};
-    const settings={...current,site_title,company_name,company_subtitle,logo_data_url,favicon_data_url,chat_avatar_data_url,entry_popup,flash_sale_ends_at,flash_sale_count,home_headings,banners,promo_banners,article_banners,home_cards,marketing,updated_at:new Date().toISOString()};
+    const settings={...current,site_title,company_name,company_subtitle,logo_data_url,favicon_data_url,chat_avatar_data_url,entry_popup,flash_sale_ends_at,flash_sale_count,home_headings,banners,promo_banners,article_banners,flash_sale_backgrounds,dealer_backgrounds,home_cards,marketing,updated_at:new Date().toISOString()};
     forgetSiteSettings();await dataStore().setJSON('site-settings',settings);await purgeSettingsPages(req);
     // Written first, cleaned up after: a delete that fails must never be able to
     // take the save with it. Every list is compared, so a picture that moved
     // between them is kept.
-    const bannerUrls=source=>[...(source.banners||[]),...(source.promo_banners||[]),...(source.article_banners||[])].map(row=>row?.img);
+    const bannerUrls=source=>[...(source.banners||[]),...(source.promo_banners||[]),...(source.article_banners||[]),...(source.flash_sale_backgrounds||[]),...(source.dealer_backgrounds||[])].map(row=>row?.img);
     await deleteOrphanedMedia(bannerUrls(current),bannerUrls(settings));
     return json({ok:true,settings});
   }

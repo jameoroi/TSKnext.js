@@ -5,8 +5,13 @@ import { scaleImageFile, uploadAdminImage } from '@/lib/admin-media.client';
 import { legacyRequest } from '@/lib/legacy-api.client';
 
 type ContentKind = 'news' | 'article' | 'video';
-type BannerKind = 'banners' | 'promo_banners' | 'article_banners';
-type Tab = 'banner' | 'banner-promo' | 'banner-article' | ContentKind;
+type BannerKind =
+  | 'banners'
+  | 'promo_banners'
+  | 'article_banners'
+  | 'flash_sale_backgrounds'
+  | 'dealer_backgrounds';
+type Tab = 'banner' | 'banner-promo' | 'banner-article' | 'bg-flash' | 'bg-dealer' | ContentKind;
 type Banner = { id?: string; img: string; link_url: string; alt_text: string; active: boolean };
 type Item = Record<string, any>;
 
@@ -14,6 +19,16 @@ const tabs: Array<{ key: Tab; label: string; note: string }> = [
   { key: 'banner', label: 'สไลด์ใหญ่', note: 'ภาพ Hero ด้านบนหน้าแรก' },
   { key: 'banner-promo', label: 'แบนเนอร์ย่อย', note: 'ภาพแถวใต้ Hero' },
   { key: 'banner-article', label: 'แบนเนอร์บทความ', note: 'แถบกว้างเหนือบทความท้ายหน้าแรก' },
+  {
+    key: 'bg-flash',
+    label: 'พื้นหลัง Flash Sale',
+    note: 'รูปเต็มกล่อง Flash Sale หน้าแรก (ใช้รูปแรกที่เปิดอยู่)',
+  },
+  {
+    key: 'bg-dealer',
+    label: 'พื้นหลังสมัครตัวแทน',
+    note: 'รูปเต็มกล่องสมัครตัวแทนหน้าแรก (ใช้รูปแรกที่เปิดอยู่)',
+  },
   { key: 'news', label: 'ข่าวสารและโปรโมชั่น', note: 'ข่าวและประกาศบนหน้าร้าน' },
   { key: 'article', label: 'บทความ', note: 'บทความความรู้และ SEO content' },
   { key: 'video', label: 'วิดีโอ', note: 'วิดีโอพร้อมภาพปกและ URL' },
@@ -88,6 +103,22 @@ export function ContentManager({
         defaultLink: '/news',
         title: 'แบนเนอร์คั่นบทความ',
         size: 'แนะนำ 2800 × 466 px (6:1)',
+      },
+      'bg-flash': {
+        key: 'flash_sale_backgrounds' as BannerKind,
+        ownerType: 'site-flash-background',
+        maxEdge: 2800,
+        defaultLink: '',
+        title: 'พื้นหลังกล่อง Flash Sale',
+        size: 'แนะนำ 2800 × 1100 px · ข้อความวางด้านซ้าย เว้นที่ว่างไว้',
+      },
+      'bg-dealer': {
+        key: 'dealer_backgrounds' as BannerKind,
+        ownerType: 'site-dealer-background',
+        maxEdge: 2800,
+        defaultLink: '',
+        title: 'พื้นหลังกล่องสมัครตัวแทน',
+        size: 'แนะนำ 2800 × 1400 px · ฟอร์มอยู่ด้านขวา',
       },
     }),
     [],
