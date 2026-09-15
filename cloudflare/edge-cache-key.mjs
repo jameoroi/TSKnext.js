@@ -97,3 +97,16 @@ export async function lastGoodObjectKey(keyUrl) {
   const hex = [...digest].map((b) => b.toString(16).padStart(2, '0')).join('');
   return `_edge/v1/${hex}`;
 }
+
+/**
+ * Scope a cache key to the deployment that rendered it. Every deploy replaces
+ * the hashed /_next/static chunks, so HTML cached by the previous build points
+ * at scripts that now answer 404 and the page never hydrates (no cart, zoom or
+ * filters). The version comes from the CF_VERSION_METADATA binding.
+ * @param {URL} keyUrl @param {string | undefined} version
+ */
+export function versionedKey(keyUrl, version) {
+  const key = new URL(keyUrl);
+  if (version) key.searchParams.set('__build', String(version));
+  return key;
+}

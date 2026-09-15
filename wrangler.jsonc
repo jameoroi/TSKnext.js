@@ -11,6 +11,10 @@
   "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
   "images": { "binding": "IMAGES" },
   "r2_buckets": [{ "binding": "PRODUCT_MEDIA", "bucket_name": "product-media" }],
+  // Deployment id for cloudflare/worker-entry.js: cached HTML is scoped to the
+  // build that rendered it, because each deploy replaces the /_next/static chunks
+  // and a page from the previous build would load scripts that no longer exist.
+  "version_metadata": { "binding": "CF_VERSION_METADATA" },
   "routes": [
     { "pattern": "jayxtsk.shop", "custom_domain": true },
     { "pattern": "www.jayxtsk.shop", "custom_domain": true }

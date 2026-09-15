@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { isMediaKey } from '@/shared/media-key.mjs';
-import { cacheable, cacheKeyUrl, lastGoodObjectKey } from '../../cloudflare/edge-cache-key.mjs';
+import { cacheable, cacheKeyUrl, lastGoodObjectKey, versionedKey } from '../../cloudflare/edge-cache-key.mjs';
 
 const get = (url: string, headers: Record<string, string> = {}) => ({
   request: { method: 'GET', headers: new Headers(headers) },
@@ -54,5 +54,16 @@ describe('edge cache key', () => {
     const key = await lastGoodObjectKey('https://jayxtsk.shop/');
     expect(key).toMatch(/^_edge\/v1\/[0-9a-f]{64}$/);
     expect(isMediaKey(key)).toBe(false);
+  });
+
+  it('scopes cached pages to the deployment, so old HTML never meets new scripts', async () => {
+    const page = cacheKeyUrl(new URL('https://jayxtsk.shop/products?brand=DeWalt&x=1'));
+    const a = versionedKey(page, 'deploy-a');
+    const b = versionedKey(page, 'deploy-b');
+    expect(a.toString()).not.toBe(b.toString());
+    expect(a.searchParams.get('brand')).toBe('DeWalt');
+    expect(await lastGoodObjectKey(a)).not.toBe(await lastGoodObjectKey(b));
+    // Without version metadata (local preview) the key is unchanged.
+    expect(versionedKey(page, undefined).toString()).toBe(page.toString());
   });
 });

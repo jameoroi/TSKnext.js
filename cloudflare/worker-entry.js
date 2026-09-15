@@ -14,11 +14,12 @@
  * - the colo Cache API (fast, but per colo and evictable), serving stale for a day;
  * - a last-good copy in R2 (PRODUCT_MEDIA, under `_edge/`, which /media refuses),
  *   used when a colo has no entry yet, so a cold colo does not have to render.
- * The cache key only includes query parameters a page reads (edge-cache-key.mjs).
+ * The cache key only includes query parameters a page reads (edge-cache-key.mjs),
+ * plus the deployment id, so a new deploy never serves HTML from the old build.
  */
 import openNext from '../.open-next/worker.js';
 import { SECURITY_HEADERS } from '../src/shared/security-headers.mjs';
-import { cacheable, cacheKeyUrl, lastGoodObjectKey } from './edge-cache-key.mjs';
+import { cacheable, cacheKeyUrl, lastGoodObjectKey, versionedKey } from './edge-cache-key.mjs';
 
 export { BucketCachePurge, DOQueueHandler, DOShardedTagCache } from '../.open-next/worker.js';
 
@@ -121,7 +122,9 @@ export default {
     const cache = globalThis.caches?.default;
     if (!cache || !cacheable(request, url)) return openNext.fetch(request, env, ctx);
 
-    const keyUrl = cacheKeyUrl(url);
+    // Scoped to this deployment: HTML from a previous build references
+    // /_next/static chunks that the new deploy removed (404, no hydration).
+    const keyUrl = versionedKey(cacheKeyUrl(url), env.CF_VERSION_METADATA?.id);
     const key = new Request(keyUrl.toString(), { method: 'GET' });
     const objectKey = await lastGoodObjectKey(keyUrl);
     const cached = await cache.match(key).catch(() => undefined);
