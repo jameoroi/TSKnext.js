@@ -21,6 +21,7 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 import openNext from '../.open-next/worker.js';
 import { SECURITY_HEADERS } from '../src/shared/security-headers.mjs';
 import {
+  assetSample,
   cacheable,
   cacheKeyUrl,
   lastGoodObjectKey,
@@ -131,7 +132,8 @@ async function readLastGood(bucket, objectKey, env, url) {
   if ((object.customMetadata?.build || '') !== build && type.includes('text/html')) {
     if (!env.ASSETS) return null;
     const html = await object.text();
-    const paths = staticAssetPaths(html);
+    // A handful, not all of them: each check is a subrequest (see assetSample).
+    const paths = assetSample(staticAssetPaths(html));
     const checks = await Promise.all(
       paths.map((path) =>
         env.ASSETS.fetch(new Request(new URL(path, url.origin).toString(), { method: 'HEAD' }))

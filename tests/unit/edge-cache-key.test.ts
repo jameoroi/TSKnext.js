@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { isMediaKey } from '@/shared/media-key.mjs';
 import {
+  assetSample,
   cacheable,
   cacheKeyUrl,
   lastGoodObjectKey,
@@ -90,5 +91,26 @@ describe('edge cache key', () => {
       '/_next/static/chunks/274-834c0f0723a9e516.js',
     ]);
     expect(staticAssetPaths('<p>no assets</p>')).toEqual([]);
+  });
+
+  it('checks only a handful of representative assets, so validation cannot use the subrequest budget', () => {
+    const paths = [
+      '/_next/static/chunks/274-834c0f0723a9e516.js',
+      '/_next/static/media/25f7d470e08d7a87-s.p.woff2',
+      '/_next/static/chunks/app/products/[id]/page-1a2b.js',
+      '/_next/static/css/b9f75f59a9510a5f.css',
+      '/_next/static/chunks/main-app-9f8e.js',
+      '/_next/static/chunks/webpack-5d3efd48950ca4ef.js',
+      ...Array.from({ length: 60 }, (_, i) => `/_next/static/chunks/${i}-abc.js`),
+    ];
+    const sample = assetSample(paths);
+    expect(sample).toHaveLength(6);
+    expect(sample.slice(0, 4)).toEqual([
+      '/_next/static/chunks/webpack-5d3efd48950ca4ef.js',
+      '/_next/static/chunks/main-app-9f8e.js',
+      '/_next/static/css/b9f75f59a9510a5f.css',
+      '/_next/static/chunks/app/products/[id]/page-1a2b.js',
+    ]);
+    expect(assetSample([])).toEqual([]);
   });
 });

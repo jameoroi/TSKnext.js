@@ -128,3 +128,30 @@ export function staticAssetPaths(html) {
   }
   return [...found];
 }
+
+/**
+ * The few assets worth checking before an older build's copy is served.
+ *
+ * Checking every asset cost one subrequest each (up to 80 HEADs against
+ * ASSETS). On Workers Free that alone used the invocation's 50-subrequest
+ * budget, so the render that followed could not store the page ("Too many
+ * subrequests") and pages with an old copy were never cached again. Names are
+ * content hashes and a deploy replaces them together, so the runtime, the app
+ * shell, the page's own chunk and the stylesheet stand for the rest.
+ * @param {string[]} paths @param {number} [max]
+ */
+export function assetSample(paths, max = 6) {
+  const rank = (path) => {
+    if (/\/webpack-[^/]+\.js$/.test(path)) return 0;
+    if (/\/main-app-[^/]+\.js$/.test(path)) return 1;
+    if (/\.css$/.test(path)) return 2;
+    if (/\/chunks\/app\/.+\.js$/.test(path)) return 3;
+    if (/\.js$/.test(path)) return 4;
+    return 5;
+  };
+  return [...paths]
+    .map((path, index) => ({ path, index, rank: rank(path) }))
+    .sort((a, b) => a.rank - b.rank || a.index - b.index)
+    .slice(0, Math.max(1, max))
+    .map((entry) => entry.path);
+}
