@@ -36,6 +36,12 @@ function ChromeShell({ children }: { children: React.ReactNode }) {
     );
   return (
     <div className="pb-16 md:pb-0">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[100] focus:rounded-xl focus:bg-emerald-900 focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-white"
+      >
+        ข้ามไปยังเนื้อหา
+      </a>
       <Header />
       <main id="main-content">{children}</main>
       <TrustStrip />

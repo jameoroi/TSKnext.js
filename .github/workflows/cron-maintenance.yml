@@ -22,6 +22,7 @@ jobs:
         env:
           PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          AUTOMATION_TOKEN: ${{ secrets.AUTOMATION_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
@@ -31,7 +32,7 @@ jobs:
           fi
           body_file="${RUNNER_TEMP}/maintenance.json"
           status="$(curl --silent --show-error --max-time 60 --output "${body_file}" --write-out '%{http_code}' \
-            -X POST -H "authorization: Bearer ${CRON_SECRET}" "${PRODUCTION_URL%/}/api/cron/maintenance" || true)"
+            -X POST -H "authorization: Bearer ${CRON_SECRET}" -H "x-tsk-automation: ${AUTOMATION_TOKEN:-}" "${PRODUCTION_URL%/}/api/cron/maintenance" || true)"
           echo "HTTP ${status}"
           cat "${body_file}"; echo
           if [[ "${status}" != '200' && "${status}" != '202' ]]; then

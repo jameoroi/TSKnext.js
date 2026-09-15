@@ -71,7 +71,7 @@ export function Hero({ banners }: { banners: Array<Record<string, unknown>> }) {
 
   return (
     <section className="mx-auto max-w-7xl px-4 pt-4 lg:px-6 lg:pt-6" aria-label="แบนเนอร์โปรโมชั่น">
-      <div className="relative aspect-[16/10] overflow-hidden rounded-3xl shadow-2xl sm:aspect-[16/8] lg:aspect-[16/6]">
+      <div className="relative aspect-[12/5] overflow-hidden rounded-3xl shadow-2xl">
         {allFailed || currentFailed ? (
           <div className="absolute inset-0 grid place-items-center bg-emerald-950 px-6 text-center text-white">
             <div>

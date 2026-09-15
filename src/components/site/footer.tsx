@@ -131,7 +131,7 @@ export function Footer() {
           </section>
 
           <section>
-            <h4 className="font-semibold">ลิงก์ด่วน</h4>
+            <h2 className="text-base font-semibold">ลิงก์ด่วน</h2>
             <div className="flink mt-3 grid gap-2 text-sm text-emerald-100/70">
               {QUICK_LINKS.map((l) => (
                 <Link key={l.href + l.label} href={l.href}>
@@ -141,7 +141,7 @@ export function Footer() {
             </div>
           </section>
           <section>
-            <h4 className="font-semibold">บริการลูกค้า</h4>
+            <h2 className="text-base font-semibold">บริการลูกค้า</h2>
             <div className="flink mt-3 grid gap-2 text-sm text-emerald-100/70">
               {SERVICE_LINKS.map((l) => (
                 <Link key={l.href + l.label} href={l.href}>
@@ -152,7 +152,7 @@ export function Footer() {
           </section>
 
           <section>
-            <h4 className="font-semibold">ติดต่อเรา</h4>
+            <h2 className="text-base font-semibold">ติดต่อเรา</h2>
             <address className="flink mt-3 grid gap-2 text-sm not-italic text-emerald-100/70">
               {(street || locality) && (
                 <span className="flex gap-2">

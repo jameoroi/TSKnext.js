@@ -6877,7 +6877,9 @@ if(!maySuperAdmin(ss,'admin.newsletter.send'))return json({ok:false,error:'forbi
   // browser keeps the token; an account keeps every room it has ever had.
   if(action==='telegram.chat.mine'){
     const customerId=tskChatCustomerId(ss);
-    if(!customerId)return json({ok:false,error:'login_required'},401);
+    // Signed-out visitors simply have no account room: answer empty instead of a 401
+    // that every storefront page logged as a console error.
+    if(!customerId)return json({ok:true,active_conversation_id:'',signed_in:false});
     const ds=dataStore(),rooms=await tskChatCustomerRooms(ds,customerId);
     for(const room of rooms)await tskChatCloseIfStale(ds,room);
     const active=rooms.find(x=>x.status==='open')||null;

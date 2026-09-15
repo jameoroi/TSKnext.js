@@ -6,12 +6,14 @@ import {
   ChevronDown,
   ChevronRight,
   FileText,
+  Globe,
   Heart,
   Menu,
   Scale,
   Search,
   ShoppingCart,
   Sparkles,
+  Truck,
   UserRound,
   X,
 } from 'lucide-react';
@@ -570,7 +572,10 @@ export function Header() {
         <div className="bg-emerald-950 px-4 py-2 text-xs text-white">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 lg:px-2">
             <div className="flex min-w-0 items-center gap-4">
-              <span className="hidden shrink-0 lg:inline">🚚 จัดส่งทั่วไทย 1–3 วัน</span>
+              <span className="hidden shrink-0 items-center gap-1.5 lg:inline-flex">
+                <Truck size={15} strokeWidth={2.2} aria-hidden="true" />
+                จัดส่งทั่วไทย 1–3 วัน
+              </span>
               <span className="hidden shrink-0 xl:inline">✓ สินค้าของแท้ 100%</span>
               <span className="hidden shrink-0 xl:inline">↩ คืนสินค้าใน 7 วัน</span>
               <span className="truncate">{announcement}</span>
@@ -589,7 +594,8 @@ export function Header() {
                 ติดต่อเรา
               </Link>
               <span className="inline-flex items-center gap-1 text-white" title="ภาษาไทย">
-                🇹🇭 TH
+                <Globe size={13} strokeWidth={2.2} aria-hidden="true" className="inline-block align-[-2px]" />{' '}
+                TH
               </span>
             </nav>
           </div>

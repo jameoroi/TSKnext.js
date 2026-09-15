@@ -59,6 +59,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <h1 className="sr-only">THAISERKIT SUPPLY ไทยเซอร์กิจ ซัพพลาย — เครื่องมือช่าง อุปกรณ์การเกษตร และอุตสาหกรรม</h1>
       <EntryPopup popup={home.entryPopup as ComponentProps<typeof EntryPopup>['popup']} />
 
       {/* 2. HERO — STATIC_UI / CMS_READY (Supabase: banners) */}

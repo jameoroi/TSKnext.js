@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Kanit } from 'next/font/google';
+import { headers } from 'next/headers';
 import { Suspense } from 'react';
 import { BusinessStructuredData } from '@/components/seo/business-structured-data';
 import { SiteChrome } from '@/components/site/chrome';
@@ -24,7 +25,16 @@ export async function generateMetadata(): Promise<Metadata> {
   );
   const company = String(settings.company_name || siteTitle);
   const subtitle = String(settings.company_subtitle || '').trim();
-  const description = subtitle || `ศูนย์รวมเครื่องมือ อุปกรณ์งานช่าง งานเกษตร และอุตสาหกรรมจาก ${company}`;
+  const standard = `ศูนย์รวมเครื่องมือ อุปกรณ์งานช่าง งานเกษตร และอุตสาหกรรมจาก ${company} สินค้าแท้ รับประกันศูนย์ จัดส่งทั่วไทย 1–3 วัน`;
+  // Search results show ~70–160 characters; the company tagline alone was 19.
+  const description = subtitle.length >= 70 ? subtitle : subtitle ? `${subtitle} — ${standard}` : standard;
+  // proxy.ts forwards the path, so every route gets its own canonical (query strings dropped).
+  const canonical = ((await headers()).get('x-pathname') || '/').split('?')[0] || '/';
+  const banners = Array.isArray(settings.banners) ? (settings.banners as Array<Record<string, unknown>>) : [];
+  const heroBanner = banners.find((row) => row && row.active !== false && (row.img || row.image_url));
+  const ogImage = String(
+    heroBanner?.img || heroBanner?.image_url || settings.logo_url || '/legacy-assets/logo.png',
+  );
   return {
     metadataBase: new URL(origin),
     title: { default: siteTitle, template: `%s | ${company}` },
@@ -32,7 +42,15 @@ export async function generateMetadata(): Promise<Metadata> {
     applicationName: siteTitle,
     manifest: '/manifest.webmanifest',
     icons: { icon: '/favicon.ico' },
-    openGraph: { type: 'website', locale: 'th_TH', siteName: company, url: origin },
+    alternates: { canonical },
+    openGraph: {
+      type: 'website',
+      locale: 'th_TH',
+      siteName: company,
+      url: new URL(canonical, origin).toString(),
+      images: [{ url: ogImage, alt: company }],
+    },
+    twitter: { card: 'summary_large_image', images: [ogImage] },
   };
 }
 export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#0B2E22' };

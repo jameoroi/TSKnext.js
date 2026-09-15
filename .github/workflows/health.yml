@@ -16,6 +16,7 @@ jobs:
         env:
           PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
           ALERT_WEBHOOK_URL: ${{ secrets.ALERT_WEBHOOK_URL }}
+          AUTOMATION_TOKEN: ${{ secrets.AUTOMATION_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
@@ -25,7 +26,7 @@ jobs:
           fi
           base="${PRODUCTION_URL%/}"
           body_file="${RUNNER_TEMP}/health.json"
-          status="$(curl --fail-with-body --silent --show-error --max-time 20 --retry 2 --output "${body_file}" --write-out '%{http_code}' "${base}/api/health" || true)"
+          status="$(curl --fail-with-body --silent --show-error --max-time 20 --retry 2 --output "${body_file}" --write-out '%{http_code}' -H "x-tsk-automation: ${AUTOMATION_TOKEN:-}" "${base}/api/health" || true)"
           healthy="$(node -e "const fs=require('fs');try{const x=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(String(x?.ok===true||x?.status==='healthy'||x?.health==='healthy'))}catch{process.stdout.write('false')}" "${body_file}")"
           if [[ "${status}" != '200' || "${healthy}" != 'true' ]]; then
             message="Production health check failed: HTTP ${status}; response=$(tr '\n' ' ' < "${body_file}" | cut -c1-500)"

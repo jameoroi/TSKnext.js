@@ -86,7 +86,8 @@ export function ContentManager({
         maxEdge: 2800,
         defaultLink: '/products',
         title: 'สไลด์ใหญ่',
-        size: 'แนะนำ 2800 × 1176 px',
+        size: 'ขนาดที่ต้องใส่ 2800 × 1167 px (12:5) — หน้าร้านแสดงเต็มกรอบอัตราส่วนเดียวกันทุกหน้าจอ',
+        ratio: '12 / 5',
       },
       'banner-promo': {
         key: 'promo_banners' as BannerKind,
@@ -94,7 +95,8 @@ export function ContentManager({
         maxEdge: 2800,
         defaultLink: '/products',
         title: 'แบนเนอร์ย่อยใต้สไลด์',
-        size: 'แนะนำ 2800 × 1166 px (12:5)',
+        size: 'ขนาดที่ต้องใส่ 2800 × 1167 px (12:5) — กรอบหน้าร้านขนาดเดียวกัน',
+        ratio: '12 / 5',
       },
       'banner-article': {
         key: 'article_banners' as BannerKind,
@@ -102,7 +104,8 @@ export function ContentManager({
         maxEdge: 2800,
         defaultLink: '/news',
         title: 'แบนเนอร์คั่นบทความ',
-        size: 'แนะนำ 2800 × 466 px (6:1)',
+        size: 'ขนาดที่ต้องใส่ 2800 × 467 px (6:1) — ยาวเต็มความกว้างเท่ากล่อง Flash Sale',
+        ratio: '6 / 1',
       },
       'bg-flash': {
         key: 'flash_sale_backgrounds' as BannerKind,
@@ -110,7 +113,8 @@ export function ContentManager({
         maxEdge: 2800,
         defaultLink: '',
         title: 'พื้นหลังกล่อง Flash Sale',
-        size: 'แนะนำ 2800 × 1100 px · ข้อความวางด้านซ้าย เว้นที่ว่างไว้',
+        size: 'ขนาดที่ต้องใส่ 2800 × 1080 px (≈2.6:1) — ข้อความ Flash Sale อยู่ซ้าย สินค้าอยู่ขวา · มือถือจะครอปกลางภาพ',
+        ratio: '2800 / 1080',
       },
       'bg-dealer': {
         key: 'dealer_backgrounds' as BannerKind,
@@ -118,7 +122,8 @@ export function ContentManager({
         maxEdge: 2800,
         defaultLink: '',
         title: 'พื้นหลังกล่องสมัครตัวแทน',
-        size: 'แนะนำ 2800 × 1400 px · ฟอร์มอยู่ด้านขวา',
+        size: 'ขนาดที่ต้องใส่ 2800 × 1400 px (2:1) — ข้อความอยู่ซ้าย ฟอร์มอยู่ขวา · มือถือจะครอปกลางภาพ',
+        ratio: '2 / 1',
       },
     }),
     [],
@@ -348,12 +353,16 @@ export function ContentManager({
                 key={`${banner.id || 'new'}-${index}`}
                 className="grid gap-4 rounded-2xl border p-4 xl:grid-cols-[180px_1fr_auto]"
               >
-                <div className="aspect-[12/5] overflow-hidden rounded-xl bg-slate-100">
+                <div
+                  className="overflow-hidden rounded-xl bg-slate-100"
+                  style={{ aspectRatio: currentBannerMeta.ratio }}
+                  title="ตัวอย่างนี้ครอปเหมือนหน้าร้านจริง"
+                >
                   {banner.img ? (
                     <img
                       src={banner.img}
                       alt={banner.alt_text || 'banner'}
-                      className="h-full w-full object-contain"
+                      className="h-full w-full object-cover"
                     />
                   ) : (
                     <div className="grid h-full place-content-center text-xs text-slate-400">ยังไม่มีรูป</div>

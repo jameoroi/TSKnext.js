@@ -46,8 +46,11 @@ function PromoBannerItem({ row }: { row: Banner }) {
   const label = labelOf(row);
   const href = hrefOf(row);
   const [failed, setFailed] = useState(false);
+  // A picture that fails to load (e.g. removed from the bucket) is left out rather than
+  // showing shoppers an error box; the admin banner editor still lists the row.
+  if (failed) return null;
   const body = (
-    <span className="tsk-pop block aspect-[16/8] overflow-hidden rounded-3xl border bg-white shadow-sm">
+    <span className="tsk-pop block aspect-[12/5] overflow-hidden rounded-3xl border bg-white shadow-sm">
       {failed ? (
         <span className="grid h-full place-items-center bg-emerald-950 px-4 text-center text-xs font-bold text-white">
           แบนเนอร์โหลดไม่สำเร็จ กรุณาเปลี่ยนรูปจากหลังบ้าน

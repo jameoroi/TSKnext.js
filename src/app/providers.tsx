@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Suspense, useState } from 'react';
 import { MarketingRuntime } from '@/components/analytics/marketing-runtime';
+import { WebVitals } from '@/components/analytics/web-vitals';
 import { PwaRegister } from '@/components/platform/pwa-register';
 import { SessionHeartbeat } from '@/components/platform/session-heartbeat';
 import { StorefrontRuntime } from '@/components/platform/storefront-runtime';
@@ -26,6 +27,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <Suspense fallback={null}>
           <StorefrontRuntime />
           <MarketingRuntime />
+          <WebVitals />
         </Suspense>
         {children}
         <CookieConsent />

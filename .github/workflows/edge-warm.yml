@@ -25,6 +25,7 @@ jobs:
       - name: Warm key public pages
         env:
           PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
+          AUTOMATION_TOKEN: ${{ secrets.AUTOMATION_TOKEN }}
         shell: bash
         run: |
           set -uo pipefail
@@ -36,7 +37,7 @@ jobs:
           for path in "${paths[@]}"; do
             state=''
             for attempt in 1 2 3 4 5 6; do
-              read -r status state < <(curl -sS -m 30 -A "$ua" -o /dev/null -D - "${base}${path}" \
+              read -r status state < <(curl -sS -m 30 -A "$ua" -H "x-tsk-automation: ${AUTOMATION_TOKEN:-}" -o /dev/null -D - "${base}${path}" \
                 | awk 'BEGIN{IGNORECASE=1} /^HTTP\//{s=$2} /^x-tsk-edge-cache:/{c=$2} END{gsub("\r","",c); print s, (c==""?"-":c)}')
               if [[ "$status" == "200" ]]; then break; fi
               sleep $((attempt * 5))
