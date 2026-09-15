@@ -7,10 +7,10 @@
 | Next.js 16.3.5 | Full-stack framework / App Router / RSC / Route Handlers / Server Actions |
 | React 19.2.x | UI / Server Components / Suspense |
 | TypeScript 5.9.x | Type safety |
-| Turbopack | Development/build pipeline |
+| Turbopack | Development server (`pnpm dev`); production builds use webpack for OpenNext |
 | Tailwind CSS 4 | Styling |
-| shadcn/ui pattern + Radix UI | Design system / accessible primitives |
-| Material UI (MUI) | Admin operational status indicators |
+| Radix UI (`radix-ui`) | Primary accessible primitives: Dialog, Tabs and interactive widgets |
+| Material UI (MUI) + Emotion | Primary back-office component library, scoped to `/admin` via `MuiProvider` |
 | Motion | Animation |
 | Lucide React | Icons |
 

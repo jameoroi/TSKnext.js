@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Tabs } from 'radix-ui';
 import { useState } from 'react';
 import { ProductCard } from '@/components/commerce/product-card';
 import { ProductCardPlaceholder } from '@/components/home/placeholders';
@@ -40,23 +41,24 @@ export function FeaturedTabs({
 
   return (
     <div className="grid items-start gap-5 lg:grid-cols-[1fr_280px]">
-      <div className="min-w-0">
-        <div className="mb-5 flex flex-wrap items-center gap-2" role="tablist" aria-label="กลุ่มสินค้าแนะนำ">
+      <Tabs.Root value={tab} onValueChange={(value) => setTab(value as TabKey)} className="min-w-0">
+        <div className="mb-5 flex flex-wrap items-center gap-2">
           <h2 className="mr-2 text-2xl font-bold">สินค้าแนะนำ สำหรับคุณ</h2>
-          {TABS.map((t) => (
-            <button
-              key={t.key}
-              type="button"
-              role="tab"
-              aria-selected={tab === t.key}
-              onClick={() => setTab(t.key)}
-              className={`rounded-full px-4 py-2 text-sm font-bold transition ${
-                tab === t.key ? 'bg-emerald-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
+          <Tabs.List className="flex flex-wrap items-center gap-2" aria-label="กลุ่มสินค้าแนะนำ">
+            {TABS.map((t) => (
+              <Tabs.Trigger
+                key={t.key}
+                value={t.key}
+                className={`rounded-full px-4 py-2 text-sm font-bold transition ${
+                  tab === t.key
+                    ? 'bg-emerald-800 text-white'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                {t.label}
+              </Tabs.Trigger>
+            ))}
+          </Tabs.List>
           <Link
             href="/products"
             className="ml-auto inline-flex items-center gap-1 text-sm font-semibold text-emerald-800"
@@ -64,15 +66,15 @@ export function FeaturedTabs({
             ดูทั้งหมด →
           </Link>
         </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-5">
+        <Tabs.Content value={tab} className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-5">
           {items.map((p) => (
             <ProductCard key={p.id} product={p} />
           ))}
           {missingIds.map((id) => (
             <ProductCardPlaceholder key={id} />
           ))}
-        </div>
-      </div>
+        </Tabs.Content>
+      </Tabs.Root>
       <aside
         className="overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-700 p-5 text-white shadow-lg"
         aria-label="สินค้าราคาพิเศษ Flash Sale"

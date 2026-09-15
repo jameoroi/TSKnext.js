@@ -5,6 +5,7 @@ import { LockKeyhole, Mail, ShieldCheck, Store, UserPlus, UserRound } from 'luci
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getProviders, signIn } from 'next-auth/react';
+import { Tabs } from 'radix-ui';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -260,23 +261,24 @@ export function LoginForm({ compact = false, initialTab, redirectTo = '', onSucc
         </>
       ) : null}
 
-      <div className={`${compact ? '' : 'mt-6'} rounded-2xl bg-slate-100 p-1`}>
-        <div className="grid grid-cols-3 gap-1 sm:grid-cols-5" role="tablist">
+      <Tabs.Root
+        value={tab}
+        onValueChange={(value) => choose(value as AuthTab)}
+        className={`${compact ? '' : 'mt-6'} rounded-2xl bg-slate-100 p-1`}
+      >
+        <Tabs.List className="grid grid-cols-3 gap-1 sm:grid-cols-5" aria-label="ประเภทบัญชี">
           {tabs.map(({ key, label, icon: Icon }) => (
-            <button
+            <Tabs.Trigger
               key={key}
-              type="button"
-              role="tab"
-              aria-selected={tab === key}
-              onClick={() => choose(key)}
+              value={key}
               className={`inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-xl px-2 py-2.5 text-xs font-bold transition ${tab === key ? 'bg-white text-emerald-950 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
             >
               <Icon size={14} />
               {label}
-            </button>
+            </Tabs.Trigger>
           ))}
-        </div>
-      </div>
+        </Tabs.List>
+      </Tabs.Root>
 
       {(tab === 'customer' || tab === 'register') && socialProviders.length > 0 && (
         <div className="mt-5 space-y-2">

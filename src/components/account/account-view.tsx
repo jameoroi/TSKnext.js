@@ -22,6 +22,7 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getProviders, signIn, signOut } from 'next-auth/react';
+import { Tabs } from 'radix-ui';
 import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -344,29 +345,30 @@ export function AccountView({
         </div>
       </section>
 
-      <div className="mt-5 overflow-x-auto rounded-2xl border bg-white p-1.5">
-        <div className="flex min-w-max gap-1" role="tablist" aria-label="เมนูบัญชี">
+      <Tabs.Root
+        value={activeTab}
+        onValueChange={(value) => {
+          setActiveTab(value as Tab);
+          setNotice(null);
+        }}
+        className="mt-5 overflow-x-auto rounded-2xl border bg-white p-1.5"
+      >
+        <Tabs.List className="flex min-w-max gap-1" aria-label="เมนูบัญชี">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
-              <button
+              <Tabs.Trigger
                 key={tab.key}
-                type="button"
-                role="tab"
-                aria-selected={activeTab === tab.key}
-                onClick={() => {
-                  setActiveTab(tab.key);
-                  setNotice(null);
-                }}
+                value={tab.key}
                 className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition ${activeTab === tab.key ? 'bg-emerald-950 text-white' : 'text-slate-600 hover:bg-slate-50'}`}
               >
                 <Icon size={16} />
                 {tab.label}
-              </button>
+              </Tabs.Trigger>
             );
           })}
-        </div>
-      </div>
+        </Tabs.List>
+      </Tabs.Root>
 
       {notice && (
         <div
