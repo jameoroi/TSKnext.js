@@ -225,7 +225,7 @@ export function AutoRail({
             <div
               key={copy ? `loop-${i}` : `rail-${i}`}
               aria-hidden={copy || undefined}
-              className={`${itemClassName}${copy && mobileOnly ? ' sm:hidden' : ''}`}
+              className={`grid ${itemClassName}${copy && mobileOnly ? ' sm:hidden' : ''}`}
             >
               {child}
             </div>

@@ -13,7 +13,7 @@ function readAsDataUrl(file: File) {
   });
 }
 
-export async function scaleImageFile(file: File, maxEdge: number): Promise<File> {
+export async function scaleImageFile(file: File, maxEdge: number, quality = 0.82): Promise<File> {
   if (typeof window === 'undefined') return file;
   const mime = String(file.type || '').toLowerCase();
   if (mime === 'image/gif' || mime === 'image/svg+xml') return file;
@@ -41,7 +41,7 @@ export async function scaleImageFile(file: File, maxEdge: number): Promise<File>
           resolve(new File([blob], name, { type: 'image/webp', lastModified: Date.now() }));
         },
         'image/webp',
-        0.82,
+        quality,
       );
     };
     image.src = url;

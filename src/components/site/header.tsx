@@ -172,6 +172,10 @@ function CatMenu({
           sideOffset={8}
           // Hovering opens the menu; keep focus where the pointer is.
           onOpenAutoFocus={(event) => event.preventDefault()}
+          // The menu is portalled outside the trigger's wrapper, so leaving it has to
+          // schedule the close itself; it used to stay open after the pointer left.
+          onMouseEnter={cancelClose}
+          onMouseLeave={scheduleClose}
           className="mega-in z-[90] w-[min(860px,calc(100vw-2rem))] overflow-hidden rounded-2xl border bg-white shadow-2xl"
         >
           <div className="grid md:grid-cols-[250px_1fr]">

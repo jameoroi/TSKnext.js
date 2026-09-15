@@ -76,7 +76,7 @@ export function BannerListEditor({
     try {
       const urls: string[] = [];
       for (const file of files) {
-        const prepared = await scaleImageFile(file, meta.maxEdge || 2800);
+        const prepared = await scaleImageFile(file, meta.maxEdge || 2800, 0.92);
         urls.push(await uploadAdminImage(prepared, { ownerType: meta.ownerType, csrf }));
       }
       const next =

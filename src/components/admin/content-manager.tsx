@@ -167,7 +167,7 @@ export function ContentManager({
     setUploading(`${meta.key}-${index}`);
     setNotice(null);
     try {
-      const prepared = await scaleImageFile(file, meta.maxEdge);
+      const prepared = await scaleImageFile(file, meta.maxEdge, 0.92);
       const url = await uploadAdminImage(prepared, { ownerType: meta.ownerType, csrf });
       const next = banners.map((row, i) => (i === index ? { ...row, img: url } : row));
       setBannerRows(meta.key, next);
@@ -189,7 +189,7 @@ export function ContentManager({
     try {
       const added: Banner[] = [];
       for (const file of files) {
-        const prepared = await scaleImageFile(file, meta.maxEdge);
+        const prepared = await scaleImageFile(file, meta.maxEdge, 0.92);
         const url = await uploadAdminImage(prepared, { ownerType: meta.ownerType, csrf });
         added.push({ img: url, link_url: meta.defaultLink, alt_text: '', active: true });
       }

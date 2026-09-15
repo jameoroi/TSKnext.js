@@ -122,7 +122,7 @@ export default async function HomePage() {
       {/* แบนด์สีอยู่ใน main (rounded) — มีแค่ header ที่เต็มจอ */}
       <section className="mx-auto max-w-7xl px-4 lg:px-6" aria-label="Flash Sale">
         <div
-          className={`relative isolate grid items-center gap-5 rounded-3xl bg-gradient-to-r from-orange-500 via-rose-600 to-red-600 px-3 py-6 text-white sm:gap-6 sm:px-6 sm:py-10 lg:grid-cols-[30%_1fr] lg:px-8 ${home.flashBackground ? 'overflow-hidden' : ''}`}
+          className={`relative isolate grid items-center gap-5 rounded-3xl bg-gradient-to-r from-orange-500 via-rose-600 to-red-600 px-3 py-6 text-white sm:gap-6 sm:px-6 sm:py-10 lg:grid-cols-[30%_1fr] lg:px-8 ${home.flashBackground ? 'overflow-hidden xl:aspect-[2800/1080] xl:py-0' : ''}`}
         >
           {home.flashBackground && (
             <>
@@ -134,14 +134,20 @@ export default async function HomePage() {
                   (src) => ({ src }),
                 )}
               />
-              <div className="absolute inset-0 -z-10 bg-gradient-to-r from-black/60 via-black/25 to-black/10" />
             </>
           )}
           <div>
-            <p className="text-xs font-black uppercase tracking-[.2em] text-white/85">⚡ FLASH SALE</p>
-            <h2 className="mt-1 text-2xl font-black sm:text-3xl">FLASH SALE</h2>
-            <p className="mt-2 text-sm font-bold text-white/85">สินค้าราคาพิเศษ จำนวนจำกัด</p>
-            <div className="mt-4">
+            {home.flashBackground ? (
+              // The uploaded artwork already says FLASH SALE; the text stays for screen readers only.
+              <h2 className="sr-only">FLASH SALE สินค้าราคาพิเศษ จำนวนจำกัด</h2>
+            ) : (
+              <>
+                <p className="text-xs font-black uppercase tracking-[.2em] text-white/85">⚡ FLASH SALE</p>
+                <h2 className="mt-1 text-2xl font-black sm:text-3xl">FLASH SALE</h2>
+                <p className="mt-2 text-sm font-bold text-white/85">สินค้าราคาพิเศษ จำนวนจำกัด</p>
+              </>
+            )}
+            <div className={home.flashBackground ? '' : 'mt-4'}>
               <SaleCountdown endsAt={home.flash.endsAt} />
             </div>
           </div>

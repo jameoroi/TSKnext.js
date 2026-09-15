@@ -1,6 +1,7 @@
 'use client';
 
 import { Handshake } from 'lucide-react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { BannerCarousel } from '@/components/content/banner-carousel';
@@ -58,6 +59,27 @@ export function DealerRegisterSection({
       message: message.trim(),
     });
     router.push(`/partner-register?${params.toString()}`);
+  }
+
+  // With a picture from the admin the artwork carries the message: it is shown
+  // whole (the 2:1 frame the upload size asks for), with no dark fade over it,
+  // and only the button on top. Without one, the text and form below remain.
+  const pictures = backgroundImages.length ? backgroundImages : backgroundImage ? [backgroundImage] : [];
+  if (pictures.length) {
+    return (
+      <section className="mx-auto max-w-7xl px-4 pb-12 lg:px-6" aria-label="สมัครตัวแทนจำหน่าย">
+        <div className="relative isolate min-h-64 overflow-hidden rounded-3xl bg-emerald-950 sm:aspect-[2/1] sm:min-h-0">
+          <BannerCarousel background slides={pictures.map((src) => ({ src }))} />
+          <h2 className="sr-only">สมัครตัวแทนจำหน่าย</h2>
+          <Link
+            href="/partner-register"
+            className="absolute bottom-5 left-1/2 inline-flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-2xl bg-amber-400 px-7 py-3.5 text-base font-black text-emerald-950 shadow-xl transition hover:bg-amber-300 sm:bottom-8 sm:left-auto sm:right-8 sm:translate-x-0"
+          >
+            <Handshake size={20} /> สมัครเป็นตัวแทน
+          </Link>
+        </div>
+      </section>
+    );
   }
 
   return (
