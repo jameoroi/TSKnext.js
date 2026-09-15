@@ -2,6 +2,8 @@
 
 ## 6.0.0
 
+- perf(product): show the 960px rendition as the main gallery photo (9737d5b)
+- docs(changelog): update generated changelog (d6f992c)
 - fix(reliability): full site settings for admins only; campaign band stays a plain banner; category and brand upload sizes (e040a8b)
 - docs(changelog): update generated changelog (5233560)
 - feat(quality): modern account forms, upload sizes on every admin image, lighter cards, star ratings (c1a00c6)
@@ -82,4 +84,3 @@
 - docs(changelog): update generated changelog (7c410c9)
 - docs(changelog): update generated changelog (12d370a)
 - docs(changelog): update generated changelog (9b9e75f)
-- docs(changelog): update generated changelog (d8ac4e2)
