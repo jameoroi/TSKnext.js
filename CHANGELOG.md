@@ -2,6 +2,8 @@
 
 ## 6.0.0
 
+- fix: restore Cloudflare Workers build after Node 26 upgrade (bc27e3b)
+- docs(changelog): update generated changelog (2041413)
 - chore: upgrade Next.js and Windows Node 26 support (4d569b4)
 - docs(changelog): update generated changelog (1d6bb05)
 - perf(security): drop report-uri from report-only CSP to stop self-DDoS (c7b486f)
