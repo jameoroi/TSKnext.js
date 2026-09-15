@@ -100,6 +100,7 @@ const packageNeeds = [
   '@testing-library/react',
   'msw',
   '@biomejs/biome',
+  'lit',
 ];
 for (const name of packageNeeds)
   pass(`Package ${name}`, Boolean(pkg.dependencies?.[name] || pkg.devDependencies?.[name]));

@@ -59,6 +59,7 @@
     "drizzle-orm": "^0.45.2",
     "echarts": "^6.1.0",
     "ioredis": "^5.7.0",
+    "lit": "^3.3.3",
     "lucide-react": "^0.544.0",
     "meilisearch": "^0.51.0",
     "motion": "^12.23.12",
