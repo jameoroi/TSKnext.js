@@ -2,6 +2,8 @@
 
 ## 6.0.0
 
+- fix(email): send through Resend on Workers; newsletter with pictures, video and emoji; show send results (9d6f624)
+- docs(changelog): update generated changelog (ec18bcf)
 - feat(banners): multi-picture sliding banners everywhere, mobile rails, settings banner tab; fix admin uploads (a6434de)
 - docs(changelog): update generated changelog (01b793b)
 - fix(edge): stop full catalogue reads from exhausting Worker memory (1102) (7b61c64)
@@ -91,4 +93,3 @@
 - ci: cloudflare workers deploy workflow plus deploy status record (d6bfad4)
 - hardening: production security/commerce/tenant fixes, audit re-baseline, LF normalization (ff63f89)
 - docs(changelog): update generated changelog (b194c12)
-- fix(admin): integrate reports into admin navigation (376c9e0)
