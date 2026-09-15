@@ -2,6 +2,8 @@
 
 ## 6.0.0
 
+- chore: upgrade Next.js and Windows Node 26 support (4d569b4)
+- docs(changelog): update generated changelog (1d6bb05)
 - perf(security): drop report-uri from report-only CSP to stop self-DDoS (c7b486f)
 - docs(changelog): update generated changelog (69f9352)
 - fix(e2e): tolerate slow guard redirects on cold CI servers (7c73911)
