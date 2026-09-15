@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { headers } from 'next/headers';
-import legacyApi from '@/legacy-api/api.js';
+import legacyApi, { internalRead } from '@/legacy-api/api.js';
 import { cacheGetJson, cacheSetJson } from '@/lib/redis';
 
 function normalizeOrigin(proto: string, host: string) {
@@ -44,6 +44,9 @@ const TTL_MS = 60_000;
 const HEAVY_TTL_MS = 180_000;
 const MAX_ENTRIES = 500;
 const mem = new Map<string, { at: number; data: unknown }>();
+// Reads already on their way. The root layout and the home page both ask for the
+// site settings in the same render; without this each paid for its own round trips.
+const inflight = new Map<string, Promise<unknown>>();
 
 function cacheKey(origin: string, action: string, params: Record<string, unknown>) {
   return `${origin}|${action}|${JSON.stringify(params)}`;
@@ -80,10 +83,12 @@ async function cachedPublicRequest<T>(origin: string, action: string, params: Re
     } else query.set(key, String(value));
   }
 
-  const request = new Request(`${origin}/api?${query.toString()}`, {
-    method: 'GET',
-    headers: await visitorHeaders(),
-  });
+  const request = internalRead(
+    new Request(`${origin}/api?${query.toString()}`, {
+      method: 'GET',
+      headers: await visitorHeaders(),
+    }),
+  );
   const response = await legacyApi(request);
   const data = await response.json().catch(() => ({ ok: false, error: `http_${response.status}` }));
   if (!response.ok || data?.ok === false) {
@@ -106,14 +111,26 @@ export async function safePublicLegacy<T>(
     const ttl = action.startsWith('products.') ? HEAVY_TTL_MS : TTL_MS;
     const hit = mem.get(key);
     if (hit && Date.now() - hit.at < ttl) return hit.data as T;
-    const remoteHit = await cacheGetJson<T>(`tsk:public:${key}`);
-    if (remoteHit !== null) {
-      mem.set(key, { at: Date.now(), data: remoteHit });
-      return remoteHit;
+    const pending = inflight.get(key) as Promise<T> | undefined;
+    if (pending) return await pending;
+    const load = (async () => {
+      const remoteHit = await cacheGetJson<T>(`tsk:public:${key}`);
+      if (remoteHit !== null) {
+        mem.set(key, { at: Date.now(), data: remoteHit });
+        return remoteHit;
+      }
+      const fresh = await cachedPublicRequest<T>(origin, action, params);
+      mem.set(key, { at: Date.now(), data: fresh });
+      void cacheSetJson(`tsk:public:${key}`, fresh, Math.ceil(ttl / 1000));
+      return fresh;
+    })();
+    inflight.set(key, load);
+    let out: T;
+    try {
+      out = await load;
+    } finally {
+      inflight.delete(key);
     }
-    const out = await cachedPublicRequest<T>(origin, action, params);
-    mem.set(key, { at: Date.now(), data: out });
-    void cacheSetJson(`tsk:public:${key}`, out, Math.ceil(ttl / 1000));
     if (mem.size > MAX_ENTRIES) {
       const oldest = mem.keys().next();
       if (!oldest.done) mem.delete(oldest.value);

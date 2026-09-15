@@ -893,6 +893,42 @@ async function queryProductsSupabase({category='',brandId='',brandName='',brandN
  * Tenant id always comes from the request tenant context; never from a global
  * default, so one merchant cannot answer with another merchant's shelves.
  */
+/** Products by id in one PostgREST query; null when Supabase is not the store or the query fails. */
+async function productsByIdsSupabase(ids){
+  const base=String(process.env.SUPABASE_URL||'').replace(/\/$/,'');
+  const secret=process.env.SUPABASE_SECRET_KEY;
+  if(!base||!secret||storageBackend()!=='supabase-postgres')return null;
+  const keys=(Array.isArray(ids)?ids:[]).map(id=>String(id||'')).filter(id=>/^[A-Za-z0-9_.:-]+$/.test(id));
+  if(!keys.length)return [];
+  const params=new URLSearchParams({select:'key,value',namespace:`eq.${dataNamespace()}`,key:`in.(${keys.map(id=>`"product:${id}"`).join(',')})`});
+  try{
+    const response=await fetch(`${base}/rest/v1/app_kv?${params}`,{headers:{apikey:secret,authorization:`Bearer ${secret}`}});
+    if(!response.ok)throw new Error(`supabase_products_by_id_${response.status}`);
+    const rows=await response.json();
+    if(!Array.isArray(rows))return null;
+    const byKey=new Map(rows.map(row=>[row.key,row.value]));
+    return keys.map(id=>byKey.get(`product:${id}`)).filter(Boolean);
+  }catch(error){console.warn('supabase products by id failed; reading one by one',error?.message||error);return null;}
+}
+
+/** Active products carrying a sale flag or an old price, newest first; null on failure. */
+async function saleProductsSupabase(limit){
+  const base=String(process.env.SUPABASE_URL||'').replace(/\/$/,'');
+  const secret=process.env.SUPABASE_SECRET_KEY;
+  if(!base||!secret||storageBackend()!=='supabase-postgres')return null;
+  const params=new URLSearchParams({
+    select:'value',namespace:`eq.${dataNamespace()}`,key:'like.product:*','value->>state':'eq.active',
+    or:'(value->status.cs.["สินค้าลดราคา"],value->>oldPrice.not.is.null)',
+    order:'updated_at.desc,key.asc',limit:String(Math.min(400,Math.max(1,Number(limit)||60))),
+  });
+  try{
+    const response=await fetch(`${base}/rest/v1/app_kv?${params}`,{headers:{apikey:secret,authorization:`Bearer ${secret}`}});
+    if(!response.ok)throw new Error(`supabase_sale_${response.status}`);
+    const rows=await response.json();
+    return Array.isArray(rows)?rows.map(row=>row.value).filter(Boolean):null;
+  }catch(error){console.warn('supabase sale query failed; using compatibility fallback',error?.message||error);return null;}
+}
+
 async function categoryCountsRelational() {
   if(!postgresEnabled())return null;
   try {
@@ -2256,6 +2292,25 @@ function logRequest({ id, tenant, action, status, startedAt, error, cache }) {
  * purpose — the API has to keep answering on a deployment with no bindings at
  * all, which is every deployment before this one.
  */
+/**
+ * Reads the storefront's own server render makes on a shopper's behalf.
+ *
+ * Workers Free allows 50 subrequests per invocation, and the home page render
+ * issues seven public reads in one. Each also paid for two rate-limit counters
+ * (a read and a write each, in Supabase) and the edge cache round trips, so
+ * the render ran out of budget and the finished page could not even be stored.
+ * The shopper-facing quotas guard against paging the catalogue from outside;
+ * a render asks for a fixed shelf of a few products, so it skips them. Only a
+ * Request object created in this process can be marked, never one from the
+ * network, so the marker cannot be forged by a caller.
+ */
+const INTERNAL_READS = new WeakSet();
+export function internalRead(req) {
+  INTERNAL_READS.add(req);
+  return req;
+}
+const isInternalRead = (req) => INTERNAL_READS.has(req);
+
 export default async (req, platformEnv = null) => {
   const startedAt = performance.now();
   const id = requestId(req);
@@ -2297,7 +2352,8 @@ export default async (req, platformEnv = null) => {
      * answer, with its status, so the shop's own log shows how often this is
      * saving a round trip instead of the saving being invisible.
      */
-    const cached = await edgeCacheMatch(req, action);
+    // The server render keeps its own shared copy (Redis), so it skips this one.
+    const cached = isInternalRead(req) ? null : await edgeCacheMatch(req, action);
     if (cached) {
       logRequest({ id, tenant: tenant.id, action, status: cached.status, startedAt, cache: 'HIT' });
       return cached;
@@ -2305,7 +2361,7 @@ export default async (req, platformEnv = null) => {
     const response = await tenantContext.run(tenant, () => handleRequest(req, tenant, platformEnv));
     const status = response?.status ?? 0;
     logRequest({ id, tenant: tenant.id, action, status, startedAt });
-    if (status === 200) return await edgeCachePut(req, action, response);
+    if (status === 200) return isInternalRead(req) ? response : await edgeCachePut(req, action, response);
     // Not awaited. A shopper waiting on a failing request must not also wait
     // on the record of it, and a lost line costs less than a slower outage.
     if (status >= 500) void keep(status, `answered ${status}`);
@@ -4998,10 +5054,10 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
     // A shopper's browser, or a search engine we want. Anything that says it
     // is a scripting library is turned away before the catalogue is read.
     if(looksLikeATool(req)) return refusedAsATool();
-    const rl=await rateLimit(req,'products-list',600,60*60); if(!rl.ok) return tooMany(rl);
+    const rl=isInternalRead(req)?{ok:true}:await rateLimit(req,'products-list',600,60*60); if(!rl.ok) return tooMany(rl);
     // And a budget in rows, because eleven requests of a hundred is the whole
     // catalogue and eleven requests is nothing to a per-request cap.
-    {
+    if(!isInternalRead(req)){
       const asked=Math.min(100,Math.max(1,Number(url.searchParams.get('per_page')||60)));
       const rows=await catalogueRowBudget(req,asked);
       if(!rows.ok) return tooMany(rows);
@@ -5039,6 +5095,11 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
        */
       const rows=await cachedPublicRead('products.featured', async () => {
         const ids=await getJSON(ds,FEATURED_INDEX)||[];
+        // One query for the whole shelf instead of one per product.
+        const batch=await productsByIdsSupabase(ids.slice(0,60));
+        if(batch){
+          return batch.filter(product=>product && product.home_featured===true && product.state!=='hidden' && product.state!=='discontinued');
+        }
         const found=[];
         for(const fid of ids.slice(0,60)){
           const product=await getJSON(ds,`product:${fid}`);
@@ -5048,6 +5109,31 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
       }, FEATURED_SHELF_TTL_MS);
       rows.sort((a,b)=>(Number(a.home_featured_order)||999)-(Number(b.home_featured_order)||999));
       return json({ok:true,products:rows.slice(0,featuredPerPage).map(productCardView),total:rows.length,page:1,per_page:featuredPerPage,source:'featured'},200,{'cache-control':'public, max-age=60, stale-while-revalidate=600'});
+    }
+    /*
+     * The sale shelf, filtered in the database.
+     *
+     * Without a relational database the status filter fell through to
+     * publicCatalogue(), which downloads and parses every product in the shop.
+     * On Workers Free that alone ran past the CPU limit (error 1102) on the home
+     * page. Only discounted rows come back here; the exact rule below still
+     * decides, so a row the query lets through that is not on sale is dropped.
+     * Any other filter, or a query failure, keeps the original path.
+     */
+    const onlySaleShelf=clean(url.searchParams.get('status'),40)==='สินค้าลดราคา'
+      && !url.searchParams.get('category') && !url.searchParams.get('brand') && !(url.searchParams.get('q')||'').trim()
+      && !url.searchParams.get('min_price') && !url.searchParams.get('max_price')
+      && (clean(url.searchParams.get('sort'),30)||'default')==='default' && url.searchParams.get('facets')!=='1';
+    if(onlySaleShelf){
+      const salePage=Math.max(1, Number(url.searchParams.get('page')||1));
+      const salePerPage=Math.min(100, Math.max(1, Number(url.searchParams.get('per_page')||60)));
+      const rows=await cachedPublicRead(`products.sale.${salePage}.${salePerPage}`, () => saleProductsSupabase(salePage*salePerPage*2), FEATURED_SHELF_TTL_MS).catch(()=>null);
+      if(rows){
+        const onSale=rows.filter(p=>p && p.state!=='hidden' && p.state!=='discontinued'
+          && ((p.status||[]).includes('สินค้าลดราคา')||(Number(p.oldPrice||0)>Number(p.price||0)&&Number(p.price||0)>0)));
+        const start=(salePage-1)*salePerPage;
+        return json({ok:true,products:onSale.slice(start,start+salePerPage).map(productCardView),total:onSale.length,page:salePage,per_page:salePerPage,source:'supabase-sale'},200,{'cache-control':'public, max-age=30, stale-while-revalidate=300'});
+      }
     }
     const requestedCategory=url.searchParams.get('category')||'';
     const managedCategory=await resolveManagedCategory(ds,requestedCategory);
