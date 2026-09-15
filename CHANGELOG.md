@@ -2,6 +2,8 @@
 
 ## 6.0.0
 
+- fix(home): rail cards pop on hover again, menu closes on leave, picture boxes clear and whole (394985f)
+- docs(changelog): update generated changelog (3856ad8)
 - fix(ai): Gemini runs every AI feature OpenAI does (375fdb7)
 - docs(changelog): update generated changelog (8c49223)
 - fix(edge): validate an older build's page copy with a sample of assets (1de8470)
@@ -91,5 +93,3 @@
 - docs(changelog): update generated changelog (37d1260)
 - fix(e2e): scope drawer and dialog assertions, all 38 green locally (34eeeee)
 - docs(changelog): update generated changelog (aa09b5f)
-- fix(e2e): run browser tests against production build, dev never hydrates (74c01a6)
-- docs(changelog): update generated changelog (0b6dee3)
