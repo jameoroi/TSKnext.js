@@ -454,10 +454,7 @@ export function CheckoutForm({
             <div className="rounded-2xl border bg-white p-5">
               <div className="flex items-center justify-between gap-3">
                 <h2 className="font-bold">ที่อยู่ที่บันทึกไว้</h2>
-                <Link
-                  href="/account?tab=addresses"
-                  className="text-xs font-bold text-emerald-800 hover:underline"
-                >
+                <Link href="/account?tab=addresses" className="text-xs font-bold text-emerald-800 tsk-link">
                   จัดการสมุดที่อยู่
                 </Link>
               </div>
@@ -619,11 +616,11 @@ export function CheckoutForm({
             />
             <span>
               ฉันยอมรับ{' '}
-              <Link className="font-semibold text-emerald-800 underline" href="/terms">
+              <Link className="font-semibold text-emerald-800 tsk-link" href="/terms">
                 ข้อกำหนด
               </Link>{' '}
               และ{' '}
-              <Link className="font-semibold text-emerald-800 underline" href="/privacy">
+              <Link className="font-semibold text-emerald-800 tsk-link" href="/privacy">
                 นโยบายความเป็นส่วนตัว
               </Link>
               {errors.terms_accepted && (

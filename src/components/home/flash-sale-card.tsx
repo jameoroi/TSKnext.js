@@ -30,7 +30,7 @@ export function FlashSaleCard({ item }: { item: FlashSaleItem }) {
   }
 
   return (
-    <article className="group relative overflow-hidden rounded-2xl bg-white text-slate-900 shadow-lg">
+    <article className="tsk-pop group relative overflow-hidden rounded-2xl bg-white text-slate-900 shadow-lg">
       <div className="relative aspect-square overflow-hidden bg-slate-50">
         <Link href={productHref(product)} aria-label={product.name}>
           <Image
@@ -38,7 +38,7 @@ export function FlashSaleCard({ item }: { item: FlashSaleItem }) {
             alt={product.name}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
-            className="object-contain transition duration-300 group-hover:scale-[1.03]"
+            className="object-contain"
             unoptimized={image.startsWith('data:')}
             onError={() => setImageIndex((current) => Math.min(current + 1, imageCandidates.length - 1))}
           />

@@ -229,7 +229,7 @@ export function Footer() {
             © {year} {legalName}. สงวนลิขสิทธิ์ทั้งหมด
           </span>
           <div className="flex gap-4">
-            <button type="button" onClick={openConsentSettings} className="hover:text-white hover:underline">
+            <button type="button" onClick={openConsentSettings} className="hover:text-white tsk-link">
               ตั้งค่าคุกกี้
             </button>
             <Link href="/privacy" className="hover:text-white">

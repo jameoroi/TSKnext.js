@@ -28,7 +28,7 @@ export function CategoryRail({ categories }: { categories: Row[] }) {
             <Link
               key={key}
               href={`/products?category=${encodeURIComponent(key)}`}
-              className="cat-card reveal group min-w-[42%] snap-start rounded-2xl border border-slate-200 bg-white p-4 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-md sm:min-w-[27%] md:min-w-[19%] lg:min-w-[14.5%]"
+              className="cat-card reveal group min-w-[42%] snap-start rounded-2xl border border-slate-200 bg-white p-4 text-center shadow-sm tsk-pop sm:min-w-[27%] md:min-w-[19%] lg:min-w-[14.5%]"
             >
               {src ? (
                 <div className="relative mx-auto mb-3 aspect-square w-full">

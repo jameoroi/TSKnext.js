@@ -79,7 +79,7 @@ export function CookieConsent() {
           </strong>
           <p className="mt-1 text-sm leading-6 text-slate-600">
             เราใช้คุกกี้ที่จำเป็นเพื่อให้ตะกร้า การเข้าสู่ระบบ และความปลอดภัยทำงานได้ ส่วนสถิติและโฆษณาจะเริ่มหลังคุณยินยอมเท่านั้น{' '}
-            <Link href="/privacy" className="font-semibold text-emerald-800 underline">
+            <Link href="/privacy" className="font-semibold text-emerald-800 tsk-link">
               อ่านนโยบายความเป็นส่วนตัว
             </Link>
           </p>

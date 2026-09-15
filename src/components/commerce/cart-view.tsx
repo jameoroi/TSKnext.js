@@ -257,7 +257,7 @@ export function CartView() {
                   <button
                     type="button"
                     onClick={() => setBundleClaim(null)}
-                    className="shrink-0 font-bold underline"
+                    className="shrink-0 font-bold tsk-link"
                   >
                     ยกเลิกชุด
                   </button>

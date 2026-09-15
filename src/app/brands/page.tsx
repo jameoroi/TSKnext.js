@@ -59,7 +59,7 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
           {q ? (
             <>
               พบ {brands.length.toLocaleString('th-TH')} แบรนด์ที่ตรงกับ “{q}” ·{' '}
-              <Link href="/brands" className="font-bold text-emerald-800 hover:underline">
+              <Link href="/brands" className="font-bold text-emerald-800 tsk-link">
                 ล้างการค้นหา
               </Link>
             </>
@@ -78,7 +78,7 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
                 <Link
                   key={key}
                   href={`/products?brand=${encodeURIComponent(String(b.id || name))}`}
-                  className="grid min-h-24 place-items-center p-2 text-center transition hover:opacity-80"
+                  className="grid min-h-24 place-items-center p-2 text-center tsk-pop"
                   aria-label={name}
                 >
                   <span className="grid h-14 w-full place-items-center px-2 text-center">

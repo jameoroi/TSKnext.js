@@ -407,7 +407,7 @@ export function AccountView({
             ))
           ) : (
             <Empty title="ยังไม่มีคำสั่งซื้อ">
-              <Link className="font-semibold text-emerald-800 underline" href="/products">
+              <Link className="font-semibold text-emerald-800 tsk-link" href="/products">
                 เริ่มเลือกซื้อสินค้า
               </Link>
             </Empty>
@@ -640,7 +640,7 @@ export function AccountView({
             <Empty title="โหลดประวัติแชทไม่สำเร็จ">
               <button
                 type="button"
-                className="font-semibold text-emerald-800 underline"
+                className="font-semibold text-emerald-800 tsk-link"
                 onClick={() => void chat.refetch()}
               >
                 ลองอีกครั้ง

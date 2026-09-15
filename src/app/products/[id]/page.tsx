@@ -243,7 +243,7 @@ export default async function ProductPage({ params }: Props) {
               <p className="text-xs font-bold uppercase tracking-wider text-emerald-700">Recommended</p>
               <h2 className="mt-1 text-2xl font-black">สินค้าที่เกี่ยวข้อง</h2>
             </div>
-            <Link href="/products" className="text-sm font-bold text-emerald-800 hover:underline">
+            <Link href="/products" className="text-sm font-bold text-emerald-800 tsk-link">
               ดูสินค้าทั้งหมด
             </Link>
           </div>

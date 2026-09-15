@@ -47,7 +47,7 @@ export default async function NewsPage() {
           return (
             <article
               key={String(x.id || `${kind}-${i}`)}
-              className="flex gap-4 rounded-2xl border bg-white p-4 shadow-sm transition hover:shadow-md sm:gap-5 sm:p-5"
+              className="flex gap-4 rounded-2xl border bg-white p-4 shadow-sm tsk-pop sm:gap-5 sm:p-5"
             >
               <div className="relative aspect-[4/3] w-28 shrink-0 overflow-hidden rounded-xl bg-slate-100 sm:w-52">
                 {img ? (
@@ -76,10 +76,7 @@ export default async function NewsPage() {
                 <h2 className="mt-2 line-clamp-2 font-bold leading-7">{title}</h2>
                 {excerpt && <p className="mt-1 line-clamp-3 text-sm leading-6 text-slate-500">{excerpt}</p>}
                 {url ? (
-                  <Link
-                    href={url}
-                    className="mt-2 inline-block text-sm font-bold text-emerald-800 hover:underline"
-                  >
+                  <Link href={url} className="mt-2 inline-block text-sm font-bold text-emerald-800 tsk-link">
                     อ่านเพิ่มเติม →
                   </Link>
                 ) : null}

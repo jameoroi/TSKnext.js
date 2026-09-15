@@ -154,27 +154,39 @@ a {
 }
 
 /* ---- Hover motion system (desktop pointers; touch unaffected) ---- */
+/* Menu links: a soft pill that springs in behind the label, no underline. */
 .nav-link {
   position: relative;
+  display: inline-block;
+  /* Keeps the ::after pill above the header background and behind the label. */
+  isolation: isolate;
+  transition:
+    color 0.2s ease,
+    translate 0.3s var(--tsk-spring);
 }
 .nav-link::after {
   content: "";
   position: absolute;
-  left: 12px;
-  right: 12px;
-  bottom: 6px;
-  height: 2px;
-  border-radius: 2px;
+  inset: 6px 2px;
+  z-index: -1;
+  border-radius: 999px;
   background: currentColor;
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  opacity: 0;
+  transform: scale(0.8);
+  transition:
+    opacity 0.2s ease,
+    transform 0.3s var(--tsk-spring);
 }
-.nav-link:hover::after {
-  transform: scaleX(1);
+.nav-link:hover {
+  translate: 0 -1px;
 }
+.nav-link:hover::after,
 .nav-link.is-active::after {
-  transform: scaleX(1);
+  opacity: 0.09;
+  transform: scale(1);
+}
+.nav-link:active {
+  scale: 0.95;
 }
 
 @keyframes mega-in {
@@ -206,37 +218,123 @@ a {
   transform: scale(1.15);
 }
 
-/* Card hover: gentle lift + image zoom, smooth everywhere */
+/*
+ * One pop for every card on the storefront: products, flash sale, news,
+ * banners, categories, videos and brand logos all lift and zoom by exactly the
+ * same amount with the same spring, and squash a little when pressed.
+ * Individual `translate`/`scale` properties are used instead of `transform`
+ * so cards that also carry `.reveal.in { transform }` still pop.
+ */
+:root {
+  --tsk-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --tsk-pop-lift: -4px;
+  --tsk-pop-scale: 1.035;
+  --tsk-pop-img-scale: 1.06;
+  --tsk-pop-press: 0.97;
+  --tsk-pop-shadow: 0 20px 40px -18px rgb(15 63 48 / 0.35);
+}
+@layer components {
+  .tsk-pop {
+    transition:
+      translate 0.38s var(--tsk-spring),
+      scale 0.38s var(--tsk-spring),
+      box-shadow 0.3s ease,
+      border-color 0.3s ease;
+  }
+  .tsk-pop img {
+    transition: scale 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @media (hover: hover) {
+    .tsk-pop:hover {
+      position: relative;
+      z-index: 1;
+      translate: 0 var(--tsk-pop-lift);
+      scale: var(--tsk-pop-scale);
+      box-shadow: var(--tsk-pop-shadow);
+    }
+    .tsk-pop:hover img {
+      scale: var(--tsk-pop-img-scale);
+    }
+  }
+  .tsk-pop:active {
+    scale: var(--tsk-pop-press);
+    transition-duration: 0.12s;
+  }
+
+  /* Links: colour shift, a small lift and a press bounce. No underline. */
+  .tsk-link {
+    display: inline-block;
+    text-decoration: none;
+    transition:
+      color 0.2s ease,
+      translate 0.3s var(--tsk-spring),
+      scale 0.3s var(--tsk-spring);
+  }
+  .tsk-link:hover {
+    color: #047857;
+    translate: 0 -1px;
+    text-decoration: none;
+  }
+  .tsk-link:active {
+    scale: 0.95;
+  }
+
+  /* Links inside article/description HTML: a soft highlight instead of an underline. */
+  .tsk-rich a {
+    color: #047857;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 0.35rem;
+    padding-inline: 0.15em;
+    margin-inline: -0.15em;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease;
+  }
+  .tsk-rich a:hover {
+    color: #065f46;
+    background-color: rgb(16 185 129 / 0.14);
+  }
+}
+
+/* Older helpers keep working and now use the same values as .tsk-pop. */
 .lift {
   transition:
-    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.25s ease,
-    border-color 0.25s ease;
+    translate 0.38s var(--tsk-spring),
+    scale 0.38s var(--tsk-spring),
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
 }
 .lift:hover {
-  transform: translateY(-4px);
+  translate: 0 var(--tsk-pop-lift);
+  scale: var(--tsk-pop-scale);
 }
 .zoom-img {
   overflow: hidden;
 }
 .zoom-img img {
-  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: scale 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .zoom-img:hover img {
-  transform: scale(1.05);
+  scale: var(--tsk-pop-img-scale);
 }
 
 /* Footer + content link lists: visible hover feedback */
 .flink a {
+  display: inline-block;
   transition:
     color 0.18s ease,
-    padding-left 0.18s ease;
+    translate 0.3s var(--tsk-spring);
 }
 .flink a:hover {
   color: #fff;
-  padding-left: 4px;
-  text-decoration: underline;
-  text-underline-offset: 4px;
+  translate: 4px 0;
+  text-decoration: none;
+}
+.flink a:active {
+  scale: 0.95;
 }
 
 /* Seamless brand marquee: track holds 2 copies, loops -50% */
@@ -266,11 +364,14 @@ a {
   .marquee {
     overflow-x: auto;
   }
-  .nav-link::after {
-    transition: none;
-  }
+  .nav-link,
+  .nav-link::after,
   .mega-link,
   .mega-cat svg,
+  .flink a,
+  .tsk-pop,
+  .tsk-pop img,
+  .tsk-link,
   .lift,
   .zoom-img img {
     transition: none;
@@ -280,5 +381,19 @@ a {
   }
   .zoom-img:hover img {
     transform: none;
+  }
+  .nav-link:hover,
+  .nav-link:active,
+  .flink a:hover,
+  .flink a:active,
+  .tsk-pop:hover,
+  .tsk-pop:active,
+  .tsk-pop:hover img,
+  .tsk-link:hover,
+  .tsk-link:active,
+  .lift:hover,
+  .zoom-img:hover img {
+    translate: none;
+    scale: none;
   }
 }

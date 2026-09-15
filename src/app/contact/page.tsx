@@ -65,7 +65,7 @@ export default function Page() {
                     href={href}
                     target={external ? '_blank' : undefined}
                     rel={external ? 'noopener noreferrer' : undefined}
-                    className="mt-0.5 block break-words text-sm text-slate-600 hover:text-emerald-800 hover:underline"
+                    className="mt-0.5 block break-words text-sm text-slate-600 hover:text-emerald-800 tsk-link"
                   >
                     {value}
                   </a>

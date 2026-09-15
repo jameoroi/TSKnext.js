@@ -8,10 +8,7 @@ import type { HomeArticle } from '@/server/homepage';
  */
 export function ArticleCard({ article }: { article: HomeArticle }) {
   return (
-    <Link
-      href="/news"
-      className="group overflow-hidden rounded-2xl border bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md"
-    >
+    <Link href="/news" className="group overflow-hidden rounded-2xl border bg-white shadow-sm tsk-pop">
       <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
         <span className="absolute left-3 top-3 z-10 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-bold text-emerald-800">
           {article.category || 'บทความ'}
@@ -25,7 +22,7 @@ export function ArticleCard({ article }: { article: HomeArticle }) {
             alt={article.title}
             loading="lazy"
             decoding="async"
-            className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+            className="h-full w-full object-cover"
           />
         ) : (
           <span className="grid h-full w-full place-items-center text-xs font-bold text-slate-400">

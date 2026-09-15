@@ -366,7 +366,7 @@ export function LoginForm({ compact = false, initialTab, redirectTo = '', onSucc
             มีบัญชีอยู่แล้ว?{' '}
             <button
               type="button"
-              className="font-bold text-emerald-800 underline"
+              className="font-bold text-emerald-800 tsk-link"
               onClick={() => choose('customer')}
             >
               เข้าสู่ระบบ
@@ -413,7 +413,7 @@ export function LoginForm({ compact = false, initialTab, redirectTo = '', onSucc
                 ยังไม่มีบัญชี?{' '}
                 <button
                   type="button"
-                  className="font-bold text-emerald-800 underline"
+                  className="font-bold text-emerald-800 tsk-link"
                   onClick={() => choose('register')}
                 >
                   สมัครสมาชิก
@@ -442,7 +442,7 @@ export function LoginForm({ compact = false, initialTab, redirectTo = '', onSucc
       {content}
       <p className="mx-auto mt-5 max-w-lg text-center text-sm text-slate-500">
         ยังไม่เคยสั่งซื้อกับเรา?{' '}
-        <Link href="/products" className="font-bold text-emerald-800 hover:underline">
+        <Link href="/products" className="font-bold text-emerald-800 tsk-link">
           เลือกดูสินค้าก่อนได้เลย
         </Link>
       </p>

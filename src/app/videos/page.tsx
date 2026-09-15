@@ -41,7 +41,7 @@ export default async function Page() {
               return (
                 <article
                   key={String(x.id || i)}
-                  className="overflow-hidden rounded-2xl border bg-white shadow-sm"
+                  className="tsk-pop overflow-hidden rounded-2xl border bg-white shadow-sm"
                 >
                   <div className="aspect-video bg-slate-950">
                     {id ? (
@@ -58,7 +58,7 @@ export default async function Page() {
                         href={watchUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="grid h-full place-items-center p-6 text-center text-sm font-bold text-white hover:underline"
+                        className="grid h-full place-items-center p-6 text-center text-sm font-bold text-white tsk-link"
                       >
                         เปิดดูวิดีโอ “{String(x.title || 'วิดีโอ')}” ในแท็บใหม่ →
                       </a>
@@ -90,13 +90,16 @@ export default async function Page() {
                   อ่านประกอบก่อนดู
                 </h2>
               </div>
-              <Link href="/news" className="text-sm font-bold text-emerald-800 hover:underline">
+              <Link href="/news" className="text-sm font-bold text-emerald-800 tsk-link">
                 ข่าวสารทั้งหมด
               </Link>
             </div>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {articles.map((x: any, i: number) => (
-                <article key={String(x.id || i)} className="rounded-2xl border bg-white p-5 shadow-sm">
+                <article
+                  key={String(x.id || i)}
+                  className="tsk-pop rounded-2xl border bg-white p-5 shadow-sm"
+                >
                   <h3 className="line-clamp-2 font-bold leading-7">{x.title || x.name || 'บทความ'}</h3>
                   <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-500">
                     {x.excerpt || x.summary || x.body || ''}
@@ -104,7 +107,7 @@ export default async function Page() {
                   {x.url ? (
                     <Link
                       href={String(x.url)}
-                      className="mt-3 inline-block text-sm font-bold text-emerald-800 hover:underline"
+                      className="mt-3 inline-block text-sm font-bold text-emerald-800 tsk-link"
                     >
                       อ่านเพิ่มเติม →
                     </Link>

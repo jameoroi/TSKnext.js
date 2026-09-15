@@ -228,7 +228,7 @@ function CatMenu({
                     <Link
                       href={`/products?category=${encodeURIComponent(current.key)}`}
                       onClick={() => onOpenChange(false)}
-                      className="text-sm font-bold text-emerald-800 hover:underline"
+                      className="text-sm font-bold text-emerald-800 tsk-link"
                     >
                       ดูทั้งหมดในหมวดนี้ →
                     </Link>
@@ -248,7 +248,7 @@ function CatMenu({
             <Link
               href="/products"
               onClick={() => onOpenChange(false)}
-              className="font-bold text-emerald-800 hover:underline"
+              className="font-bold text-emerald-800 tsk-link"
             >
               ดูสินค้าทั้งหมด
             </Link>
@@ -579,7 +579,7 @@ export function Header() {
               className="hidden shrink-0 items-center gap-4 text-emerald-100/80 md:flex"
               aria-label="ลิงก์ด่วน"
             >
-              <a href="tel:0882608042" className="font-bold text-white hover:underline">
+              <a href="tel:0882608042" className="font-bold text-white tsk-link">
                 ☎ 088-2608042
               </a>
               <Link href="/track-order" className="hover:text-white">

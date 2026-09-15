@@ -158,7 +158,7 @@ export function ProductFilters(props: Props) {
                             key={s.query}
                             type="button"
                             onClick={() => pickSub(s.query)}
-                            className="text-xs text-slate-500 hover:text-emerald-800 hover:underline"
+                            className="text-xs text-slate-500 hover:text-emerald-800 tsk-link"
                           >
                             {s.label}
                           </button>

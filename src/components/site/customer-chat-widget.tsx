@@ -845,14 +845,14 @@ export function CustomerChatWidget() {
                       <p>{aiError}</p>
                       {aiHandoff ? (
                         <div className="mt-2 flex gap-3">
-                          <button type="button" onClick={retryAi} className="font-bold underline">
+                          <button type="button" onClick={retryAi} className="font-bold tsk-link">
                             ลองอีกครั้ง
                           </button>
                           {available ? (
                             <button
                               type="button"
                               onClick={() => void handoff()}
-                              className="font-bold underline"
+                              className="font-bold tsk-link"
                             >
                               ส่งให้ทีมงานตอบแทน
                             </button>

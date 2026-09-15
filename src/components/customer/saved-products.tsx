@@ -69,7 +69,7 @@ export function SavedProducts({ mode }: { mode: 'wishlist' | 'compare' }) {
           {mode === 'wishlist' && !wishlist.signedIn && (
             <p className="mt-2 text-sm text-slate-500">
               บันทึกไว้ในเครื่องนี้ ·{' '}
-              <Link className="font-semibold text-emerald-800 underline" href="/login?redirect=%2Fwishlist">
+              <Link className="font-semibold text-emerald-800 tsk-link" href="/login?redirect=%2Fwishlist">
                 เข้าสู่ระบบ
               </Link>{' '}
               เพื่อใช้รายการโปรดข้ามอุปกรณ์

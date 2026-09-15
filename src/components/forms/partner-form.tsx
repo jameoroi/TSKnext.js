@@ -309,7 +309,7 @@ export function PartnerForm() {
           />
           <span>
             ข้าพเจ้ายืนยันว่าข้อมูลเป็นความจริง และเข้าใจว่าการสมัครยังไม่ถือว่าเป็นตัวแทนจนกว่าบริษัทจะอนุมัติ ตาม
-            <Link className="font-semibold text-emerald-800 underline" href="/privacy">
+            <Link className="font-semibold text-emerald-800 tsk-link" href="/privacy">
               นโยบายความเป็นส่วนตัว
             </Link>
           </span>

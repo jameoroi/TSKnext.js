@@ -12,7 +12,7 @@ export function PromoTrio() {
       <div className="grid gap-3 md:grid-cols-3">
         <Link
           href="/products?status=สินค้าลดราคา"
-          className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-rose-600 via-red-600 to-orange-500 p-5 text-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg sm:p-6"
+          className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-rose-600 via-red-600 to-orange-500 p-5 text-white shadow-sm tsk-pop sm:p-6"
         >
           <p className="text-2xl font-black italic">โปรแรง</p>
           <p className="text-lg font-bold">สินค้า ลดสูงสุด</p>
@@ -25,7 +25,7 @@ export function PromoTrio() {
         </Link>
         <Link
           href="/brands"
-          className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-800 via-emerald-700 to-teal-600 p-5 text-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg sm:p-6"
+          className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-800 via-emerald-700 to-teal-600 p-5 text-white shadow-sm tsk-pop sm:p-6"
         >
           <p className="text-lg font-bold">สินค้าแบรนด์ชั้นนำ</p>
           <p className="text-xl font-black">ของแท้ 100%</p>
@@ -36,13 +36,11 @@ export function PromoTrio() {
               </span>
             ))}
           </div>
-          <span className="mt-4 inline-block text-sm font-bold underline underline-offset-4">
-            ดูสินค้าแบรนด์ทั้งหมด →
-          </span>
+          <span className="mt-4 inline-block text-sm font-bold">ดูสินค้าแบรนด์ทั้งหมด →</span>
         </Link>
         <Link
           href="/track-order"
-          className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-sky-700 via-teal-600 to-emerald-600 p-5 text-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg sm:p-6"
+          className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-sky-700 via-teal-600 to-emerald-600 p-5 text-white shadow-sm tsk-pop sm:p-6"
         >
           <p className="text-lg font-bold">จัดส่งทั่วไทย</p>
           <p className="text-4xl font-black">1–3 วัน</p>

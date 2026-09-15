@@ -78,7 +78,7 @@ export function ProductCard({
     <motion.article
       whileHover={{ y: -4 }}
       transition={{ duration: 0.18 }}
-      className="prod-card reveal group relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+      className="prod-card reveal tsk-pop group relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
     >
       <div className="relative aspect-square overflow-hidden bg-slate-50">
         <Link href={productHref(product)} aria-label={product.name}>
@@ -87,7 +87,7 @@ export function ProductCard({
             alt={product.name}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-            className="object-contain transition duration-300 group-hover:scale-[1.03]"
+            className="object-contain"
             unoptimized={imageSrc.startsWith('data:')}
             onError={() => setImageIndex((current) => Math.min(current + 1, imageCandidates.length - 1))}
           />
