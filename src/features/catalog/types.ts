@@ -52,6 +52,46 @@ export const productImageCandidates = (product: Product) => {
   ].filter((value, index, values) => Boolean(value) && values.indexOf(value) === index);
 };
 
+/** Same photo, different address: drop our own origin and any query string. */
+function photoKey(url: string) {
+  return url
+    .replace(/^https?:\/\/(?:www\.)?jayxtsk\.shop(?=\/)/i, '')
+    .replace(/\?.*$/, '')
+    .toLowerCase();
+}
+
+/**
+ * Distinct photos for the product page gallery. `img_variants` are renditions
+ * of the main image (w240/w480/w960 in avif and webp), not extra photos, so
+ * listing them made one picture repeat across the thumbnail rail. They are
+ * used only when there is no main image, and then just the largest one.
+ * ProductCard keeps using productImageCandidates, whose job is a fallback chain.
+ */
+export const productGalleryImages = (product: Product) => {
+  const record = product as Record<string, unknown>;
+  const photos = [
+    imageUrl(product.img),
+    imageUrl(product.imageUrl),
+    imageUrl(record.image_url),
+    ...(Array.isArray(product.images) ? product.images.map(imageUrl) : []),
+  ].filter(Boolean);
+  if (!photos.length) {
+    const largest = [...(product.img_variants || [])]
+      .filter((variant) => imageUrl(variant?.url))
+      .sort((a, b) => Number(b?.width || 0) - Number(a?.width || 0))[0];
+    const fallback = imageUrl(largest?.url) || imageUrl(record.image);
+    if (fallback) photos.push(fallback);
+  }
+  const seen = new Set<string>();
+  const distinct = photos.filter((url) => {
+    const key = photoKey(url);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  return distinct.length ? distinct : ['/legacy-assets/logo.png'];
+};
+
 export const productImage = (product: Product) =>
   productImageCandidates(product)[0] || '/legacy-assets/logo.png';
 export const productOldPrice = (product: Product) => Number(product.oldPrice ?? product.old_price ?? 0) || 0;

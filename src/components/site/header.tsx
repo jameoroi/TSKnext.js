@@ -472,7 +472,7 @@ export function Header() {
                     alt=""
                     width={54}
                     height={54}
-                    className="size-14 rounded-xl bg-slate-50 object-contain p-1"
+                    className="size-14 rounded-xl bg-slate-50 object-contain"
                     unoptimized={productImage(product).startsWith('data:')}
                   />
                   <span className="min-w-0 flex-1">

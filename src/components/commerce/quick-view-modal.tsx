@@ -80,7 +80,7 @@ export function QuickViewModal() {
                 alt={product.name}
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"
-                className="object-contain p-7"
+                className="object-contain"
                 unoptimized={productImage(product).startsWith('data:')}
               />
             </div>
