@@ -2,6 +2,7 @@
 
 ## 6.0.0
 
+- docs(changelog): update generated changelog (038f07a)
 - fix(edge): cache the home page before answering, and fetch only what its shelves show (218eaf3)
 - docs(changelog): update generated changelog (8456089)
 - fix(edge): last-good copies survive deploys; catalogue banner 3 MB -> 193 KB; filter labels per copy (531337f)
@@ -85,4 +86,3 @@
 - docs(changelog): update generated changelog (1895c61)
 - docs(changelog): update generated changelog (7bb0355)
 - docs(changelog): update generated changelog (498da96)
-- docs(changelog): update generated changelog (7c410c9)
