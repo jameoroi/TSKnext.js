@@ -78,7 +78,7 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
                 <Link
                   key={key}
                   href={`/products?brand=${encodeURIComponent(String(b.id || name))}`}
-                  className="grid min-h-24 place-items-center p-2 text-center tsk-pop"
+                  className="tsk-pop tsk-pop-tile grid min-h-24 place-items-center rounded-2xl p-2 text-center"
                   aria-label={name}
                 >
                   <span className="grid h-14 w-full place-items-center px-2 text-center">

@@ -21,7 +21,7 @@ export function CategoryGrid({ categories }: { categories: GridCategory[] }) {
         <Link
           key={c.key}
           href={`/products?category=${encodeURIComponent(c.key)}`}
-          className="group min-w-0 text-center"
+          className="tsk-pop tsk-pop-tile group min-w-0 rounded-3xl p-2 text-center"
         >
           {c.image ? (
             // รูปหมวดจาก CMS — วงกลมรูปจริง ไม่มีกล่อง/พื้นหลัง/กรอบใด ๆ
@@ -31,7 +31,7 @@ export function CategoryGrid({ categories }: { categories: GridCategory[] }) {
               alt=""
               loading="lazy"
               decoding="async"
-              className="mx-auto aspect-square w-full max-w-36 rounded-full object-cover transition duration-300 group-hover:opacity-90"
+              className="mx-auto aspect-square w-full max-w-36 rounded-full object-cover"
             />
           ) : (
             <span className="mx-auto grid aspect-square w-full max-w-36 place-items-center rounded-full bg-emerald-800 p-2 text-center text-xl font-black text-white">

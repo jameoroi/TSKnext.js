@@ -162,7 +162,8 @@ a {
   isolation: isolate;
   transition:
     color 0.2s ease,
-    translate 0.3s var(--tsk-spring);
+    translate 0.3s var(--tsk-spring),
+    scale 0.3s var(--tsk-spring);
 }
 .nav-link::after {
   content: "";
@@ -178,7 +179,8 @@ a {
     transform 0.3s var(--tsk-spring);
 }
 .nav-link:hover {
-  translate: 0 -1px;
+  translate: 0 -2px;
+  scale: 1.08;
 }
 .nav-link:hover::after,
 .nav-link.is-active::after {
@@ -228,8 +230,11 @@ a {
 :root {
   --tsk-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   /* The whole card zooms out as one piece; the picture inside does not zoom on its own. */
-  --tsk-pop-lift: -6px;
-  --tsk-pop-scale: 1.05;
+  --tsk-pop-lift: -8px;
+  --tsk-pop-scale: 1.06;
+  /* Overshoot the pop reaches before settling, so the card visibly bounces out. */
+  --tsk-pop-peak-lift: -12px;
+  --tsk-pop-peak-scale: 1.1;
   --tsk-pop-img-scale: 1;
   --tsk-pop-press: 0.97;
   --tsk-pop-shadow: 0 20px 40px -18px rgb(15 63 48 / 0.35);
@@ -245,6 +250,24 @@ a {
   .tsk-pop img {
     transition: scale 0.5s cubic-bezier(0.22, 1, 0.36, 1);
   }
+  @keyframes tsk-pop-bounce {
+    0% {
+      translate: 0 0;
+      scale: 1;
+    }
+    45% {
+      translate: 0 var(--tsk-pop-peak-lift);
+      scale: var(--tsk-pop-peak-scale);
+    }
+    72% {
+      translate: 0 calc(var(--tsk-pop-lift) + 2px);
+      scale: calc(var(--tsk-pop-scale) - 0.02);
+    }
+    100% {
+      translate: 0 var(--tsk-pop-lift);
+      scale: var(--tsk-pop-scale);
+    }
+  }
   @media (hover: hover) {
     .tsk-pop:hover {
       position: relative;
@@ -252,6 +275,11 @@ a {
       translate: 0 var(--tsk-pop-lift);
       scale: var(--tsk-pop-scale);
       box-shadow: var(--tsk-pop-shadow);
+      animation: tsk-pop-bounce 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    /* Borderless pieces (brand logos) become a white tile while they pop. */
+    .tsk-pop-tile:hover {
+      background-color: #fff;
     }
     .tsk-pop:hover img {
       scale: var(--tsk-pop-img-scale);
@@ -273,7 +301,8 @@ a {
   }
   .tsk-link:hover {
     color: #047857;
-    translate: 0 -1px;
+    translate: 0 -2px;
+    scale: 1.08;
     text-decoration: none;
   }
   .tsk-link:active {
@@ -325,13 +354,16 @@ a {
 /* Footer + content link lists: visible hover feedback */
 .flink a {
   display: inline-block;
+  transform-origin: left center;
   transition:
     color 0.18s ease,
-    translate 0.3s var(--tsk-spring);
+    translate 0.3s var(--tsk-spring),
+    scale 0.3s var(--tsk-spring);
 }
 .flink a:hover {
   color: #fff;
   translate: 4px 0;
+  scale: 1.08;
   text-decoration: none;
 }
 .flink a:active {
@@ -365,36 +397,28 @@ a {
   .marquee {
     overflow-x: auto;
   }
+  .mega-link,
+  .mega-cat svg {
+    transition: none;
+  }
+  /*
+   * Reduced motion keeps the hover feedback and drops the movement between
+   * states: no bounce, and a short fade instead of the spring. Windows with
+   * "Show animations" turned off reports this preference, and removing the
+   * pop entirely there left the whole storefront looking unresponsive.
+   */
   .nav-link,
   .nav-link::after,
-  .mega-link,
-  .mega-cat svg,
   .flink a,
   .tsk-pop,
   .tsk-pop img,
   .tsk-link,
   .lift,
   .zoom-img img {
-    transition: none;
+    transition-duration: 0.12s;
+    transition-timing-function: ease-out;
   }
-  .lift:hover {
-    transform: none;
-  }
-  .zoom-img:hover img {
-    transform: none;
-  }
-  .nav-link:hover,
-  .nav-link:active,
-  .flink a:hover,
-  .flink a:active,
-  .tsk-pop:hover,
-  .tsk-pop:active,
-  .tsk-pop:hover img,
-  .tsk-link:hover,
-  .tsk-link:active,
-  .lift:hover,
-  .zoom-img:hover img {
-    translate: none;
-    scale: none;
+  .tsk-pop:hover {
+    animation: none;
   }
 }

@@ -1,13 +1,14 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { Facebook, Instagram, Mail, MapPin, Music2, Phone, Youtube } from 'lucide-react';
+import { Mail, MapPin, Phone } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { openConsentSettings } from '@/features/privacy/consent';
 import { legacyRequest } from '@/lib/legacy-api.client';
 import { publicEnv } from '@/lib/public-env';
+import { PaymentBadges, SocialBadge } from './brand-badges';
 import { Newsletter } from './newsletter';
 
 function text(value: unknown, fallback = '') {
@@ -62,7 +63,13 @@ export function Footer() {
     .filter(Boolean)
     .join(' ');
   const openingHours = text(business.opening_hours, 'จันทร์ – เสาร์ 07.00 – 17.00 น.');
-  const lineUrl = text(publicEnv('NEXT_PUBLIC_LINE_OA_URL') || undefined);
+  // LINE OA stays visible when the public env value does not reach the Worker:
+  // fall back to the shop's LINE id (NEXT_PUBLIC_LINE_OA_ID, default @thaiserkit).
+  const lineId = text(publicEnv('NEXT_PUBLIC_LINE_OA_ID') || undefined, '@thaiserkit');
+  const lineUrl = text(
+    publicEnv('NEXT_PUBLIC_LINE_OA_URL') || undefined,
+    `https://line.me/R/ti/p/${encodeURIComponent(lineId)}`,
+  );
   const facebookUser = text(publicEnv('NEXT_PUBLIC_FB_PAGE_USERNAME') || undefined);
   const facebookUrl = facebookUser ? `https://facebook.com/${facebookUser}` : '';
 
@@ -100,64 +107,26 @@ export function Footer() {
               {phone && (
                 <a
                   href={`tel:${phone.replace(/[^+\d]/g, '')}`}
-                  className="flex items-center gap-2 hover:text-white"
+                  className="tsk-link flex items-center gap-2 hover:text-white"
                 >
                   <Phone size={16} />
                   {phone}
                 </a>
               )}
               {email && (
-                <a href={`mailto:${email}`} className="flex items-center gap-2 hover:text-white">
+                <a href={`mailto:${email}`} className="tsk-link flex items-center gap-2 hover:text-white">
                   <Mail size={16} />
                   {email}
                 </a>
               )}
               {openingHours && <span className="text-xs text-emerald-100/55">({openingHours})</span>}
             </address>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {facebookUrl && (
-                <a
-                  href={facebookUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="Facebook"
-                  className="grid size-9 place-items-center rounded-full bg-white/10 transition hover:bg-white/20"
-                >
-                  <Facebook size={17} />
-                </a>
-              )}
-              {lineUrl && (
-                <a
-                  href={lineUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="LINE OA"
-                  className="grid size-9 place-items-center rounded-full bg-[#06C755] text-xs font-black text-white transition hover:opacity-90"
-                >
-                  LINE
-                </a>
-              )}
-              <span
-                role="img"
-                aria-label="YouTube (ยังไม่เปิดใช้งาน)"
-                className="grid size-9 place-items-center rounded-full bg-white/10 text-emerald-100/60"
-              >
-                <Youtube size={17} />
-              </span>
-              <span
-                role="img"
-                aria-label="TikTok (ยังไม่เปิดใช้งาน)"
-                className="grid size-9 place-items-center rounded-full bg-white/10 text-emerald-100/60"
-              >
-                <Music2 size={17} />
-              </span>
-              <span
-                role="img"
-                aria-label="Instagram (ยังไม่เปิดใช้งาน)"
-                className="grid size-9 place-items-center rounded-full bg-white/10 text-emerald-100/60"
-              >
-                <Instagram size={17} />
-              </span>
+            <div className="mt-5 flex flex-wrap gap-2.5" aria-label="ช่องทางโซเชียล">
+              <SocialBadge service="line" href={lineUrl} label="LINE OA" />
+              <SocialBadge service="facebook" href={facebookUrl || undefined} />
+              <SocialBadge service="youtube" />
+              <SocialBadge service="tiktok" />
+              <SocialBadge service="instagram" />
             </div>
           </section>
 
@@ -198,14 +167,14 @@ export function Footer() {
               {phone && (
                 <a
                   href={`tel:${phone.replace(/[^+\d]/g, '')}`}
-                  className="flex items-center gap-2 hover:text-white"
+                  className="tsk-link flex items-center gap-2 hover:text-white"
                 >
                   <Phone size={16} />
                   {phone}
                 </a>
               )}
               {email && (
-                <a href={`mailto:${email}`} className="flex items-center gap-2 hover:text-white">
+                <a href={`mailto:${email}`} className="tsk-link flex items-center gap-2 hover:text-white">
                   <Mail size={16} />
                   {email}
                 </a>
@@ -217,12 +186,7 @@ export function Footer() {
 
         <div className="mt-9 flex flex-wrap items-center justify-between gap-4 border-t border-white/10 pt-6">
           <strong className="text-sm text-emerald-100/80">{legalName}</strong>
-          <ul className="flex flex-wrap items-center gap-2" aria-label="ช่องทางการชำระเงิน">
-            <li className="rounded border border-white/15 px-2 py-1 text-xs font-black italic">VISA</li>
-            <li className="rounded border border-white/15 px-2 py-1 text-xs font-bold">Mastercard</li>
-            <li className="rounded border border-white/15 px-2 py-1 text-xs font-bold">PromptPay</li>
-            <li className="rounded border border-white/15 px-2 py-1 text-xs font-bold">COD</li>
-          </ul>
+          <PaymentBadges />
         </div>
         <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-5 text-xs text-emerald-100/55">
           <span>
@@ -232,10 +196,10 @@ export function Footer() {
             <button type="button" onClick={openConsentSettings} className="hover:text-white tsk-link">
               ตั้งค่าคุกกี้
             </button>
-            <Link href="/privacy" className="hover:text-white">
+            <Link href="/privacy" className="tsk-link hover:text-white">
               นโยบายความเป็นส่วนตัว
             </Link>
-            <Link href="/terms" className="hover:text-white">
+            <Link href="/terms" className="tsk-link hover:text-white">
               เงื่อนไขการใช้งาน
             </Link>
           </div>
