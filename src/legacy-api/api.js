@@ -5123,7 +5123,7 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
     const onlySaleShelf=clean(url.searchParams.get('status'),40)==='สินค้าลดราคา'
       && !url.searchParams.get('category') && !url.searchParams.get('brand') && !(url.searchParams.get('q')||'').trim()
       && !url.searchParams.get('min_price') && !url.searchParams.get('max_price')
-      && (clean(url.searchParams.get('sort'),30)||'default')==='default' && url.searchParams.get('facets')!=='1';
+      && (clean(url.searchParams.get('sort'),30)||'default')==='default';
     if(onlySaleShelf){
       const salePage=Math.max(1, Number(url.searchParams.get('page')||1));
       const salePerPage=Math.min(100, Math.max(1, Number(url.searchParams.get('per_page')||60)));
@@ -5132,7 +5132,17 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
         const onSale=rows.filter(p=>p && p.state!=='hidden' && p.state!=='discontinued'
           && ((p.status||[]).includes('สินค้าลดราคา')||(Number(p.oldPrice||0)>Number(p.price||0)&&Number(p.price||0)>0)));
         const start=(salePage-1)*salePerPage;
-        return json({ok:true,products:onSale.slice(start,start+salePerPage).map(productCardView),total:onSale.length,page:salePage,per_page:salePerPage,source:'supabase-sale'},200,{'cache-control':'public, max-age=30, stale-while-revalidate=300'});
+        // Filter counts for the sale listing come from the sale rows themselves:
+        // counting the whole catalogue is the scan this path exists to avoid.
+        let saleFacets;
+        if(url.searchParams.get('facets')==='1'){
+          saleFacets={categories:{},brands:{}};
+          for(const p of onSale){
+            saleFacets.categories[p.category||'']=(saleFacets.categories[p.category||'']||0)+1;
+            saleFacets.brands[p.brand||'']=(saleFacets.brands[p.brand||'']||0)+1;
+          }
+        }
+        return json({ok:true,products:onSale.slice(start,start+salePerPage).map(productCardView),total:onSale.length,page:salePage,per_page:salePerPage,facets:saleFacets,source:'supabase-sale'},200,{'cache-control':'public, max-age=30, stale-while-revalidate=300'});
       }
     }
     const requestedCategory=url.searchParams.get('category')||'';
