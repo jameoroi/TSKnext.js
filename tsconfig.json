@@ -33,5 +33,5 @@
     "tests/**/*.tsx",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules", "src/legacy-reference/**", "docs/**"]
+  "exclude": ["node_modules", "src/legacy-reference/**", "src/workers/**", "docs/**"]
 }

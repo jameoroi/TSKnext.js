@@ -4,10 +4,11 @@ import { SECURITY_HEADERS } from './src/shared/security-headers.mjs';
 
 const nextConfig: NextConfig = {
   output: 'standalone',
-  // sharp is used only by the separate BullMQ Node worker. Do not mark it as
-  // a Next server external: OpenNext would copy its Windows-native .node
-  // binaries into the Worker bundle. The Worker path uses unoptimized image
-  // URLs, while the Node worker keeps sharp available for image.optimize jobs.
+  // sharp (native image lib) cannot run on Workers. `/_next/image` is served
+  // by OpenNext's own handler, so keep sharp external and never bundle it.
+  serverExternalPackages: ['sharp'],
+  // The BullMQ Node worker (workers/) owns its own sharp install. Keep any
+  // transitive copy out of the traced server output as well.
   outputFileTracingExcludes: {
     '/*': [
       './node_modules/sharp/**/*',

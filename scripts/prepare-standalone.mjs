@@ -14,10 +14,17 @@ if (existsSync(`${root}/public`)) {
   cpSync(`${root}/public`, `${standalone}/public`, { recursive: true });
 }
 
-// pnpm's isolated linker creates symlinks in Next's standalone tree. OpenNext
-// invokes esbuild against that tree, and Windows can create those links in
-// Developer Mode but still deny esbuild access to the linked directories.
-// Materialize them as real files before OpenNext bundles the Worker.
+// OpenNext copies the traced standalone tree and recreates pnpm's symlinks
+// (e.g. node_modules/next -> .pnpm/next@…). Materializing those links turns
+// them into directories that OpenNext skips, so esbuild falls back to the
+// project's root node_modules and bundles sharp's native binaries, breaking
+// `opennextjs-cloudflare build` on every platform (including Workers Builds).
+// Keep the links by default; only materialize when explicitly requested for a
+// local Windows machine whose esbuild cannot read linked directories.
+if (process.env.MATERIALIZE_STANDALONE_SYMLINKS !== '1') {
+  process.exit(0);
+}
+
 function resolveLink(linkPath) {
   let current = linkPath;
   for (let depth = 0; depth < 32; depth += 1) {
