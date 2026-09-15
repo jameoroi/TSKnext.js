@@ -10,7 +10,7 @@
 | Turbopack | Development server (`pnpm dev`); production builds use webpack for OpenNext |
 | Tailwind CSS 4 | Styling |
 | Radix UI (`radix-ui`) | Primary accessible primitives: Dialog, Tabs and interactive widgets |
-| Material UI (MUI) + Emotion | Primary back-office component library, scoped to `/admin` via `MuiProvider` |
+| Material UI (MUI) + Emotion | Component library and CSS-in-JS; Emotion SSR cache mounted once at the root via `MuiProvider` (`@layer mui`, below Tailwind utilities) |
 | Motion | Animation |
 | Lucide React | Icons |
 
