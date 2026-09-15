@@ -2,6 +2,8 @@
 
 ## 6.0.0
 
+- fix(motion): pop means movement only, no added backgrounds, borders or shadows (ec1ea80)
+- docs(changelog): update generated changelog (6f6780c)
 - feat(storefront): everything pops out on hover, even with Windows animations off, and real brand marks in the footer (116dc96)
 - docs(changelog): update generated changelog (64500d4)
 - feat(home): full-box pictures for flash sale and dealer boxes, and the campaign band back above articles (ef67b70)
