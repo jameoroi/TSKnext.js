@@ -48,6 +48,29 @@ const mem = new Map<string, { at: number; data: unknown }>();
 function cacheKey(origin: string, action: string, params: Record<string, unknown>) {
   return `${origin}|${action}|${JSON.stringify(params)}`;
 }
+/**
+ * The shopper's identity for the compatibility API's quotas.
+ *
+ * Server-rendered pages call the API from inside the Worker. Without the
+ * visitor's address every shopper shared one "unknown" rate-limit bucket, so
+ * once the catalogue quota was spent for the hour, product listings came back
+ * empty for everyone. Forward the address Cloudflare vouches for, plus the
+ * user agent the scraper check reads.
+ */
+async function visitorHeaders() {
+  const out: Record<string, string> = { accept: 'application/json' };
+  try {
+    const incoming = await headers();
+    for (const name of ['cf-connecting-ip', 'x-forwarded-for', 'user-agent']) {
+      const value = incoming.get(name);
+      if (value) out[name] = value;
+    }
+  } catch {
+    // Outside a request (build, cron): no visitor to attribute.
+  }
+  return out;
+}
+
 async function cachedPublicRequest<T>(origin: string, action: string, params: Record<string, unknown>) {
   const query = new URLSearchParams({ action });
   for (const [key, value] of Object.entries(params)) {
@@ -59,7 +82,7 @@ async function cachedPublicRequest<T>(origin: string, action: string, params: Re
 
   const request = new Request(`${origin}/api?${query.toString()}`, {
     method: 'GET',
-    headers: { accept: 'application/json' },
+    headers: await visitorHeaders(),
   });
   const response = await legacyApi(request);
   const data = await response.json().catch(() => ({ ok: false, error: `http_${response.status}` }));
