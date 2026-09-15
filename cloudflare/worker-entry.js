@@ -193,7 +193,16 @@ export default {
       // so the page was never cached and every visitor paid for a full render.
       const html = await response.text();
       const copy = () => new Response(html, { status: response.status, headers: response.headers });
-      const stored = await store(cache, key, copy()).catch(() => false);
+      let storeState = 'ok';
+      const stored = await store(cache, key, copy())
+        .then((ok) => {
+          if (!ok) storeState = 'unhealthy';
+          return ok;
+        })
+        .catch((error) => {
+          storeState = `error:${String(error?.message || error).slice(0, 80)}`;
+          return false;
+        });
       if (stored) {
         ctx.waitUntil(
           storeLastGood(env.PRODUCT_MEDIA, objectKey, copy(), env.CF_VERSION_METADATA?.id).catch(
@@ -203,6 +212,8 @@ export default {
       }
       const htmlHeaders = new Headers(response.headers);
       htmlHeaders.set('x-tsk-edge-cache', 'MISS');
+      // Why a render did not land in the cache (ok | unhealthy | error:...); no secrets involved.
+      htmlHeaders.set('x-tsk-edge-store', storeState);
       return new Response(html, { status: response.status, headers: htmlHeaders });
     }
     const forCache = response.clone();
