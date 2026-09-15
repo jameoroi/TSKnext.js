@@ -2,6 +2,8 @@
 
 ## 6.0.0
 
+- ci(edge-warm): finish inside the job timeout so product pages get warmed (98e5c9d)
+- docs(changelog): update generated changelog (2982ed0)
 - fix(home): keep the home render inside the Workers Free subrequest and CPU limits (528849e)
 - docs(changelog): update generated changelog (e00e26d)
 - docs(changelog): update generated changelog (eade479)
@@ -86,4 +88,3 @@
 - fix(admin): integrate reports into admin navigation (376c9e0)
 - docs(changelog): update generated changelog (41c6ba9)
 - docs(changelog): update generated changelog (5e5e4e2)
-- docs(changelog): update generated changelog (1895c61)
