@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { randomInt } from 'node:crypto';
 
 /**
  * End-to-end commerce smoke test.
@@ -118,7 +119,7 @@ function availableProduct(product) {
 
 const customer = client('customer');
 const admin = client('admin');
-const unique = `${Date.now()}-${Math.floor(Math.random() * 10_000)}`;
+const unique = `${Date.now()}-${randomInt(10_000)}`;
 const email = `smoke-${unique}@example.invalid`;
 const phone = `08${String(unique.replace(/\D/g, '')).slice(-8).padStart(8, '0')}`;
 const password = `Smoke-${unique}-Pass!`;

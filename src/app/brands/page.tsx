@@ -1,9 +1,15 @@
 import { Search } from 'lucide-react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { PageHero } from '@/components/content/page-hero';
 import { BrandLogo } from '@/components/home/brand-logo';
 import { Input } from '@/components/ui/input';
 import { getBrands } from '@/server/catalog';
+
+export const metadata: Metadata = {
+  title: 'แบรนด์สินค้า',
+  description: 'รวมแบรนด์เครื่องมือช่าง ปั๊มน้ำ และอุปกรณ์การเกษตรที่ THAISERKIT SUPPLY จัดจำหน่าย',
+};
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 

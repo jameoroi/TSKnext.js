@@ -1,8 +1,11 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { OwnerConsole } from '@/components/admin/owner-console';
 import { AdminPageHeader } from '@/components/admin/page-header';
 import { requireRole } from '@/server/auth/guards';
 import { safeLegacy } from '@/server/safe-legacy';
+
+export const metadata: Metadata = { title: 'Owner Console', robots: { index: false, follow: false } };
 
 export default async function Page() {
   const session = await requireRole('owner', '/owner');

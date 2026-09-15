@@ -131,8 +131,8 @@
       '<div class="qv-name">' + (p.name||'') + '</div>' +
       '<div class="qv-price-wrap">' + (p.oldPrice ? '<span class="qv-price-old">'+formatPrice(p.oldPrice)+'</span>' : '') + '<span class="qv-price">'+formatPrice(p.price)+'</span></div>' +
       '<div class="qv-actions">' +
-        '<button class="btn-solid" type="button" ' + (outOfStock?'disabled':'') + ' onclick="addToCart(\'' + String(p.id).replace(/'/g,"\\'") + '\',1);closeQvFromWindow();">' + (outOfStock?'สินค้าหมด':'เพิ่มลงตะกร้า') + '</button>' +
-        '<button class="btn-line" type="button" onclick="tskToggleWishlist(\'' + String(p.id).replace(/'/g,"\\'") + '\',this)">♡ ถูกใจ</button>' +
+        '<button class="btn-solid" type="button" ' + (outOfStock?'disabled':'') + ' onclick="addToCart(\'' + String(p.id).replace(/\\/g,"\\\\").replace(/'/g,"\\'") + '\',1);closeQvFromWindow();">' + (outOfStock?'สินค้าหมด':'เพิ่มลงตะกร้า') + '</button>' +
+        '<button class="btn-line" type="button" onclick="tskToggleWishlist(\'' + String(p.id).replace(/\\/g,"\\\\").replace(/'/g,"\\'") + '\',this)">♡ ถูกใจ</button>' +
       '</div>' +
       '<div class="qv-link"><a href="product.html?id=' + encodeURIComponent(p.id) + '">ดูรายละเอียดสินค้าแบบเต็ม →</a></div>';
     backdrop.classList.add('show');

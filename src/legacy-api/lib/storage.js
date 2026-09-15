@@ -392,7 +392,7 @@ class SupabaseStoreCompat {
   async listPrefix(prefix,{limit=20000}={}){
     const out=[]; const pageSize=1000; const max=Math.min(50000,Math.max(1,Number(limit)||20000));
     while(out.length<max){
-      const query=new URLSearchParams({select:'key,value,etag',namespace:`eq.${this.namespace}`,key:`like.${String(prefix).replace(/[%_*]/g,'\\$&')}*`,order:'updated_at.desc,key.asc',limit:String(Math.min(pageSize,max-out.length)),offset:String(out.length)});
+      const query=new URLSearchParams({select:'key,value,etag',namespace:`eq.${this.namespace}`,key:`like.${String(prefix).replace(/[\\%_*]/g,'\\$&')}*`,order:'updated_at.desc,key.asc',limit:String(Math.min(pageSize,max-out.length)),offset:String(out.length)});
       const rows=await withStorageRetry(`supabase list ${this.namespace}`,()=>supabaseFetch(`/rest/v1/app_kv?${query}`));
       out.push(...(rows||[])); if(!rows||rows.length<pageSize)break;
     }

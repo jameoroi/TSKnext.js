@@ -1,6 +1,9 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { AdminDataTable } from '@/components/admin/data-table';
 import { safeLegacy } from '@/server/safe-legacy';
+
+export const metadata: Metadata = { title: 'สินค้าร้านตัวแทน', robots: { index: false, follow: false } };
 export default async function Page() {
   const d = await safeLegacy<any>('agent.dashboard', {}, { agent: {}, products: [] });
   const code = String(d.agent?.referral_code || '');

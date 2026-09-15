@@ -1,8 +1,11 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { AdminDataTable } from '@/components/admin/data-table';
 import { AdminPageHeader } from '@/components/admin/page-header';
 import { requireRole } from '@/server/auth/guards';
 import { safeLegacy } from '@/server/safe-legacy';
+
+export const metadata: Metadata = { title: 'เครือข่ายซัพพลายเออร์', robots: { index: false, follow: false } };
 export default async function Page() {
   await requireRole('admin', '/operations/network');
   const [i, r, e] = await Promise.all([
