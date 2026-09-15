@@ -2,6 +2,8 @@
 
 ## 6.0.0
 
+- fix(edge): stop full catalogue reads from exhausting Worker memory (1102) (7b61c64)
+- docs(changelog): update generated changelog (0b3490f)
 - fix(products): answer the sale filter with counts from the database path (95f6199)
 - docs(changelog): update generated changelog (fe5c5d9)
 - ci(edge-warm): finish inside the job timeout so product pages get warmed (98e5c9d)
@@ -89,4 +91,3 @@
 - docs(changelog): update generated changelog (b194c12)
 - fix(admin): integrate reports into admin navigation (376c9e0)
 - docs(changelog): update generated changelog (41c6ba9)
-- docs(changelog): update generated changelog (5e5e4e2)
