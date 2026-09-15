@@ -2,6 +2,8 @@
 
 ## 6.0.0
 
+- fix(motion): zoom the whole card, not the picture inside it (2419607)
+- docs(changelog): update generated changelog (09eade7)
 - feat(motion): one spring pop for every storefront card, and links that move instead of underlining (4735b03)
 - docs(changelog): update generated changelog (c3560a2)
 - fix(edge): scope cached HTML to the deployment that rendered it (4be4e14)
