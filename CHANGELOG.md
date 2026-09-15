@@ -2,6 +2,8 @@
 
 ## 6.0.0
 
+- fix(reliability): full site settings for admins only; campaign band stays a plain banner; category and brand upload sizes (e040a8b)
+- docs(changelog): update generated changelog (5233560)
 - feat(quality): modern account forms, upload sizes on every admin image, lighter cards, star ratings (c1a00c6)
 - docs(changelog): update generated changelog (6cfc9b5)
 - feat(quality): SEO, accessibility and ops batch toward the 95+ audit, and one image ratio per slot (3d66f4b)
@@ -81,4 +83,3 @@
 - docs(changelog): update generated changelog (12d370a)
 - docs(changelog): update generated changelog (9b9e75f)
 - docs(changelog): update generated changelog (d8ac4e2)
-- docs(changelog): update generated changelog (c8786bb)
