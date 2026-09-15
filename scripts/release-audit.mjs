@@ -104,6 +104,14 @@ const packageNeeds = [
 for (const name of packageNeeds)
   pass(`Package ${name}`, Boolean(pkg.dependencies?.[name] || pkg.devDependencies?.[name]));
 
+// Emotion was once dropped from the root while its packages stayed installed,
+// which the package checks above could not see. Check that it is mounted.
+pass(
+  'Emotion SSR cache provider',
+  read('src/components/ui/mui-provider.tsx').includes('AppRouterCacheProvider'),
+);
+pass('Emotion mounted at the root', read('src/app/providers.tsx').includes('<MuiProvider>'));
+
 const workerPkg = JSON.parse(read('workers/package.json'));
 pass('Worker image optimizer package', workerPkg.dependencies?.sharp === '^0.35.4');
 pass('Sharp isolated from application graph', !pkg.dependencies?.sharp && !pkg.devDependencies?.sharp);

@@ -3,10 +3,13 @@
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v16-appRouter';
 
-// Material UI is scoped to the back office: Emotion renders styles at request
-// time, and the storefront already runs close to the Workers CPU budget, so
-// shoppers get Radix + Tailwind only. `enableCssLayer` places MUI's styles in
-// `@layer mui` (declared in globals.css) so Tailwind utilities still win.
+// Emotion is part of the core UI stack next to Tailwind and Radix, so its SSR
+// cache is mounted once at the root: `@emotion/styled` components and Material
+// UI render with their styles flushed into the streamed HTML on every route.
+// Public pages are answered from the edge cache (cloudflare/worker-entry.js),
+// so the render cost is paid once per cache entry, not once per shopper.
+// `enableCssLayer` places these styles in `@layer mui` (declared in
+// globals.css) so Tailwind utilities still win.
 const theme = createTheme({
   palette: {
     primary: { main: '#0b2e22' },

@@ -3,7 +3,7 @@ name: Production smoke test
 on:
   workflow_dispatch:
   workflow_run:
-    workflows: [Deploy, Cloudflare Deploy]
+    workflows: [Deploy to Cloudflare Workers]
     types: [completed]
 
 concurrency:

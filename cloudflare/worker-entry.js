@@ -65,7 +65,10 @@ function storable(response) {
 // Streamed pages keep status 200 even when they end in notFound() or an error
 // boundary, and a failed API read still answers 200 with ok:false. Neither may be
 // cached, or one bad moment would be served to every visitor for minutes.
-const BROKEN_HTML = /NEXT_HTTP_ERROR_FALLBACK|NEXT_REDIRECT|โหลดข้อมูลสินค้าไม่สำเร็จ|error code: 110\d/;
+// A rendered not-found page (e.g. an unknown product slug) carries no error
+// marker, but it is the only cacheable page marked noindex, so that marks it.
+const BROKEN_HTML =
+  /NEXT_HTTP_ERROR_FALLBACK|NEXT_REDIRECT|โหลดข้อมูลสินค้าไม่สำเร็จ|error code: 110\d|<meta name="robots" content="noindex/;
 async function healthy(response) {
   const type = response.headers.get('content-type') || '';
   if (type.startsWith('image/')) return true;
