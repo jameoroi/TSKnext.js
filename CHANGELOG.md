@@ -2,6 +2,8 @@
 
 ## 6.0.0
 
+- fix(edge): scope cached HTML to the deployment that rendered it (4be4e14)
+- docs(changelog): update generated changelog (4c29b88)
 - fix(images): allow quality 90 for the product zoom and full-view source (c61ca2f)
 - docs(changelog): update generated changelog (22eebb3)
 - fix(storefront): render page content once, and a searchable brand dropdown (badcab6)
