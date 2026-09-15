@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useCartStore } from '@/features/cart/store';
 import { useQuickViewStore } from '@/features/catalog/quick-view';
-import { type Product, productHref, productImageCandidates, productOldPrice } from '@/features/catalog/types';
+import { type Product, productCardImages, productHref, productOldPrice } from '@/features/catalog/types';
 import { useCompareStore } from '@/features/customer/local-store';
 import { useWishlist } from '@/features/customer/wishlist';
 import { showToast } from '@/features/ui/toast-store';
@@ -38,7 +38,7 @@ export function ProductCard({
   cta?: boolean;
   stockBar?: boolean;
 }) {
-  const imageCandidates = productImageCandidates(product);
+  const imageCandidates = productCardImages(product);
   const [imageIndex, setImageIndex] = useState(0);
   const imageSrc = imageCandidates[imageIndex] || '/legacy-assets/logo.png';
   const add = useCartStore((s) => s.add);

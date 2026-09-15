@@ -417,7 +417,7 @@ export function AccountView({
 
       {activeTab === 'profile' && (
         <section className="mt-5" role="tabpanel">
-          <form onSubmit={saveProfile} className="rounded-3xl border bg-white p-5 shadow-sm lg:p-6">
+          <form onSubmit={saveProfile} className="tsk-form rounded-3xl border bg-white p-5 shadow-sm lg:p-6">
             <div className="mb-5 flex items-center gap-3">
               <UserRound className="text-emerald-800" />
               <div>
@@ -542,7 +542,10 @@ export function AccountView({
             )}
           </div>
 
-          <form onSubmit={saveAddress} className="h-fit rounded-3xl border bg-white p-5 shadow-sm lg:p-6">
+          <form
+            onSubmit={saveAddress}
+            className="tsk-form h-fit rounded-3xl border bg-white p-5 shadow-sm lg:p-6"
+          >
             <div className="mb-5 flex items-center gap-3">
               {addressForm.id ? (
                 <Pencil className="text-emerald-800" />
@@ -686,7 +689,10 @@ export function AccountView({
 
       {activeTab === 'security' && (
         <section className="mt-5 grid gap-5 lg:grid-cols-2" role="tabpanel">
-          <form onSubmit={changePassword} className="rounded-3xl border bg-white p-5 shadow-sm lg:p-6">
+          <form
+            onSubmit={changePassword}
+            className="tsk-form rounded-3xl border bg-white p-5 shadow-sm lg:p-6"
+          >
             <div className="mb-5 flex items-center gap-3">
               <LockKeyhole className="text-emerald-800" />
               <div>
@@ -794,7 +800,7 @@ export function AccountView({
 
           <form
             onSubmit={requestReturn}
-            className="rounded-3xl border bg-white p-5 shadow-sm lg:p-6 lg:col-span-2"
+            className="tsk-form rounded-3xl border bg-white p-5 shadow-sm lg:p-6 lg:col-span-2"
           >
             <div className="mb-5 flex items-center gap-3">
               <RotateCcw className="text-emerald-800" />

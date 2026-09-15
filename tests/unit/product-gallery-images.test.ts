@@ -62,3 +62,32 @@ describe('productGalleryImages', () => {
     expect(productGalleryImages({ ...base })).toEqual(['/legacy-assets/logo.png']);
   });
 });
+
+describe('productCardImages', () => {
+  it('prefers the smallest webp rendition that is wide enough, then the originals', async () => {
+    const { productCardImages } = await import('@/features/catalog/types');
+    const product = {
+      id: 'p2',
+      name: 'card',
+      price: 1,
+      img: '/media/product/original.webp',
+      img_variants: [
+        { url: '/media/a-w240.webp', width: 240, format: 'webp' },
+        { url: '/media/a-w480.avif', width: 480, format: 'avif' },
+        { url: '/media/a-w480.webp', width: 480, format: 'webp' },
+        { url: '/media/a-w960.webp', width: 960, format: 'webp' },
+      ],
+    };
+    const chain = productCardImages(product);
+    expect(chain[0]).toBe('/media/a-w480.webp');
+    expect(chain).toContain('/media/product/original.webp');
+    expect(new Set(chain).size).toBe(chain.length);
+  });
+
+  it('falls back to the original when there are no renditions', async () => {
+    const { productCardImages } = await import('@/features/catalog/types');
+    expect(productCardImages({ id: 'p3', name: 'x', price: 1, img: '/media/only.webp' })[0]).toBe(
+      '/media/only.webp',
+    );
+  });
+});

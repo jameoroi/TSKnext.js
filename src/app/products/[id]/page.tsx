@@ -118,10 +118,17 @@ export default async function ProductPage({ params }: Props) {
     notFound();
   }
 
-  const [recommendations, session] = await Promise.all([
+  const [recommendations, session, reviewSummary] = await Promise.all([
     safeLegacy<any>('products.recommend', { id: product.id, limit: 8 }, { recommendations: [] }),
     getLegacySession(),
+    safeLegacy<{ average?: number; count?: number }>(
+      'reviews.list',
+      { product_id: product.id },
+      { average: 0, count: 0 },
+    ),
   ]);
+  const reviewCount = Number(reviewSummary?.count || 0);
+  const ratingValue = Number(reviewSummary?.average || 0);
   let related: Product[] = Array.isArray(recommendations.recommendations)
     ? recommendations.recommendations
         .map((row: any) => row?.product)
@@ -174,6 +181,17 @@ export default async function ProductPage({ params }: Props) {
     brand: product.brand ? { '@type': 'Brand', name: product.brand } : undefined,
     category: product.category || undefined,
     offers,
+    // Only real, approved reviews: Google ignores (and may penalise) ratings without them.
+    aggregateRating:
+      reviewCount > 0 && ratingValue > 0
+        ? {
+            '@type': 'AggregateRating',
+            ratingValue: Number(ratingValue.toFixed(1)),
+            reviewCount,
+            bestRating: 5,
+            worstRating: 1,
+          }
+        : undefined,
   };
   const breadcrumbLd = {
     '@context': 'https://schema.org',

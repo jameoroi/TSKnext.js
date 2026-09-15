@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useCartStore } from '@/features/cart/store';
-import { productHref, productImageCandidates } from '@/features/catalog/types';
+import { productCardImages, productHref } from '@/features/catalog/types';
 import { showToast } from '@/features/ui/toast-store';
 import type { FlashSaleItem } from '@/server/homepage';
 import { FlashStockBar } from '../commerce/flash-stock-bar';
@@ -20,7 +20,7 @@ export function FlashSaleCard({ item }: { item: FlashSaleItem }) {
   const add = useCartStore((s) => s.add);
   const { product, normalPrice, salePrice, discountPercent, stockQuantity, soldQuantity, startsAt, endsAt } =
     item;
-  const imageCandidates = productImageCandidates(product);
+  const imageCandidates = productCardImages(product);
   const [imageIndex, setImageIndex] = useState(0);
   const image = imageCandidates[imageIndex] || '/legacy-assets/logo.png';
 

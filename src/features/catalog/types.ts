@@ -92,6 +92,25 @@ export const productGalleryImages = (product: Product) => {
   return distinct.length ? distinct : ['/legacy-assets/logo.png'];
 };
 
+/**
+ * Pictures for small product cards, best first: the smallest rendition at least
+ * `minWidth` wide (webp, then avif) so a grid does not download full originals,
+ * followed by the usual fallback chain. On a failed load the card walks down it.
+ */
+export const productCardImages = (product: Product, minWidth = 480) => {
+  const variants = (product.img_variants || [])
+    .map((variant) => ({
+      url: imageUrl(variant?.url),
+      width: Number(variant?.width || 0),
+      format: String(variant?.format || '').toLowerCase(),
+    }))
+    .filter((variant) => variant.url && variant.width >= minWidth)
+    .sort((a, b) => a.width - b.width || (a.format === 'webp' ? -1 : b.format === 'webp' ? 1 : 0));
+  const light = variants.find((variant) => variant.format === 'webp') || variants[0];
+  const chain = [light?.url || '', ...productImageCandidates(product)];
+  return chain.filter((value, index) => Boolean(value) && chain.indexOf(value) === index);
+};
+
 export const productImage = (product: Product) =>
   productImageCandidates(product)[0] || '/legacy-assets/logo.png';
 export const productOldPrice = (product: Product) => Number(product.oldPrice ?? product.old_price ?? 0) || 0;

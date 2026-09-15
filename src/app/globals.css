@@ -416,3 +416,57 @@ a {
     animation: none;
   }
 }
+
+/*
+ * Customer forms (account profile, addresses, password, …) used bare inputs that
+ * rendered as unstyled browser boxes. Inside .tsk-form every control without its
+ * own classes gets the storefront field style; controls that set classes, and
+ * checkboxes/radios/files, are left alone. :where() keeps specificity at zero.
+ */
+@layer components {
+  .tsk-form
+    :where(
+      input:not([class]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not(
+        [type="range"]
+      ):not([type="hidden"]),
+      select:not([class]),
+      textarea:not([class])
+    ) {
+    display: block;
+    width: 100%;
+    min-height: 2.75rem;
+    border: 1px solid rgb(203 213 225);
+    border-radius: 0.75rem;
+    background-color: #fff;
+    padding: 0 0.875rem;
+    font-size: 0.875rem;
+    color: rgb(15 23 42);
+    outline: none;
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
+  }
+  .tsk-form :where(textarea:not([class])) {
+    min-height: 6.5rem;
+    padding: 0.75rem 0.875rem;
+    line-height: 1.6;
+  }
+  .tsk-form
+    :where(
+      input:not([class]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]),
+      select:not([class]),
+      textarea:not([class])
+    ):focus {
+    border-color: rgb(4 120 87);
+    box-shadow: 0 0 0 3px rgb(4 120 87 / 0.12);
+  }
+  .tsk-form :where(input:not([class]))::placeholder,
+  .tsk-form :where(textarea:not([class]))::placeholder {
+    color: rgb(148 163 184);
+  }
+  .tsk-form :where(input[type="checkbox"]:not([class]), input[type="radio"]:not([class])) {
+    width: 1.05rem;
+    height: 1.05rem;
+    accent-color: rgb(6 95 70);
+  }
+}

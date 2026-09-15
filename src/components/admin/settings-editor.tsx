@@ -35,6 +35,17 @@ function fileToDataUrl(file: File) {
   });
 }
 
+/** What to upload for each picture on the settings page, matched to how the shop shows it. */
+const IMAGE_HINTS: Record<string, string> = {
+  logo_data_url: 'ขนาดที่ต้องใส่ 560 × 176 px PNG พื้นใส — หัวเว็บแสดงสูง 40 px ไม่ครอป',
+  favicon_data_url: 'ขนาดที่ต้องใส่ 512 × 512 px (1:1) PNG',
+  chat_avatar_data_url: 'ขนาดที่ต้องใส่ 512 × 512 px (1:1) — แสดงเป็นวงกลม',
+  featured_image_url: 'ขนาดที่ต้องใส่ 600 × 600 px (1:1)',
+  articles_image_url: 'ขนาดที่ต้องใส่ 600 × 600 px (1:1)',
+  about_image_url: 'ขนาดที่ต้องใส่ 1400 × 875 px (16:10) — หน้าเกี่ยวกับเราแสดงกรอบ 16:10 ครอปกลางภาพ',
+  popup: 'ขนาดที่ต้องใส่ 1080 × 1350 px (4:5 แนวตั้ง) หรือ 1080 × 1080 px — แสดงเต็มรูป ไม่ครอป',
+};
+
 export function SettingsEditor({
   settings,
   businessSettings,
@@ -296,6 +307,7 @@ export function SettingsEditor({
               ).map(([key, label]) => (
                 <label key={key} className="grid gap-1">
                   <span className="text-sm font-semibold">{label}</span>
+                  <span className="text-xs text-emerald-800">{IMAGE_HINTS[key]}</span>
                   <input
                     value={shop[key]}
                     onChange={(e) => setShop({ ...shop, [key]: e.target.value })}
@@ -312,6 +324,7 @@ export function SettingsEditor({
               ).map(([key, label]) => (
                 <label key={key} className="grid gap-2">
                   <span className="text-sm font-semibold">{label}</span>
+                  <span className="text-xs text-emerald-800">{IMAGE_HINTS[key]}</span>
                   <input
                     type="file"
                     accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
@@ -347,6 +360,7 @@ export function SettingsEditor({
               ).map(([key, label]) => (
                 <label key={key} className="grid gap-2">
                   <span className="text-sm font-semibold">{label}</span>
+                  <span className="text-xs text-emerald-800">{IMAGE_HINTS[key]}</span>
                   <input
                     type="file"
                     accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
@@ -414,6 +428,7 @@ export function SettingsEditor({
             </label>
             <label className="grid gap-1 md:col-span-2">
               <span className="text-sm font-semibold">ภาพ</span>
+              <span className="text-xs text-emerald-800">{IMAGE_HINTS.popup}</span>
               <input
                 type="file"
                 accept="image/png,image/jpeg,image/webp,image/gif"

@@ -492,6 +492,11 @@ export function ContentManager({
                 </label>
                 <label className="grid gap-1 text-sm md:col-span-2">
                   <span className="font-semibold">ภาพปก</span>
+                  <span className="text-xs text-emerald-800">
+                    {contentKind === 'video'
+                      ? 'ขนาดที่ต้องใส่ 1600 × 900 px (16:9) — การ์ดวิดีโอแสดงกรอบ 16:9'
+                      : 'ขนาดที่ต้องใส่ 1600 × 1200 px (4:3) — การ์ดข่าว/บทความแสดงกรอบ 4:3 ครอปกลางภาพ'}
+                  </span>
                   <input
                     type="file"
                     accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
