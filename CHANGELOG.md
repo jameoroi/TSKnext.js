@@ -2,6 +2,10 @@
 
 ## 6.0.0
 
+- fix: open products by Thai slug and stop header flicker on small scrolls (9673af1)
+- fix: edge-cache public pages on Workers Free, stop false 404s and header shake (cb01eb4)
+- fix(mobile): pin recently-viewed bar to the bottom and fit flash sale cards (f63614b)
+- docs(changelog): update generated changelog (429063b)
 - fix(security): resolve CodeQL alerts and add page metadata (0334d18)
 - fix(orders): take coupon uses atomically so usage limits hold (d8efc24)
 - fix: give server-rendered catalogue reads the visitor's rate-limit identity (d88dfa7)
