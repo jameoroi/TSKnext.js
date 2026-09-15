@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { readConsent, writeConsent } from '@/features/privacy/consent';
 
 export function CookieConsent() {
@@ -38,9 +38,33 @@ export function CookieConsent() {
       window.location.reload();
   }
 
+  const bannerRef = useRef<HTMLElement | null>(null);
+
+  // Publish the banner's height as --tsk-consent-h so everything pinned to
+  // the bottom of the screen (recently viewed bar, compare bar) sits above it
+  // instead of underneath. Zero whenever the banner is closed.
+  useEffect(() => {
+    const root = document.documentElement;
+    const node = bannerRef.current;
+    if (!open || !node) {
+      root.style.setProperty('--tsk-consent-h', '0px');
+      return;
+    }
+    const update = () =>
+      root.style.setProperty('--tsk-consent-h', `${Math.ceil(node.getBoundingClientRect().height) + 12}px`);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(node);
+    return () => {
+      observer.disconnect();
+      root.style.setProperty('--tsk-consent-h', '0px');
+    };
+  }, [open, detail]);
+
   if (!open) return null;
   return (
     <aside
+      ref={bannerRef}
       role="dialog"
       aria-modal="false"
       aria-labelledby="cookie-consent-title"

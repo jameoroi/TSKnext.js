@@ -69,7 +69,10 @@ export function StorefrontChrome() {
 
       {compare.ids.length > 0 && (
         <aside
-          className={`fixed right-4 z-50 flex items-center gap-3 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-bold text-white shadow-xl ${showRecent ? 'bottom-[17rem] md:bottom-48' : 'bottom-[11.5rem] md:bottom-28'}`}
+          className="fixed right-4 z-50 flex items-center gap-3 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-bold text-white shadow-xl"
+          style={{
+            bottom: `calc(var(--tsk-dock-h) + var(--tsk-consent-h) + var(--tsk-bottom-gap) + ${showRecent ? '80px' : '0px'})`,
+          }}
           aria-label="รายการเปรียบเทียบ"
         >
           <Scale size={17} />
@@ -89,7 +92,12 @@ export function StorefrontChrome() {
       )}
 
       {showRecent && (
-        <aside className="fixed inset-x-3 bottom-[12rem] z-40 mx-auto flex max-w-3xl items-center gap-2 rounded-2xl border bg-white p-2.5 shadow-xl md:bottom-28">
+        <aside
+          className="fixed inset-x-3 z-40 mx-auto flex max-w-3xl items-center gap-2 rounded-2xl border bg-white p-2.5 shadow-xl"
+          // Pinned to the bottom stack from tsk-design-system.css: just above the
+          // phone dock and the cookie banner, never floating mid-screen.
+          style={{ bottom: 'calc(var(--tsk-dock-h) + var(--tsk-consent-h) + var(--tsk-bottom-gap))' }}
+        >
           <Link
             href={`/products/${encodeURIComponent(String(recent.id))}`}
             className="flex min-w-0 flex-1 items-center gap-3"

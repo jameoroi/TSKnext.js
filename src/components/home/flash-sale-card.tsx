@@ -44,12 +44,12 @@ export function FlashSaleCard({ item }: { item: FlashSaleItem }) {
           />
         </Link>
         {discountPercent > 0 && (
-          <span className="absolute left-3 top-3 rounded-full bg-rose-600 px-2.5 py-1 text-xs font-black text-white">
+          <span className="absolute left-2 top-2 rounded-full bg-rose-600 px-2 py-0.5 text-[11px] font-black text-white sm:left-3 sm:top-3 sm:px-2.5 sm:py-1 sm:text-xs">
             ลด {discountPercent}%
           </span>
         )}
       </div>
-      <div className="space-y-2 p-4">
+      <div className="space-y-2 p-3 sm:p-4">
         {product.brand ? (
           <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
             {String(product.brand)}
@@ -61,9 +61,9 @@ export function FlashSaleCard({ item }: { item: FlashSaleItem }) {
         >
           {product.name}
         </Link>
-        <div className="flex items-baseline gap-2">
-          <strong className="text-lg font-black text-rose-700">{money(salePrice)}</strong>
-          <del className="text-xs text-slate-400">{money(normalPrice)}</del>
+        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+          <strong className="text-base font-black text-rose-700 sm:text-lg">{money(salePrice)}</strong>
+          <del className="shrink-0 text-xs text-slate-400">{money(normalPrice)}</del>
         </div>
         {stockQuantity != null && <FlashStockBar stock={stockQuantity} />}
         {soldQuantity != null ? (
@@ -76,7 +76,11 @@ export function FlashSaleCard({ item }: { item: FlashSaleItem }) {
             {[startsAt ? `เริ่ม ${startsAt}` : '', endsAt ? `ถึง ${endsAt}` : ''].filter(Boolean).join(' · ')}
           </p>
         ) : null}
-        <Button className="w-full bg-rose-600 hover:bg-rose-500" onClick={addNow} aria-label="เพิ่มลงตะกร้า">
+        <Button
+          className="h-10 w-full gap-1.5 bg-rose-600 px-2 text-xs hover:bg-rose-500 sm:h-11 sm:text-sm"
+          onClick={addNow}
+          aria-label="เพิ่มลงตะกร้า"
+        >
           <ShoppingCart size={17} />
           เพิ่มลงตะกร้า
         </Button>
