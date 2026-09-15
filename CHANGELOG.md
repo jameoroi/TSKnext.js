@@ -2,6 +2,8 @@
 
 ## 6.0.0
 
+- fix(media): admin uploads read back through the R2 binding; feat(payments): SlipMate slip verification (1293d8f)
+- docs(changelog): update generated changelog (d2dfd5f)
 - feat(i18n): Thai / English switch for the storefront (0bc249c)
 - docs(changelog): update generated changelog (32ec41d)
 - fix(email): send through Resend on Workers; newsletter with pictures, video and emoji; show send results (9d6f624)
@@ -91,5 +93,3 @@
 - docs(changelog): update generated changelog (d8531dc)
 - fix(ci): remove 2 dead legacy modules blocking legacy import audit (99f492f)
 - docs(changelog): update generated changelog (2a70cfe)
-- docs: record pushed deploy status in release verification (bca4aa8)
-- ci: cloudflare workers deploy workflow plus deploy status record (d6bfad4)
