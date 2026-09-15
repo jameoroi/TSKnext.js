@@ -6,7 +6,6 @@ import {
   ChevronDown,
   ChevronRight,
   FileText,
-  Globe,
   Heart,
   Menu,
   Scale,
@@ -31,6 +30,7 @@ import { legacyRequest } from '@/lib/legacy-api.client';
 import { trackMarketing } from '@/lib/marketing.client';
 import { FALLBACK_CATEGORIES, subcategoriesForKey } from '@/shared/categories';
 import { CategoryIcon } from './category-icon';
+import { LanguageSwitcher } from './language';
 import { ThemeToggle } from './theme-toggle';
 
 const SEARCH_KEY = 'tsk-recent-searches';
@@ -593,10 +593,7 @@ export function Header() {
               <Link href="/contact" className="hover:text-white">
                 ติดต่อเรา
               </Link>
-              <span className="inline-flex items-center gap-1 text-white" title="ภาษาไทย">
-                <Globe size={13} strokeWidth={2.2} aria-hidden="true" className="inline-block align-[-2px]" />{' '}
-                TH
-              </span>
+              <LanguageSwitcher tone="dark" />
             </nav>
           </div>
         </div>
@@ -811,6 +808,10 @@ export function Header() {
               <Search className="size-4" />
             </button>
           </form>
+          <div className="mb-3 flex items-center justify-between rounded-xl border px-3 py-2 text-sm">
+            <span className="font-semibold">ภาษา / Language</span>
+            <LanguageSwitcher tone="light" />
+          </div>
           <nav className="grid gap-3 text-sm font-semibold" aria-label="เมนูนำทางมือถือ">
             <Link onClick={() => setMenuOpen(false)} href="/">
               หน้าแรก

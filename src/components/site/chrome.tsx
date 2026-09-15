@@ -8,6 +8,7 @@ import { PwaInstallPrompt } from '@/components/platform/pwa-install-prompt';
 import { CustomerChatWidget } from './customer-chat-widget';
 import { Footer } from './footer';
 import { Header } from './header';
+import { PageTranslator } from './language';
 import { StorefrontChrome } from './storefront-chrome';
 import { ToastHost } from './toast-host';
 import { TrustStrip } from './trust-strip';
@@ -54,6 +55,7 @@ function ChromeShell({ children }: { children: React.ReactNode }) {
       <CustomerChatWidget />
       <PwaInstallPrompt />
       <ToastHost />
+      <PageTranslator />
     </div>
   );
 }
