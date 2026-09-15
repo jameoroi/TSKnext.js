@@ -1,4 +1,10 @@
+import type { Metadata } from 'next';
 import { PageHero, StaticSections } from '@/components/content/page-hero';
+
+export const metadata: Metadata = {
+  title: 'ข้อกำหนดและเงื่อนไข',
+  description: 'ข้อกำหนดการใช้งานเว็บไซต์และการสั่งซื้อสินค้ากับ THAISERKIT SUPPLY',
+};
 export default function Page() {
   return (
     <>

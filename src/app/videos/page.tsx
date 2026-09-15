@@ -1,6 +1,12 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { PageHero } from '@/components/content/page-hero';
 import { safePublicLegacy } from '@/server/public-legacy-cache';
+
+export const metadata: Metadata = {
+  title: 'วิดีโอสินค้า',
+  description: 'วิดีโอแนะนำและสาธิตการใช้งานเครื่องมือจาก THAISERKIT SUPPLY',
+};
 
 function youtubeId(raw: unknown): string {
   const url = String(raw || '').trim();

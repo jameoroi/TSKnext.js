@@ -1,3 +1,6 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = { title: 'ออฟไลน์', robots: { index: false, follow: false } };
 export default function OfflinePage() {
   return (
     <main className="mx-auto flex min-h-[55vh] max-w-3xl items-center justify-center px-6 py-16 text-center">

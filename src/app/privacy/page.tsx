@@ -1,4 +1,10 @@
+import type { Metadata } from 'next';
 import { PageHero, StaticSections } from '@/components/content/page-hero';
+
+export const metadata: Metadata = {
+  title: 'นโยบายความเป็นส่วนตัว',
+  description: 'วิธีที่ THAISERKIT SUPPLY เก็บ ใช้ และปกป้องข้อมูลส่วนบุคคลของลูกค้า',
+};
 export default function Page() {
   return (
     <>

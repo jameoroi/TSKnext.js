@@ -572,6 +572,11 @@ async function bucketBanners(rows,owner_type,ss){
    not base64, so a hundred of them is about fourteen kilobytes of settings. */
 function phone(v){ return String(v??'').replace(/\D+/g,''); }
 function sha(v){ return crypto.createHash('sha256').update(String(v)).digest('hex'); }
+// Comparing a submitted password with an environment secret: keyed HMAC with a
+// per-isolate random key gives equal-length values for timingSafeEqual without
+// producing a reusable password hash.
+const ENV_COMPARE_KEY=crypto.randomBytes(32);
+function envCompareDigest(v){ return crypto.createHmac('sha256',ENV_COMPARE_KEY).update(String(v)).digest(); }
 function random(n=24){ return crypto.randomBytes(n).toString('hex'); }
 function hashPassword(password, salt=random(16)){
   const hash=crypto.scryptSync(String(password),salt,64).toString('hex'); return `${salt}:${hash}`;
@@ -3450,7 +3455,7 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
     // old environment value would make a password change ineffective.
     // Keep the encrypted environment credential as the owner's break-glass
     // login even when an older password hash exists in persistent storage.
-    const environmentPasswordMatches=crypto.timingSafeEqual(Buffer.from(sha(password)),Buffer.from(sha(ap)));
+    const environmentPasswordMatches=crypto.timingSafeEqual(envCompareDigest(password),envCompareDigest(ap));
     const persistedPasswordMatches=!!ownerCredential?.password_hash&&verifyPassword(password,ownerCredential.password_hash);
     const ownerPasswordMatches=ownerMatches&&(environmentPasswordMatches||persistedPasswordMatches);
     if(ownerPasswordMatches){
@@ -4076,7 +4081,7 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
     try{
       await mailer.sendMail({ from:`"${settings.email.from_name}" <${settings.email.from_email||settings.email.smtp_user}>`, to, subject:'ทดสอบระบบอีเมล THAISERKIT SUPPLY', text:'นี่คืออีเมลทดสอบจากระบบแอดมิน หากได้รับแปลว่าตั้งค่า SMTP ถูกต้องแล้ว' });
       return json({ok:true});
-    }catch(e){ return json({ok:false,error:'send_failed',detail:String(e?.message||e)},502); }
+    }catch(e){ console.warn('[email] send failed',e?.message||e); return json({ok:false,error:'send_failed'},502); }
   }
 
 
@@ -4185,7 +4190,7 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
       await mailer.sendMail({ from:`"${settings.email.from_name}" <${settings.email.from_email||settings.email.smtp_user}>`, to, subject, text: messageText });
       const id=crypto.randomUUID(); await dataStore().setJSON(`email-log:${id}`,{id,to,subject,sent_by:ss.data.username,created_at:new Date().toISOString()});
       return json({ok:true});
-    }catch(e){ return json({ok:false,error:'send_failed',detail:String(e?.message||e)},502); }
+    }catch(e){ console.warn('[email] send failed',e?.message||e); return json({ok:false,error:'send_failed'},502); }
   }
 
 
@@ -4443,7 +4448,7 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
       order.status='paid'; order.payment_status='paid'; order.omise_charge_id=data.id; await deductStockForOrder(ds,order,ss); await ds.setJSON(`order:${order.id}`,order);
       await notifyOrderPayment(order,'automatic');
       return json({ok:true, charge_id:data.id, status:data.status});
-    }catch(e){ return json({ok:false,error:'charge_error',detail:String(e?.message||e)},502); }
+    }catch(e){ console.warn('[payment] charge error',e?.message||e); return json({ok:false,error:'charge_error'},502); }
   }
 
 

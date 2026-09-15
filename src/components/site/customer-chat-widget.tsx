@@ -55,7 +55,19 @@ function createAiSessionId() {
   try {
     if (crypto?.randomUUID) return crypto.randomUUID();
   } catch {}
-  return `tsk-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+  const bytes = new Uint8Array(8);
+  crypto.getRandomValues(bytes);
+  return `tsk-${Date.now().toString(36)}-${Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')}`;
+}
+
+/** True only when the link's host is Facebook or Messenger, not merely mentions it. */
+function isFacebookHref(href: string) {
+  try {
+    const host = new URL(href).hostname.toLowerCase();
+    return host === 'm.me' || host === 'facebook.com' || host.endsWith('.facebook.com');
+  } catch {
+    return false;
+  }
 }
 
 function getAiSessionId() {
@@ -612,7 +624,7 @@ export function CustomerChatWidget() {
                     <span className="flex items-center gap-2">
                       {channel.href.startsWith('tel:') ? (
                         <Phone className="size-4" />
-                      ) : channel.href.includes('facebook.com') || channel.href.includes('m.me') ? (
+                      ) : isFacebookHref(channel.href) ? (
                         <Facebook className="size-4" />
                       ) : (
                         <MessageCircle className="size-4" />

@@ -1,5 +1,11 @@
+import type { Metadata } from 'next';
 import { PageHero } from '@/components/content/page-hero';
 import { PartnerForm } from '@/components/forms/partner-form';
+
+export const metadata: Metadata = {
+  title: 'สมัครเป็นตัวแทนจำหน่าย',
+  description: 'สมัครเป็นตัวแทนจำหน่ายและพาร์ทเนอร์ของ THAISERKIT SUPPLY',
+};
 export default function Page() {
   return (
     <>

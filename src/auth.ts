@@ -6,6 +6,8 @@ import Facebook from 'next-auth/providers/facebook';
 import Google from 'next-auth/providers/google';
 import { z } from 'zod';
 
+const ENV_COMPARE_KEY = crypto.randomBytes(32);
+
 const providers: Provider[] = [];
 
 if (process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET) {
@@ -64,7 +66,9 @@ providers.push(
       const expectedEmail = process.env.AUTH_PLATFORM_EMAIL || '';
       const expectedPassword = process.env.AUTH_PLATFORM_PASSWORD || '';
       if (!expectedEmail || !expectedPassword || expectedPassword.length < 14) return null;
-      const digest = (value: string) => crypto.createHash('sha256').update(value).digest();
+      // Keyed HMAC with a per-isolate random key: equal-length digests for a
+      // constant-time comparison, never a stored or reusable password hash.
+      const digest = (value: string) => crypto.createHmac('sha256', ENV_COMPARE_KEY).update(value).digest();
       const emailOk = crypto.timingSafeEqual(digest(input.data.email), digest(expectedEmail));
       const passwordOk = crypto.timingSafeEqual(digest(input.data.password), digest(expectedPassword));
       if (!emailOk || !passwordOk) return null;
