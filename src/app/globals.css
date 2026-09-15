@@ -1,3 +1,5 @@
+/* Material UI (admin) sits after Tailwind base and before utilities so utility classes override it. */
+@layer theme, base, mui, components, utilities;
 @import "tailwindcss";
 @import "../styles/legacy/tsk-design-system.css";
 @import "../styles/legacy/tsk-theme.css";
