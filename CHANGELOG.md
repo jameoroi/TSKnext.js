@@ -2,6 +2,8 @@
 
 ## 6.0.0
 
+- feat(quality): SEO, accessibility and ops batch toward the 95+ audit, and one image ratio per slot (3d66f4b)
+- docs(changelog): update generated changelog (a6884d5)
 - fix(motion): pop means movement only, no added backgrounds, borders or shadows (ec1ea80)
 - docs(changelog): update generated changelog (6f6780c)
 - feat(storefront): everything pops out on hover, even with Windows animations off, and real brand marks in the footer (116dc96)
