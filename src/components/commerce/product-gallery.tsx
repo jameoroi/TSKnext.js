@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { type Product, productGalleryImages } from '@/features/catalog/types';
+import { type Product, productCardImages, productGalleryImages } from '@/features/catalog/types';
 import imageLoader from '@/lib/image-loader';
 
 declare module 'react' {
@@ -135,6 +135,9 @@ export function ProductGallery({ product }: { product: Product }) {
   const images = useMemo(() => uniqueImages(product), [product]);
   const [active, setActive] = useState(images[0] || '/legacy-assets/logo.png');
   const [fullView, setFullView] = useState(false);
+  // The main photo has w240/w480/w960 renditions: show the 960 one (much lighter on
+  // phones, where the original made LCP ~11 s) and keep the original for zoom and full view.
+  const displaySrc = active === images[0] ? productCardImages(product, 960)[0] || active : active;
 
   // The Lit element touches HTMLElement, which Workers SSR does not have, so it
   // is only loaded in the browser. Until then <tsk-image-zoom> is a plain box.
@@ -162,13 +165,13 @@ export function ProductGallery({ product }: { product: Product }) {
                 so the frame above can stay unclipped for the zoom pane. */}
             <span className="relative block size-full overflow-hidden rounded-3xl">
               <Image
-                src={active}
+                src={displaySrc}
                 alt={product.name}
                 fill
                 priority
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-contain"
-                unoptimized={active.startsWith('data:')}
+                unoptimized={displaySrc.startsWith('data:')}
               />
             </span>
           </tsk-image-zoom>
