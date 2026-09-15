@@ -227,9 +227,10 @@ a {
  */
 :root {
   --tsk-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --tsk-pop-lift: -4px;
-  --tsk-pop-scale: 1.035;
-  --tsk-pop-img-scale: 1.06;
+  /* The whole card zooms out as one piece; the picture inside does not zoom on its own. */
+  --tsk-pop-lift: -6px;
+  --tsk-pop-scale: 1.05;
+  --tsk-pop-img-scale: 1;
   --tsk-pop-press: 0.97;
   --tsk-pop-shadow: 0 20px 40px -18px rgb(15 63 48 / 0.35);
 }
