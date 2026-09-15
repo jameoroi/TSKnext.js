@@ -7,7 +7,10 @@ import { PwaRegister } from '@/components/platform/pwa-register';
 import { SessionHeartbeat } from '@/components/platform/session-heartbeat';
 import { StorefrontRuntime } from '@/components/platform/storefront-runtime';
 import { CookieConsent } from '@/components/privacy/cookie-consent';
+import { EmotionRegistry } from './emotion-registry';
 
+// Emotion serves the storefront and the back office; Material UI stays in
+// /admin (its own cache inside MuiProvider), Radix + Tailwind on the storefront.
 export function Providers({ children }: { children: React.ReactNode }) {
   const [client] = useState(
     () =>
@@ -16,15 +19,17 @@ export function Providers({ children }: { children: React.ReactNode }) {
       }),
   );
   return (
-    <QueryClientProvider client={client}>
-      <PwaRegister />
-      <SessionHeartbeat />
-      <Suspense fallback={null}>
-        <StorefrontRuntime />
-        <MarketingRuntime />
-      </Suspense>
-      {children}
-      <CookieConsent />
-    </QueryClientProvider>
+    <EmotionRegistry>
+      <QueryClientProvider client={client}>
+        <PwaRegister />
+        <SessionHeartbeat />
+        <Suspense fallback={null}>
+          <StorefrontRuntime />
+          <MarketingRuntime />
+        </Suspense>
+        {children}
+        <CookieConsent />
+      </QueryClientProvider>
+    </EmotionRegistry>
   );
 }

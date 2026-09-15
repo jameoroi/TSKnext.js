@@ -101,19 +101,26 @@ const packageNeeds = [
   'msw',
   '@biomejs/biome',
   'lit',
+  'lit-element',
+  'lit-html',
+  '@lit/reactive-element',
 ];
 for (const name of packageNeeds)
   pass(`Package ${name}`, Boolean(pkg.dependencies?.[name] || pkg.devDependencies?.[name]));
 
-// UI split: the storefront is Radix + Tailwind, the back office is Material UI
-// (with Emotion). Package checks alone cannot see a provider being moved or
-// dropped, so check where it is mounted; the storefront scan is further down.
+// UI stack: Radix + Tailwind on the storefront, Material UI in the back office,
+// Emotion on both. Package checks alone cannot see a provider being moved or
+// dropped, so check where each is mounted; the @mui scan is further down.
 pass(
   'Emotion SSR cache provider',
   read('src/components/admin/mui-provider.tsx').includes('AppRouterCacheProvider'),
 );
 pass('Material UI mounted in the admin layout', read('src/app/admin/layout.tsx').includes('<MuiProvider>'));
-pass('Material UI kept off the root providers', !read('src/app/providers.tsx').includes('MuiProvider'));
+pass('Material UI kept off the root providers', !read('src/app/providers.tsx').includes('<MuiProvider'));
+pass(
+  'Emotion mounted at the root for storefront and admin',
+  read('src/app/providers.tsx').includes('<EmotionRegistry>'),
+);
 
 const workerPkg = JSON.parse(read('workers/package.json'));
 pass('Worker image optimizer package', workerPkg.dependencies?.sharp === '^0.35.4');
@@ -277,10 +284,10 @@ const adminOnly = new RegExp(
   `${path.sep === '\\' ? '\\\\' : '/'}(?:app|components)${path.sep === '\\' ? '\\\\' : '/'}admin${path.sep === '\\' ? '\\\\' : '/'}`,
 );
 const storefrontMui = activeSource.filter(
-  (file) => !adminOnly.test(file) && /from\s+['"](?:@mui|@emotion)\//.test(fs.readFileSync(file, 'utf8')),
+  (file) => !adminOnly.test(file) && /from\s+['"]@mui\//.test(fs.readFileSync(file, 'utf8')),
 );
 pass(
-  'Storefront stays on Radix + Tailwind (no @mui/@emotion outside admin)',
+  'Material UI stays in the back office (no @mui outside admin)',
   storefrontMui.length === 0,
   storefrontMui.map((file) => path.relative(root, file)).join(', '),
 );

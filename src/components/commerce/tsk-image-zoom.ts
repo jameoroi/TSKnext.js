@@ -1,4 +1,7 @@
-import { css, html, LitElement } from 'lit';
+import { css } from '@lit/reactive-element';
+import { nothing } from 'lit';
+import { LitElement } from 'lit-element';
+import { html } from 'lit-html';
 
 /**
  * <tsk-image-zoom> — Amazon-style hover zoom for the product page.
@@ -146,7 +149,7 @@ export class TskImageZoom extends LitElement {
         this.active
           ? html`<div class="lens" part="lens"></div>
             <div class="pane" part="pane" aria-hidden="true"><img src=${this.zoomSrc} alt="" decoding="async" /></div>`
-          : null
+          : nothing
       }
     `;
   }

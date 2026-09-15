@@ -35,6 +35,9 @@ importers:
       '@hookform/resolvers':
         specifier: ^5.2.1
         version: 5.9.1(@standard-schema/spec@1.1.0)(ajv@8.20.0)(react-hook-form@7.87.0(react@19.2.8))(zod@4.6.2)
+      '@lit/reactive-element':
+        specifier: ^2.1.2
+        version: 2.1.2
       '@mui/material':
         specifier: ^9.4.0
         version: 9.4.0(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.2.8)(supports-color@10.2.2))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.2.8)(supports-color@10.2.2))(@types/react@19.3.0)(react@19.2.8)(supports-color@10.2.2))(@types/react@19.3.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -84,6 +87,12 @@ importers:
         specifier: ^5.7.0
         version: 5.11.1(supports-color@10.2.2)
       lit:
+        specifier: ^3.3.3
+        version: 3.3.3
+      lit-element:
+        specifier: ^4.2.2
+        version: 4.2.2
+      lit-html:
         specifier: ^3.3.3
         version: 3.3.3
       lucide-react:

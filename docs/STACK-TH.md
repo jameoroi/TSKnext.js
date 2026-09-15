@@ -10,7 +10,9 @@
 | Turbopack | Development server (`pnpm dev`); production builds use webpack for OpenNext |
 | Tailwind CSS 4 | Styling for the storefront and the back office |
 | Radix UI (`radix-ui`) | Storefront primitives: Dialog, Tabs, Popover, Checkbox, Collapsible |
-| Material UI (MUI) + Emotion | Back-office component library, scoped to `/admin` via `MuiProvider`; `pnpm audit:release` fails if `@mui`/`@emotion` is imported outside admin |
+| Emotion | CSS-in-JS for the storefront and the back office; SSR cache mounted at the root by `EmotionRegistry` |
+| Material UI (MUI) | Back-office component library, scoped to `/admin` via `MuiProvider`; `pnpm audit:release` fails if `@mui` is imported outside admin |
+| Lit (`lit`, `lit-element`, `lit-html`, `@lit/reactive-element`) | Web components on the storefront, e.g. `<tsk-image-zoom>` product zoom; loaded in the browser only |
 | Motion | Animation |
 | Lucide React | Icons |
 
