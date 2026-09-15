@@ -7,6 +7,7 @@ declare module 'next-auth' {
       authProvider?: string;
       providerAccountId?: string;
       authEmailVerified?: boolean;
+      role?: 'owner' | 'admin' | 'agent' | 'supplier' | 'customer';
     };
   }
 }
@@ -16,5 +17,7 @@ declare module 'next-auth/jwt' {
     authProvider?: string;
     providerAccountId?: string;
     authEmailVerified?: boolean;
+    role?: 'owner' | 'admin' | 'agent' | 'supplier' | 'customer';
+    roleCheckedAt?: number;
   }
 }

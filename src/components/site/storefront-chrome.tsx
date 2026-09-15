@@ -105,7 +105,7 @@ export function StorefrontChrome() {
             <img
               src={String(recent.img || recent.imageUrl || recent.image_url || '/legacy-assets/logo.png')}
               alt=""
-              className="size-11 shrink-0 rounded-xl bg-slate-50 object-contain p-1"
+              className="size-11 shrink-0 rounded-xl bg-slate-50 object-contain"
             />
             <span className="min-w-0">
               <small className="block text-[10px] font-bold uppercase tracking-wide text-emerald-700">

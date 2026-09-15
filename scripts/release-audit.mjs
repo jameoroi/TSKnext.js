@@ -100,17 +100,27 @@ const packageNeeds = [
   '@testing-library/react',
   'msw',
   '@biomejs/biome',
+  'lit',
+  'lit-element',
+  'lit-html',
+  '@lit/reactive-element',
 ];
 for (const name of packageNeeds)
   pass(`Package ${name}`, Boolean(pkg.dependencies?.[name] || pkg.devDependencies?.[name]));
 
-// Emotion was once dropped from the root while its packages stayed installed,
-// which the package checks above could not see. Check that it is mounted.
+// UI stack: Radix + Tailwind on the storefront, Material UI in the back office,
+// Emotion on both. Package checks alone cannot see a provider being moved or
+// dropped, so check where each is mounted; the @mui scan is further down.
 pass(
   'Emotion SSR cache provider',
-  read('src/components/ui/mui-provider.tsx').includes('AppRouterCacheProvider'),
+  read('src/components/admin/mui-provider.tsx').includes('AppRouterCacheProvider'),
 );
-pass('Emotion mounted at the root', read('src/app/providers.tsx').includes('<MuiProvider>'));
+pass('Material UI mounted in the admin layout', read('src/app/admin/layout.tsx').includes('<MuiProvider>'));
+pass('Material UI kept off the root providers', !read('src/app/providers.tsx').includes('<MuiProvider'));
+pass(
+  'Emotion mounted at the root for storefront and admin',
+  read('src/app/providers.tsx').includes('<EmotionRegistry>'),
+);
 
 const workerPkg = JSON.parse(read('workers/package.json'));
 pass('Worker image optimizer package', workerPkg.dependencies?.sharp === '^0.35.4');
@@ -270,6 +280,17 @@ for (const file of activeSource) {
   if (/from\s+['"](?:#app|nuxt|@nuxt)|useNuxt|defineNuxt/.test(source)) nuxtImports += 1;
 }
 pass('No active Nuxt runtime imports', nuxtImports === 0, `${nuxtImports} file(s)`);
+const adminOnly = new RegExp(
+  `${path.sep === '\\' ? '\\\\' : '/'}(?:app|components)${path.sep === '\\' ? '\\\\' : '/'}admin${path.sep === '\\' ? '\\\\' : '/'}`,
+);
+const storefrontMui = activeSource.filter(
+  (file) => !adminOnly.test(file) && /from\s+['"]@mui\//.test(fs.readFileSync(file, 'utf8')),
+);
+pass(
+  'Material UI stays in the back office (no @mui outside admin)',
+  storefrontMui.length === 0,
+  storefrontMui.map((file) => path.relative(root, file)).join(', '),
+);
 
 console.log(`THAISERKIT Next release audit v${pkg.version}`);
 for (const check of checks)

@@ -479,7 +479,7 @@ export function EquipmentKitBuilder({
                         src={productImage(product)}
                         alt={product.name}
                         fill
-                        className="object-contain p-3"
+                        className="object-contain"
                         unoptimized={productImage(product).startsWith('data:')}
                       />
                     </Link>
@@ -559,7 +559,7 @@ export function EquipmentKitBuilder({
                         src={productImage(line.product)}
                         alt=""
                         fill
-                        className="object-contain p-1.5"
+                        className="object-contain"
                         unoptimized={productImage(line.product).startsWith('data:')}
                       />
                     </div>

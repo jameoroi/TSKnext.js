@@ -295,7 +295,7 @@ export function CompareProducts() {
                           alt={product.name}
                           width={128}
                           height={128}
-                          className="size-32 rounded-xl bg-white object-contain p-2"
+                          className="size-32 rounded-xl bg-white object-contain"
                           unoptimized={imageOf(product).startsWith('data:')}
                         />
                       ) : (

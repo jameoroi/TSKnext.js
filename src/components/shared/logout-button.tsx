@@ -1,6 +1,7 @@
 'use client';
 import { LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 import { useState } from 'react';
 import { legacyRequest } from '@/lib/legacy-api.client';
 
@@ -21,6 +22,8 @@ export function LogoutButton({
         setBusy(true);
         try {
           await legacyRequest(`${role}.logout`, {}, 'POST');
+          // Also end the Auth.js session that mirrors this login and its role.
+          await signOut({ redirect: false }).catch(() => undefined);
         } finally {
           router.replace('/');
           router.refresh();

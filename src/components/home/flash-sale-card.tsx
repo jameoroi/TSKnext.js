@@ -38,7 +38,7 @@ export function FlashSaleCard({ item }: { item: FlashSaleItem }) {
             alt={product.name}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
-            className="object-contain p-4 transition duration-300 group-hover:scale-[1.03]"
+            className="object-contain transition duration-300 group-hover:scale-[1.03]"
             unoptimized={image.startsWith('data:')}
             onError={() => setImageIndex((current) => Math.min(current + 1, imageCandidates.length - 1))}
           />
