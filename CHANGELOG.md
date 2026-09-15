@@ -2,6 +2,8 @@
 
 ## 6.0.0
 
+- fix(storefront): render page content once, and a searchable brand dropdown (badcab6)
+- docs(changelog): update generated changelog (64173e3)
 - fix(edge): keep the shop up when renders exceed the Workers Free CPU limit (c66ab00)
 - docs(changelog): update generated changelog (b9f8e4a)
 - feat(auth): roles in the Auth.js session, and providers read at request time (bdc83a2)
