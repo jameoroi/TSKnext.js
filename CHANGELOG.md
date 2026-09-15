@@ -2,6 +2,8 @@
 
 ## 6.0.0
 
+- fix(edge): keep the shop up when renders exceed the Workers Free CPU limit (c66ab00)
+- docs(changelog): update generated changelog (b9f8e4a)
 - feat(auth): roles in the Auth.js session, and providers read at request time (bdc83a2)
 - feat(product): zoom pane beside the photo, edge-to-edge product images, one thumbnail per photo (a892b92)
 - feat(ui): Emotion on the storefront and admin, and the Lit packages alongside lit (59d8a73)
