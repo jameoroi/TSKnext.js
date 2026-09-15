@@ -1778,30 +1778,33 @@ function orderTransitionAllowed(order,next){
   };
   return cur===next || (map[cur]||[]).includes(next);
 }
+/**
+ * Change a coupon's used_count with an etag compare-and-set, retrying on a
+ * concurrent write. With enforceLimit, an increment that would pass
+ * usage_limit is refused instead of written, so two simultaneous orders can
+ * no longer both take the last use.
+ */
+async function atomicCouponUse(ds,code,delta,{enforceLimit=false}={},retries=8){
+  const key=`coupon:${clean(code,40).toUpperCase()}`;
+  for(let attempt=0;attempt<retries;attempt++){
+    const entry=await ds.getWithMetadata(key,{type:'json',consistency:'strong'});
+    const cp=entry?.data; if(!cp) return {ok:false,reason:'not_found'};
+    const used=Number(cp.used_count||0), limit=Number(cp.usage_limit||0);
+    if(delta>0&&enforceLimit&&limit>0&&used>=limit) return {ok:false,reason:'usage_limit'};
+    const next={...cp,used_count:Math.max(0,used+delta)};
+    const write=await ds.setJSON(key,next,{onlyIfMatch:entry.etag});
+    if(write?.modified) return {ok:true,coupon:next};
+  }
+  return {ok:false,reason:'conflict'};
+}
 async function consumeCouponForOrder(ds,order){
   if(!order?.coupon_code || order.coupon_consumed) return;
-  // NOTE: findCoupon() is declared inside handleRequest and is NOT visible
-  // here (module scope) — calling it throws ReferenceError, which used to
-  // 500 every coupon-bearing slip verification AFTER stock was deducted.
-  // Read the row directly; key shape matches findCoupon: coupon:<UPPER>.
-  const cp=await getJSON(ds,`coupon:${clean(order.coupon_code,40).toUpperCase()}`); if(!cp) return;
-  // Re-check the limit at consume time: the usability check in order.create
-  // ran before the stock reservation, so two concurrent orders can both pass
-  // it. This narrows the race but is not a CAS — see TODO below.
-  // TODO: consume via atomic compare-and-set (onlyIfMatch on coupon key with
-  // retries, like mutateIndexAtomically/atomicProductMutation) so usage_limit
-  // is enforceable under concurrency.
-  if(Number(cp.usage_limit||0)>0 && Number(cp.used_count||0)>=Number(cp.usage_limit)) return;
-  cp.used_count=Number(cp.used_count||0)+1;
-  await ds.setJSON(`coupon:${cp.code}`,cp); order.coupon_consumed=true;
+  const result=await atomicCouponUse(ds,order.coupon_code,1,{enforceLimit:true});
+  if(result.ok) order.coupon_consumed=true;
 }
 async function releaseCouponForOrder(ds,order){
   if(!order?.coupon_code || !order.coupon_consumed) return;
-  try{
-    // Same module-scope constraint as consumeCouponForOrder above.
-    const cp=await getJSON(ds,`coupon:${clean(order.coupon_code,40).toUpperCase()}`);
-    if(cp){ cp.used_count=Math.max(0,Number(cp.used_count||0)-1); await ds.setJSON(`coupon:${cp.code}`,cp); }
-  }catch{}
+  try{ await atomicCouponUse(ds,order.coupon_code,-1); }catch{}
   order.coupon_consumed=false;
 }
 
@@ -3713,10 +3716,24 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
     const claimed=await ds.setJSON(claimKey,{claimed_at:new Date().toISOString(),expires_at:Date.now()+ORDER_CLAIM_TTL_MS,order_no:null},{onlyIfNew:true});
     if(!claimed?.modified) return json({ok:false,error:'order_in_progress'},409);
 
+    // Bank transfers take their coupon use when the payment is confirmed
+    // (consumeCouponForOrder). Every other method takes it now, atomically and
+    // before any stock is held, so the last use cannot be taken twice.
+    let couponTaken=false;
+    if(coupon&&!isBank){
+      const taken=await atomicCouponUse(ds,coupon.code,1,{enforceLimit:true});
+      if(!taken.ok){
+        await ds.delete(claimKey).catch(()=>{});
+        return json({ok:false,error:'coupon_invalid',reason:taken.reason},409);
+      }
+      couponTaken=true;
+    }
+    const releaseTakenCoupon=async()=>{ if(couponTaken) await atomicCouponUse(ds,coupon.code,-1).catch(()=>{}); };
     const reservation=await reserveStockAtomically(canonical,ds);
     if(!reservation.ok){
       // Nothing was reserved, so the claim must not linger and stop the
       // customer fixing their basket and trying again.
+      await releaseTakenCoupon();
       await ds.delete(claimKey).catch(()=>{});
       return json({ok:false,error:reservation.error||'inventory_conflict',product_id:reservation.product_id||'',sku:reservation.sku||'',available:reservation.available},409);
     }
@@ -3728,9 +3745,11 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
     const paymentStatus=isLine?'pending_manual':(isBank?'pending_payment':'pending');
     const lockedAttribution=await currentAgentAttribution(req,ds); let agentRef=lockedAttribution?.agent_code||clean(b.agent_ref,60).toUpperCase(), agentId=null, agentCode='', agentStore='', agentFraudFlags=[]; if(agentRef){const aid=await getJSON(ds,`agent-code:${agentRef}`), ag=aid?await getJSON(ds,`agent:${aid}`):null;if(ag?.status==='approved'){const selfPhone=phone(ag.phone)&&phone(ag.phone)===phone(ph),selfEmail=ss.data?.type==='customer'&&String(ss.data.customer?.email||'').toLowerCase()===String(ag.email||'').toLowerCase();if(selfPhone||selfEmail){agentFraudFlags.push('self_referral');agentRef='';await auditLog(req,{data:{type:'system'}},'agent.referral.blocked',{agent_id:ag.id,reason:'self_referral',phone:phone(ph).slice(-4)});}else{agentId=ag.id;agentCode=ag.referral_code;agentStore=ag.store_name;}}}
     const o={id,order_no,name,phone:ph,email,address,province,zip,tax_invoice_requested:taxInvoiceRequested,tax_invoice_status:taxInvoiceRequested?'requested':'not_requested',tax_invoice:taxInvoiceRequested?{type:'company',company_name:taxCompanyName,tax_id:taxId,branch:taxBranch,address:taxAddress,email:taxEmail}:null,agent_id:agentId,agent_code:agentCode,agent_store_name:agentStore,agent_fraud_flags:agentFraudFlags,payment_method:method,payment_review_mode:paymentReviewMode,payment_status:paymentStatus,total,subtotal,shipping:payableShipping,shipping_before_discount:shipping,shipping_discount:shippingDiscount,discount,coupon_discount:couponDiscountAmount,bundle_discount:bundleDiscount,bundle_set_id:bundleSetId,bundle_set_name:bundleSetName,coupon_code:couponCode||'',coupon_consumed:!!coupon&&!isBank,idempotency_key:idempotencyKey,items:canonical,status:initialStatus,stock_reserved:true,stock_deducted:false,upload_token_hash:sha(upload_token),reservation_expires_at:reservationExpiry,terms_accepted_at:createdAt.toISOString(),customer_id:ss.data?.type==='customer'?ss.data.customer.id:null,created_at:createdAt.toISOString(),status_history:[{status:initialStatus,at:createdAt.toISOString(),by:'system'}]};
+    if(couponTaken){ o.coupon_code=o.coupon_code||coupon.code; o.coupon_consumed=true; }
     try{
       await ds.setJSON(`order:${id}`,o);
     }catch(error){
+      await releaseTakenCoupon();
       // The stock is reserved and the order does not exist. Give the stock
       // back rather than leaving a reservation nothing will release — the
       // expiry sweep would otherwise hold it for twenty-four hours.
@@ -3743,16 +3762,6 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
     if(o.customer_id){const key=`orders-by-customer:${o.customer_id}`;await appendToIndex(ds,key,id);}
     await appendToIndex(ds,'order-index',id);
     for(const productId of [...new Set(canonical.map(item=>item.id))]){const key=`orders-by-product:${productId}`;await appendToIndex(ds,key,id);}
-    if(coupon&&!isBank){
-      // Re-read before consuming: the usability check above ran before the
-      // stock reservation. Still not atomic under concurrency (see TODO in
-      // consumeCouponForOrder) — last-writer-wins is possible for the final
-      // unit — but a stale coupon object can no longer overshoot the limit.
-      const fresh=await findCoupon(ds,coupon.code);
-      if(fresh && !(Number(fresh.usage_limit||0)>0 && Number(fresh.used_count||0)>=Number(fresh.usage_limit))){
-        fresh.used_count=Number(fresh.used_count||0)+1;await ds.setJSON(`coupon:${fresh.code}`,fresh);
-      }
-    }
     // Every order, not just LINE and COD. Bank transfer is the default method
     // here, and it was silent: the shop learned an order existed only if and
     // when the customer got around to uploading a slip. An order placed at
