@@ -1,8 +1,8 @@
 'use client';
 
-import posthog from 'posthog-js';
 import { readConsent } from '@/features/privacy/consent';
 import { trackInternalAnalytics } from '@/lib/internal-analytics.client';
+import { capturePosthog } from '@/lib/posthog.client';
 
 export type MarketingEvent =
   | 'view_item'
@@ -48,9 +48,7 @@ export function trackMarketing(event: MarketingEvent, payload: MarketingPayload 
   );
 
   if (consent.analytics) {
-    try {
-      if (posthog.__loaded) posthog.capture(event, { ...payload, value, currency });
-    } catch {}
+    capturePosthog(event, { ...payload, value, currency });
     const internal =
       event === 'view_item'
         ? 'product_view'
