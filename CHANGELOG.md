@@ -2,6 +2,8 @@
 
 ## 6.0.0
 
+- fix(ai): Gemini runs every AI feature OpenAI does (375fdb7)
+- docs(changelog): update generated changelog (8c49223)
 - fix(edge): validate an older build's page copy with a sample of assets (1de8470)
 - docs(changelog): update generated changelog (da33ad9)
 - fix(storefront): overlays take turns with the moving rows; home shelves no longer render empty (881cc17)
@@ -91,5 +93,3 @@
 - docs(changelog): update generated changelog (aa09b5f)
 - fix(e2e): run browser tests against production build, dev never hydrates (74c01a6)
 - docs(changelog): update generated changelog (0b6dee3)
-- fix(e2e): referral stub matches the real client contract (GET query) (e999e01)
-- docs(changelog): update generated changelog (0fce925)
