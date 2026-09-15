@@ -2,7 +2,7 @@ import { generateText } from 'ai';
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { rateLimit } from '@/legacy-api/api.js';
-import { aiSdkOpenAI } from '@/lib/ai';
+import { aiChatModel } from '@/lib/ai';
 import { logAiUsage } from '@/server/ai-usage';
 import { getProducts } from '@/server/catalog';
 import { resolveRequestTenant } from '@/server/request-tenant';
@@ -170,8 +170,8 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const provider = aiSdkOpenAI();
-  if (!provider) {
+  const selected = aiChatModel();
+  if (!selected) {
     void logAiUsage({
       feature: 'kit-planner',
       provider: 'rule-engine',
@@ -188,14 +188,14 @@ export async function POST(request: NextRequest) {
     .map(({ specs, ...row }) => ({ ...row, specs: Object.entries(specs).slice(0, 8) }));
   try {
     const result = await generateText({
-      model: provider(process.env.OPENAI_MODEL || 'gpt-5-mini'),
+      model: selected.model,
       temperature: 0.2,
       prompt: `You are the equipment-set planner for THAISERKIT SUPPLY. Select ONLY product ids from the provided live catalogue. Never invent a product, price, stock, SKU or brand. Prefer in-stock products and respect the budget when it is greater than zero. Avoid items the customer already owns. Balance essential tools, recommended supporting items and optional upgrades.\n\nCustomer request:\n${JSON.stringify(requestData)}\n\nLive catalogue candidates:\n${JSON.stringify(compact)}\n\nReturn ONLY valid JSON with this exact shape:\n{"title":"...","summary":"...","items":[{"id":"catalog-id","qty":1,"reason":"Thai explanation","priority":"essential|recommended|optional"}],"warnings":["..."]}`,
     });
     void logAiUsage({
       feature: 'kit-planner',
-      provider: 'openai',
-      model: process.env.OPENAI_MODEL || 'gpt-5-mini',
+      provider: selected.provider,
+      model: selected.modelId,
       usage: result.usage,
       latencyMs: Date.now() - startedAt,
       metadata: { candidates: candidates.length },

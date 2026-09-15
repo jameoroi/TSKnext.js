@@ -2,7 +2,7 @@ import { streamText } from 'ai';
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { rateLimit } from '@/legacy-api/api.js';
-import { aiSdkOpenAI } from '@/lib/ai';
+import { aiChatModel } from '@/lib/ai';
 import { logAiUsage } from '@/server/ai-usage';
 import { getProducts } from '@/server/catalog';
 import { safePublicLegacy } from '@/server/public-legacy-cache';
@@ -37,9 +37,9 @@ export async function POST(request: NextRequest) {
       content: message.content,
     }));
   if (!safeMessages.length) return Response.json({ ok: false, error: 'invalid_input' }, { status: 422 });
-  const model = process.env.OPENAI_MODEL || 'gpt-5-mini';
-  const provider = aiSdkOpenAI();
-  if (!provider) {
+  const selected = aiChatModel();
+  const model = selected?.modelId || process.env.OPENAI_MODEL || 'gpt-5-mini';
+  if (!selected) {
     void logAiUsage({
       feature: 'customer-chat',
       provider: 'rule-engine',
@@ -74,12 +74,12 @@ export async function POST(request: NextRequest) {
     .slice(0, 8)
     .map((item) => ({ title: item.title, summary: item.summary, content: item.content }));
   const system = `You are THAISERKIT SUPPLY commerce assistant. Answer in Thai when the customer uses Thai. Never invent inventory, price, order or customer data. The following is retrieved live context; if it is empty or does not answer the question, say you cannot verify it and direct the customer to staff.\n\nCATALOGUE:\n${JSON.stringify(productContext)}\n\nFAQ:\n${JSON.stringify(faqContext)}`;
-  const result = streamText({ model: provider(model), messages: safeMessages, system });
+  const result = streamText({ model: selected.model, messages: safeMessages, system });
   void result.usage
     .then((usage) =>
       logAiUsage({
         feature: 'customer-chat-rag',
-        provider: 'openai',
+        provider: selected.provider,
         model,
         usage,
         latencyMs: Date.now() - startedAt,

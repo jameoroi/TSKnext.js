@@ -3121,7 +3121,8 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
     const message=String(b?.message||'').trim().slice(0,2000);
     if(!message) return json({ok:false,error:'message_required'},400);
     const webhook=String(process.env.N8N_AI_WEBHOOK_URL||'').trim();
-    if(!webhook) return json({ok:false,error:'ai_not_configured'},503);
+    // No n8n workflow is not the same as no AI: the shop may have a Gemini or
+    // OpenAI key. That check is made below, after the quota, with the products.
     // Unauthenticated, and every call spends a request on an external service
     // that bills per run and may spend model tokens of its own. This is the
     // same reasoning as the quota on `chat.send`, and keyed the same way: on
@@ -3142,6 +3143,20 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
       : [];
     const finderProducts=await tskChatProducts(dataStore(),message);
     const finderCards=Array.isArray(finderProducts)?finderProducts.map(productCardView).slice(0,5):[];
+    /*
+     * Gemini or OpenAI directly. Returning ai_not_configured whenever
+     * N8N_AI_WEBHOOK_URL was empty hid the assistant from a shop whose AI is a
+     * Gemini key, and an n8n error ended the chat without asking the model the
+     * shop does have.
+     */
+    const answerWithModel=async(failure)=>{
+      const fallback=await chatFallback({message,history,context:await tskChatContext(dataStore(),ss,b?.page,message)}).catch(()=>null);
+      if(fallback?.reply) return json({ok:true,reply:fallback.reply,products:finderCards,answered_by:fallback.provider});
+      const nothingConfigured=!fallback||(fallback.attempts||[]).some(attempt=>attempt?.error==='not_configured');
+      if(nothingConfigured&&!webhook) return json({ok:false,error:'ai_not_configured'},503);
+      return json({ok:false,error:failure,tried:fallback?.attempts||[]},502);
+    };
+    if(!webhook) return answerWithModel('ai_unavailable');
     try{
       // Do not leave the browser waiting forever when an n8n worker is cold or
       // temporarily unreachable. A bounded request lets the composer recover
@@ -3150,7 +3165,7 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
       const upstream=await fetch(webhook,{method:'POST',headers:{'content-type':'application/json','x-api-key':String(process.env.N8N_AI_API_KEY||'')},body:JSON.stringify({message,history,customer_context:await tskChatContext(dataStore(),ss,b?.page,message),tenant:tenant.id,source:'storefront'}),signal:controller.signal});
       clearTimeout(timeout);
       const raw=await upstream.text();
-      if(!upstream.ok) return json({ok:false,error:'ai_upstream_error'},502);
+      if(!upstream.ok) return answerWithModel('ai_upstream_error');
       let data; try{data=JSON.parse(raw);}catch{data=null;}
       const reply=aiReplyText(data,raw);
       // An empty answer used to be returned as `{ok:true,reply:''}`, and the
@@ -3182,7 +3197,7 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
         return json({ok:false,error:'ai_empty_response',shape,tried:fallback?.attempts||[]},502);
       }
       return json({ok:true,reply,products:finderCards,answered_by:'n8n'});
-    }catch{ return json({ok:false,error:'ai_unavailable'},502); }
+    }catch{ return answerWithModel('ai_unavailable'); }
   }
   // Which merchant this request resolved to. The storefront uses it for
   // per-shop branding; it is public because the visitor is already on that

@@ -27,7 +27,7 @@ export async function GET() {
       (databaseConfigured() ? 'postgres' : process.env.SUPABASE_URL ? 'supabase' : 'not-configured'),
     redis: redis.reachable,
     meilisearch: Boolean(searchClient()),
-    ai: Boolean(process.env.OPENAI_API_KEY),
+    ai: Boolean(process.env.OPENAI_API_KEY || process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY),
     kitQuote: Boolean(process.env.KIT_QUOTE_SECRET || process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET),
     objectStorage,
     email: Boolean(process.env.RESEND_API_KEY || process.env.SMTP_HOST),
