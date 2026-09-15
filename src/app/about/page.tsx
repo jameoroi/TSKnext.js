@@ -30,7 +30,7 @@ export default async function AboutPage() {
   const phone = text(business.phone, publicEnv('NEXT_PUBLIC_CONTACT_PHONE') || undefined || '088-2608042');
   const email = text(business.email, 'thaiserkit.supply@gmail.com');
   const hours = text(business.opening_hours, 'จันทร์ – เสาร์ 07.00 – 17.00 น.');
-  const storeImage = text(site.about_image_url || site.store_image_url);
+  const storeImage = text(site.home_cards?.about_image_url || site.about_image_url || site.store_image_url);
 
   const facts: Array<{ label: string; value: string }> = [
     { label: 'ชื่อนิติบุคคล', value: legalName },

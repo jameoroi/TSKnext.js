@@ -42,7 +42,7 @@ const TTL_MS = 60_000;
 // งานอ่านแค็ตตาล็อกหนัก (สแกน/นับทั้งร้าน) ให้อยู่นานขึ้น — แอดมินแก้แล้วเห็นผลช้าสุด ~3 นาที
 // แลกกับไม่ให้ทุก request จุด full scan จน worker ล้ม (1102)
 const HEAVY_TTL_MS = 180_000;
-const MAX_ENTRIES = 500;
+const MAX_ENTRIES = 150;
 const mem = new Map<string, { at: number; data: unknown }>();
 // Reads already on their way. The root layout and the home page both ask for the
 // site settings in the same render; without this each paid for its own round trips.

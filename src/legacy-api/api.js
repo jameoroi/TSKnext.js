@@ -676,7 +676,47 @@ function forgetPublicRead(name){ publicReadCache.delete(`${dataNamespace()}:${na
  */
 const PUBLIC_CATALOGUE_TTL_MS=60_000;
 async function publicCatalogue(ds){
-  return cachedPublicRead('catalogue.public', async () => (await listJSONByPrefix(ds,'product:','product-index')).filter(Boolean), PUBLIC_CATALOGUE_TTL_MS);
+  return cachedPublicRead('catalogue.public', async () => {
+    const cards=await catalogueCardsSupabase();
+    if(cards) return cards;
+    return (await listJSONByPrefix(ds,'product:','product-index')).filter(Boolean);
+  }, PUBLIC_CATALOGUE_TTL_MS);
+}
+/*
+ * Only the fields listings, search, sorting, stock and recommendations read.
+ *
+ * The full records carry descriptions, galleries, detail images and import
+ * data: a few kilobytes each, tens of megabytes for the shop, and several
+ * times that once parsed. Holding that in a Worker on the Free plan (128 MB)
+ * pushed the isolate over its memory limit, and every page rendered by that
+ * isolate afterwards failed with error 1102 until it was recycled. A product
+ * page still loads its full record by id.
+ */
+const CATALOGUE_CARD_FIELDS=['id','name','slug','sku','barcode','brand','brand_id','category','price','oldPrice','stock','reserved','low_stock_threshold','inventory','inventory_version','variants','status','state','img','img_variants','home_featured','home_featured_order','specs','source_id','marketplace_source_id','updated_at','created_at'];
+async function catalogueCardsSupabase(){
+  const base=String(process.env.SUPABASE_URL||'').replace(/\/$/,'');
+  const secret=process.env.SUPABASE_SECRET_KEY;
+  if(!base||!secret||storageBackend()!=='supabase-postgres')return null;
+  const select=CATALOGUE_CARD_FIELDS.map(field=>`${field}:value->${field}`).join(',');
+  const PAGE=1000;
+  const cards=[];
+  try{
+    for(let offset=0;offset<20000;offset+=PAGE){
+      const params=new URLSearchParams({select,namespace:`eq.${dataNamespace()}`,key:'like.product:*',order:'updated_at.desc,key.asc',limit:String(PAGE),offset:String(offset)});
+      const response=await fetch(`${base}/rest/v1/app_kv?${params}`,{headers:{apikey:secret,authorization:`Bearer ${secret}`}});
+      if(!response.ok)throw new Error(`supabase_catalogue_cards_${response.status}`);
+      const rows=await response.json();
+      if(!Array.isArray(rows))return null;
+      for(const row of rows){
+        if(!row||row.id===null||row.id===undefined)continue;
+        const card={};
+        for(const field of CATALOGUE_CARD_FIELDS) if(row[field]!==null&&row[field]!==undefined) card[field]=row[field];
+        cards.push(card);
+      }
+      if(rows.length<PAGE)break;
+    }
+    return cards;
+  }catch(error){console.warn('supabase catalogue cards failed; reading full records',error?.message||error);return null;}
 }
 function forgetPublicCatalogue(){ forgetPublicRead('catalogue.public'); }
 // stockAvailable() deep-clones every product with variants. Sorting a listing
@@ -5299,7 +5339,7 @@ const handleRequest = async (req, tenant, platformEnv = null) => {
       }
     }
     if(!p && slug && postgresEnabled()){ try{const result=await database().pool.query(`SELECT value FROM app_kv WHERE namespace=$1 AND key LIKE 'product:%' AND value->>'slug'=$2 LIMIT 1`,[dataNamespace(),slug]);p=result.rows[0]?.value||null;}catch{} }
-    if(!p && slug){ for(const cand of await publicCatalogue(ds)){ if(cand?.slug===slug){ p=cand; break; } } }
+    if(!p && slug){ for(const cand of await publicCatalogue(ds)){ if(cand?.slug===slug){ p=(cand.id?await getJSON(ds,`product:${cand.id}`):null)||cand; break; } } }
     // Whatever path found it, the index knows next time.
     if(p&&p.slug&&p.slug===slug){ try{ await syncSlugIndex(ds,String(p.id),p.slug); }catch{} }
     /*
