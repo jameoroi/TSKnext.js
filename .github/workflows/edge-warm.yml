@@ -1,0 +1,53 @@
+name: Edge cache warm
+
+# Workers Free allows about 10 ms of CPU per request, so a full page render can
+# end in "error code: 1102". cloudflare/worker-entry.js serves public pages from
+# the edge cache and keeps a last-good copy in R2; this job makes sure the key
+# pages always have one by requesting them until a render lands. A request that
+# is answered from cache (HIT/STALE) costs the Worker almost nothing.
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: edge-warm
+  cancel-in-progress: true
+
+jobs:
+  warm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Warm key public pages
+        env:
+          PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
+        shell: bash
+        run: |
+          set -uo pipefail
+          base="${PRODUCTION_URL:-https://jayxtsk.shop}"
+          base="${base%/}"
+          ua='Mozilla/5.0 (compatible; TSK-EdgeWarm/1.0; +https://github.com/jameoroi/TSKnext.js)'
+          paths=(/ /products /brands /kits /news /about /contact /sitemap.xml '/api?action=site.settings' '/api?action=categories.list' '/api?action=brands.list')
+          failed=0
+          for path in "${paths[@]}"; do
+            state=''
+            for attempt in 1 2 3 4 5 6; do
+              read -r status state < <(curl -sS -m 30 -A "$ua" -o /dev/null -D - "${base}${path}" \
+                | awk 'BEGIN{IGNORECASE=1} /^HTTP\//{s=$2} /^x-tsk-edge-cache:/{c=$2} END{gsub("\r","",c); print s, (c==""?"-":c)}')
+              if [[ "$status" == "200" ]]; then break; fi
+              sleep $((attempt * 5))
+            done
+            echo "${path} -> HTTP ${status} edge=${state} (attempts: ${attempt})"
+            if [[ "$status" != "200" ]]; then
+              echo "::warning::${path} still answered HTTP ${status} after ${attempt} attempts"
+              failed=$((failed + 1))
+            fi
+          done
+          if (( failed > 3 )); then
+            echo "::error::${failed} key pages could not be rendered; production is likely down (error 1102)"
+            exit 1
+          fi

@@ -9,57 +9,40 @@
  * are answered from the colo's Cache API. A cached answer costs well under a
  * millisecond; the render only runs when an entry is missing or stale, and a
  * stale entry is still served while it refreshes in the background.
+ *
+ * Two layers keep the shop up when renders fail:
+ * - the colo Cache API (fast, but per colo and evictable), serving stale for a day;
+ * - a last-good copy in R2 (PRODUCT_MEDIA, under `_edge/`, which /media refuses),
+ *   used when a colo has no entry yet, so a cold colo does not have to render.
+ * The cache key only includes query parameters a page reads (edge-cache-key.mjs).
  */
 import openNext from '../.open-next/worker.js';
+import { SECURITY_HEADERS } from '../src/shared/security-headers.mjs';
+import { cacheable, cacheKeyUrl, lastGoodObjectKey } from './edge-cache-key.mjs';
 
 export { BucketCachePurge, DOQueueHandler, DOShardedTagCache } from '../.open-next/worker.js';
 
 const FRESH_SECONDS = 60;
-const STALE_SECONDS = 600;
+// Serve a stale entry for up to a day while it refreshes: a failed refresh
+// (1102) must not turn into an outage once a page has rendered once.
+const STALE_SECONDS = 24 * 60 * 60;
+// A last-good copy older than this is not served; the render is tried instead.
+const LAST_GOOD_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+// Refresh the R2 copy at most this often per page, to stay well inside R2's free writes.
+const LAST_GOOD_WRITE_EVERY_MS = 5 * 60 * 1000;
 const STORED_AT = 'x-tsk-edge-stored-at';
-
-// Public, cookie-independent pages. Anything with a session, a checkout, an
-// account or the back office never reaches the cache.
-const PAGE_PATTERNS = [
-  /^\/$/,
-  /^\/products\/?$/,
-  /^\/products\/[^/]+\/?$/,
-  /^\/(brands|kits|news|videos|about|contact|privacy|terms|returns|partners|partner-register)\/?$/,
-];
-
-// Read-only API actions that every page requests and that do not vary by visitor.
-// products.list / products.get are left to the API so its scraping quotas still apply.
-const API_ACTIONS = new Set([
-  'site.settings',
-  'site.logo',
-  'categories.list',
-  'brands.list',
-  'content.list',
-  'content.image',
-  'category-image',
-]);
-
-const PRIVATE_COOKIE =
-  /(?:^|;\s*)(tsk_session|tsk_agent_attribution|tsk_telegram_chat_token|(?:__Secure-|__Host-)?(?:authjs|next-auth)\.[^=]+)=/i;
-const PRIVATE_QUERY = /^(ref|agent|agent_ref|preview|token|upload_token)$/i;
-
-function cacheable(request, url) {
-  if (request.method !== 'GET') return false;
-  if (PRIVATE_COOKIE.test(request.headers.get('cookie') || '')) return false;
-  if (request.headers.get('authorization')) return false;
-  // Client-side navigations fetch React Server Component payloads for the same
-  // URL; they differ from the HTML document, so they are not cached here.
-  if (request.headers.get('rsc') || url.searchParams.has('_rsc')) return false;
-  for (const key of url.searchParams.keys()) if (PRIVATE_QUERY.test(key)) return false;
-  if (url.pathname === '/api') return API_ACTIONS.has(url.searchParams.get('action') || '');
-  return PAGE_PATTERNS.some((pattern) => pattern.test(url.pathname));
-}
 
 function storable(response) {
   if (response.status !== 200) return false;
   if (response.headers.has('set-cookie')) return false;
   const type = response.headers.get('content-type') || '';
-  return type.includes('text/html') || type.includes('application/json') || type.startsWith('image/');
+  return (
+    type.includes('text/html') ||
+    type.includes('application/json') ||
+    type.includes('xml') ||
+    type.startsWith('text/plain') ||
+    type.startsWith('image/')
+  );
 }
 
 // Streamed pages keep status 200 even when they end in notFound() or an error
@@ -74,16 +57,42 @@ async function healthy(response) {
   if (type.startsWith('image/')) return true;
   const text = await response.clone().text();
   if (type.includes('application/json')) return !/"ok"\s*:\s*false/.test(text);
+  if (type.includes('xml')) return /<(urlset|sitemapindex)\b/.test(text);
+  if (type.startsWith('text/plain')) return text.length > 0 && !/error code: 110\d/.test(text);
   return !BROKEN_HTML.test(text);
 }
 
 async function store(cache, key, response) {
-  if (!(await healthy(response))) return;
+  if (!(await healthy(response))) return false;
   const headers = new Headers(response.headers);
   headers.set(STORED_AT, String(Date.now()));
   // The Cache API honours cache-control; the freshness decision is made above.
   headers.set('cache-control', `public, max-age=${FRESH_SECONDS + STALE_SECONDS}`);
   await cache.put(key, new Response(response.body, { status: response.status, headers }));
+  return true;
+}
+
+async function storeLastGood(bucket, objectKey, response) {
+  if (!bucket) return;
+  const head = await bucket.head(objectKey).catch(() => null);
+  const storedAt = Number(head?.customMetadata?.storedAt || 0);
+  if (head && Date.now() - storedAt < LAST_GOOD_WRITE_EVERY_MS) return;
+  await bucket.put(objectKey, await response.arrayBuffer(), {
+    httpMetadata: { contentType: response.headers.get('content-type') || 'text/html; charset=utf-8' },
+    customMetadata: { storedAt: String(Date.now()) },
+  });
+}
+
+async function readLastGood(bucket, objectKey) {
+  if (!bucket) return null;
+  const object = await bucket.get(objectKey).catch(() => null);
+  if (!object) return null;
+  const storedAt = Number(object.customMetadata?.storedAt || 0);
+  if (!storedAt || Date.now() - storedAt > LAST_GOOD_MAX_AGE_MS) return null;
+  const headers = new Headers(SECURITY_HEADERS);
+  headers.set('content-type', object.httpMetadata?.contentType || 'text/html; charset=utf-8');
+  headers.set(STORED_AT, String(storedAt));
+  return new Response(object.body, { status: 200, headers });
 }
 
 function forVisitor(cached, state) {
@@ -94,31 +103,60 @@ function forVisitor(cached, state) {
   return new Response(cached.body, { status: cached.status, headers });
 }
 
+/** Render in the background and refresh both cache layers when the render is healthy. */
+function refresh(request, url, env, ctx, cache, key, objectKey) {
+  return openNext
+    .fetch(new Request(url.toString(), { method: 'GET', headers: request.headers }), env, ctx)
+    .then(async (fresh) => {
+      if (!storable(fresh)) return;
+      const copy = fresh.clone();
+      if (await store(cache, key, fresh)) await storeLastGood(env.PRODUCT_MEDIA, objectKey, copy);
+    })
+    .catch(() => undefined);
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const cache = globalThis.caches?.default;
     if (!cache || !cacheable(request, url)) return openNext.fetch(request, env, ctx);
 
-    const key = new Request(url.toString(), { method: 'GET' });
+    const keyUrl = cacheKeyUrl(url);
+    const key = new Request(keyUrl.toString(), { method: 'GET' });
+    const objectKey = await lastGoodObjectKey(keyUrl);
     const cached = await cache.match(key).catch(() => undefined);
     if (cached) {
       const age = (Date.now() - Number(cached.headers.get(STORED_AT) || 0)) / 1000;
       if (age < FRESH_SECONDS) return forVisitor(cached, 'HIT');
       if (age < FRESH_SECONDS + STALE_SECONDS) {
-        ctx.waitUntil(
-          openNext
-            .fetch(new Request(url.toString(), { method: 'GET', headers: request.headers }), env, ctx)
-            .then((fresh) => (storable(fresh) ? store(cache, key, fresh) : undefined))
-            .catch(() => undefined),
-        );
+        ctx.waitUntil(refresh(request, url, env, ctx, cache, key, objectKey));
         return forVisitor(cached, 'STALE');
       }
     }
 
+    // Nothing usable in this colo: answer with the last-good copy if there is one,
+    // seed the colo cache with it, and render in the background.
+    const lastGood = await readLastGood(env.PRODUCT_MEDIA, objectKey);
+    if (lastGood) {
+      const seeded = lastGood.clone();
+      ctx.waitUntil(
+        cache
+          .put(key, new Response(seeded.body, { status: 200, headers: seeded.headers }))
+          .catch(() => undefined)
+          .then(() => refresh(request, url, env, ctx, cache, key, objectKey)),
+      );
+      return forVisitor(lastGood, 'R2');
+    }
+
     const response = await openNext.fetch(request, env, ctx);
     if (!storable(response)) return response;
-    ctx.waitUntil(store(cache, key, response.clone()).catch(() => undefined));
+    const forCache = response.clone();
+    const forR2 = response.clone();
+    ctx.waitUntil(
+      store(cache, key, forCache)
+        .then((ok) => (ok ? storeLastGood(env.PRODUCT_MEDIA, objectKey, forR2) : undefined))
+        .catch(() => undefined),
+    );
     const headers = new Headers(response.headers);
     headers.set('x-tsk-edge-cache', 'MISS');
     return new Response(response.body, { status: response.status, headers });
