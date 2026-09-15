@@ -22,7 +22,7 @@ export function Hero({ banners }: { banners: Array<Record<string, unknown>> }) {
   const slides = banners.map(pick).filter((b): b is Banner => b !== null);
   const items = slides;
   const [index, setIndex] = useState(0);
-  const [failedSrc, setFailedSrc] = useState('');
+  const [failedSrcs, setFailedSrcs] = useState<string[]>([]);
 
   useEffect(() => {
     if (items.length < 2) return;
@@ -57,12 +57,22 @@ export function Hero({ banners }: { banners: Array<Record<string, unknown>> }) {
   }
 
   const current = items[index % items.length];
-  const currentFailed = failedSrc === current.src;
+  const currentFailed = failedSrcs.includes(current.src);
+  // A banner that fails to load moves the carousel on; the notice only shows
+  // once every slide has failed, so one bad upload never blanks the hero.
+  const allFailed = items.every((item) => failedSrcs.includes(item.src));
+  const markFailed = (src: string) => {
+    setFailedSrcs((list) => (list.includes(src) ? list : [...list, src]));
+    const next = items.findIndex(
+      (item, i) => i !== index % items.length && !failedSrcs.includes(item.src) && item.src !== src,
+    );
+    if (next >= 0) setIndex(next);
+  };
 
   return (
     <section className="mx-auto max-w-7xl px-4 pt-4 lg:px-6 lg:pt-6" aria-label="แบนเนอร์โปรโมชั่น">
       <div className="relative aspect-[16/10] overflow-hidden rounded-3xl shadow-2xl sm:aspect-[16/8] lg:aspect-[16/6]">
-        {currentFailed ? (
+        {allFailed || currentFailed ? (
           <div className="absolute inset-0 grid place-items-center bg-emerald-950 px-6 text-center text-white">
             <div>
               <p className="text-sm font-bold">แบนเนอร์นี้โหลดไม่สำเร็จ</p>
@@ -78,7 +88,7 @@ export function Hero({ banners }: { banners: Array<Record<string, unknown>> }) {
               priority
               className="object-cover"
               unoptimized={current.src.startsWith('data:')}
-              onError={() => setFailedSrc(current.src)}
+              onError={() => markFailed(current.src)}
             />
           </Link>
         )}
